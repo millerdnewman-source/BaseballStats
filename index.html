@@ -9,195 +9,103 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 
-<!-- SheetJS for Excel parsing -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<!-- DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
 <style>
   :root {
-    --bg: #0a0c0f;
-    --surface: #111418;
-    --border: #1e2530;
-    --accent: #c8f04a;
-    --accent2: #4af0c8;
-    --text: #e8edf2;
-    --muted: #5a6578;
-    --red: #f04a4a;
+    --bg: #0a0c0f; --surface: #111418; --border: #1e2530;
+    --accent: #c8f04a; --accent2: #4af0c8; --text: #e8edf2;
+    --muted: #5a6578; --red: #f04a4a;
     --mono: 'IBM Plex Mono', monospace;
     --sans: 'IBM Plex Sans', sans-serif;
     --display: 'Bebas Neue', sans-serif;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; overflow-x: hidden; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* HEADER */
   header {
-    border-bottom: 1px solid var(--border);
-    padding: 24px 40px;
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
-    position: relative;
-    overflow: hidden;
+    border-bottom: 1px solid var(--border); padding: 24px 40px;
+    display: flex; align-items: baseline; gap: 16px; position: relative; overflow: hidden;
   }
   header::before {
-    content: '';
-    position: absolute;
-    top: -60px; left: -60px;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(200,240,74,0.06) 0%, transparent 70%);
-    pointer-events: none;
+    content: ''; position: absolute; top: -60px; left: -60px; width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(200,240,74,0.06) 0%, transparent 70%); pointer-events: none;
   }
-  h1 {
-    font-family: var(--display);
-    font-size: clamp(2.2rem, 5vw, 3.6rem);
-    letter-spacing: 0.04em;
-    color: var(--text);
-    line-height: 1;
-  }
-  .header-sub {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    color: var(--muted);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding-bottom: 4px;
-  }
-  .accent-dot {
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 6px;
-    animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
+  h1 { font-family: var(--display); font-size: clamp(2.2rem, 5vw, 3.6rem); letter-spacing: 0.04em; color: var(--text); line-height: 1; }
+  .header-sub { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; padding-bottom: 4px; }
+  .accent-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; display: inline-block; margin-right: 6px; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  /* MAIN */
   main { padding: 36px 40px; max-width: 1600px; margin: 0 auto; }
+  .section-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
 
-  .section-label {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
-
-  /* UPLOAD */
   #upload-section { margin-bottom: 40px; }
-
   .upload-zone {
-    border: 1px dashed var(--border);
-    border-radius: 4px;
-    padding: 40px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    position: relative;
-    background: var(--surface);
+    border: 1px dashed var(--border); border-radius: 4px; padding: 40px; text-align: center;
+    cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; background: var(--surface);
   }
-  .upload-zone:hover, .upload-zone.drag-over {
-    border-color: var(--accent);
-    background: rgba(200,240,74,0.03);
-  }
-  .upload-zone input[type=file] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: rgba(200,240,74,0.03); }
+  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
   .upload-icon { font-size: 2rem; margin-bottom: 12px; color: var(--muted); }
   .upload-title { font-family: var(--display); font-size: 1.4rem; letter-spacing: 0.06em; color: var(--text); margin-bottom: 6px; }
   .upload-hint { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.08em; }
   .upload-hint code { background: var(--border); padding: 2px 6px; border-radius: 3px; color: var(--accent2); }
 
-  .format-box {
-    margin-top: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 20px 24px;
-  }
+  .format-box { margin-top: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; }
   .format-box table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 0.72rem; }
   .format-box th { color: var(--muted); text-align: left; padding: 4px 12px 8px 0; letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.62rem; border-bottom: 1px solid var(--border); }
   .format-box td { padding: 6px 12px 6px 0; color: var(--text); }
   .format-box td:first-child { color: var(--muted); }
   .ex { color: var(--accent2) !important; }
 
-  /* STATUS */
-  #status-bar {
-    display: none; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 4px; padding: 16px 20px; margin-bottom: 24px;
-    font-family: var(--mono); font-size: 0.75rem; color: var(--muted);
-  }
+  #status-bar { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin-bottom: 24px; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
   #status-bar.active { display: block; }
   #status-text { color: var(--text); }
   .progress-bar-wrap { height: 2px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden; }
   .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.3s ease; }
   #error-msg { color: var(--red); font-family: var(--mono); font-size: 0.75rem; margin-top: 8px; display: none; }
 
-  /* STATS SECTION */
   #stats-section { display: none; }
-
-  .controls-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .controls-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
 
   .tab-group { display: flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-  .tab-btn {
-    background: var(--surface); border: none; color: var(--muted);
-    font-family: var(--display); font-size: 1rem; letter-spacing: 0.08em;
-    padding: 10px 24px; cursor: pointer; transition: background 0.15s, color 0.15s;
-  }
+  .tab-btn { background: var(--surface); border: none; color: var(--muted); font-family: var(--display); font-size: 1rem; letter-spacing: 0.08em; padding: 10px 24px; cursor: pointer; transition: background 0.15s, color 0.15s; }
   .tab-btn:hover { color: var(--text); }
   .tab-btn.active { background: var(--accent); color: #0a0c0f; }
 
-  .search-wrap { flex: 1; max-width: 300px; position: relative; }
-  .search-wrap input {
-    width: 100%; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 0.78rem;
-    padding: 10px 14px 10px 36px; outline: none; transition: border-color 0.2s;
+  /* YEAR FILTER */
+  .year-filter { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .year-filter-label { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+  .year-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+    font-family: var(--mono); font-size: 0.72rem; padding: 6px 14px; border-radius: 3px;
+    cursor: pointer; transition: all 0.15s; letter-spacing: 0.06em;
   }
+  .year-btn:hover { color: var(--text); border-color: var(--muted); }
+  .year-btn.active { background: rgba(200,240,74,0.12); border-color: var(--accent); color: var(--accent); }
+
+  .search-wrap { flex: 1; max-width: 280px; position: relative; }
+  .search-wrap input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 0.78rem; padding: 10px 14px 10px 36px; outline: none; transition: border-color 0.2s; }
   .search-wrap input:focus { border-color: var(--accent); }
   .search-wrap input::placeholder { color: var(--muted); }
   .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.9rem; pointer-events: none; }
 
-  .reset-btn {
-    background: transparent; border: 1px solid var(--border); color: var(--muted);
-    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
-    padding: 10px 16px; border-radius: 4px; cursor: pointer; transition: border-color 0.2s, color 0.2s;
-  }
+  .reset-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 16px; border-radius: 4px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
   .reset-btn:hover { border-color: var(--red); color: var(--red); }
 
-  /* PILLS */
   .stat-pills { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
   .stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 10px 16px; text-align: center; min-width: 80px; }
   .stat-pill-value { font-family: var(--display); font-size: 1.6rem; letter-spacing: 0.04em; color: var(--accent); line-height: 1; }
   .stat-pill-label { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
 
-  /* TABLE */
   .table-wrap { overflow-x: auto; }
-
   table.stats-dt { width: 100% !important; border-collapse: collapse; font-family: var(--mono); font-size: 0.78rem; }
-  table.stats-dt thead th {
-    background: var(--surface); border-bottom: 1px solid var(--border); color: var(--muted);
-    font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase;
-    padding: 10px 14px; text-align: right; white-space: nowrap; cursor: pointer;
-  }
+  table.stats-dt thead th { background: var(--surface); border-bottom: 1px solid var(--border); color: var(--muted); font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; padding: 10px 14px; text-align: right; white-space: nowrap; cursor: pointer; }
   table.stats-dt thead th:first-child { text-align: left; }
-  table.stats-dt thead th.sorting_asc,
-  table.stats-dt thead th.sorting_desc { color: var(--accent); }
+  table.stats-dt thead th.sorting_asc, table.stats-dt thead th.sorting_desc { color: var(--accent); }
   table.stats-dt tbody tr { border-bottom: 1px solid rgba(30,37,48,0.6); transition: background 0.1s; }
   table.stats-dt tbody tr:hover { background: rgba(200,240,74,0.04); }
   table.stats-dt tbody td { padding: 10px 14px; text-align: right; color: var(--text); white-space: nowrap; }
@@ -206,10 +114,7 @@
 
   /* TEAM DROPDOWN */
   .team-cell { position: relative; text-align: left !important; }
-  .team-badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    cursor: default; font-family: var(--mono); font-size: 0.72rem; user-select: none;
-  }
+  .team-badge { display: inline-flex; align-items: center; gap: 5px; cursor: default; font-family: var(--mono); font-size: 0.72rem; user-select: none; }
   .team-badge.multi { cursor: pointer; }
   .team-badge.multi:hover .team-label { color: var(--accent); }
   .team-chevron { font-size: 0.6rem; color: var(--muted); transition: transform 0.18s; display: inline-block; line-height: 1; }
@@ -218,49 +123,29 @@
   .team-dropdown {
     display: none; position: absolute; top: calc(100% + 2px); left: 0; z-index: 9999;
     background: #181d25; border: 1px solid var(--border); border-radius: 4px;
-    box-shadow: 0 8px 28px rgba(0,0,0,0.6); overflow: hidden;
-    white-space: nowrap;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.6); overflow: hidden; white-space: nowrap;
   }
   .team-badge.open .team-dropdown { display: block; }
 
+  .tdd-scroll { overflow-x: auto; }
   .tdd-grid { display: grid; }
-  .tdd-header {
-    font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--muted); padding: 7px 14px; background: var(--surface);
-    border-bottom: 1px solid var(--border);
-  }
-  .tdd-row {
-    font-family: var(--mono); font-size: 0.72rem;
-    padding: 7px 14px; border-bottom: 1px solid rgba(30,37,48,0.5);
-    transition: background 0.1s; display: grid;
-  }
+  .tdd-header { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 7px 14px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .tdd-row { font-family: var(--mono); font-size: 0.72rem; padding: 7px 14px; border-bottom: 1px solid rgba(30,37,48,0.5); transition: background 0.1s; display: grid; }
   .tdd-row:last-child { border-bottom: none; }
   .tdd-row:hover { background: rgba(200,240,74,0.05); }
   .tdd-row .tm { color: var(--accent2); font-weight: 500; }
   .tdd-row span { color: var(--text); text-align: right; padding-left: 10px; }
 
-  /* DataTables overrides */
   .dataTables_wrapper .dataTables_filter { display: none; }
-  .dataTables_wrapper .dataTables_length select {
-    background: var(--surface); border: 1px solid var(--border); color: var(--text);
-    font-family: var(--mono); font-size: 0.72rem; padding: 4px 8px; border-radius: 3px; outline: none;
-  }
+  .dataTables_wrapper .dataTables_length select { background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 0.72rem; padding: 4px 8px; border-radius: 3px; outline: none; }
   .dataTables_wrapper .dataTables_length label { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; }
   .dataTables_wrapper .dataTables_info { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em; }
-  .dataTables_wrapper .dataTables_paginate .paginate_button {
-    font-family: var(--mono) !important; font-size: 0.7rem !important; color: var(--muted) !important;
-    background: var(--surface) !important; border: 1px solid var(--border) !important;
-    border-radius: 3px !important; padding: 4px 10px !important; margin: 0 2px !important; cursor: pointer !important;
-  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button { font-family: var(--mono) !important; font-size: 0.7rem !important; color: var(--muted) !important; background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 3px !important; padding: 4px 10px !important; margin: 0 2px !important; cursor: pointer !important; }
   .dataTables_wrapper .dataTables_paginate .paginate_button:hover { color: var(--text) !important; background: var(--border) !important; border-color: var(--border) !important; }
   .dataTables_wrapper .dataTables_paginate .paginate_button.current { color: #0a0c0f !important; background: var(--accent) !important; border-color: var(--accent) !important; }
   .dataTables_wrapper .dataTables_paginate .paginate_button.disabled { opacity: 0.3; cursor: not-allowed !important; }
 
-  footer {
-    border-top: 1px solid var(--border); padding: 20px 40px;
-    font-family: var(--mono); font-size: 0.65rem; color: var(--muted);
-    letter-spacing: 0.08em; margin-top: 60px;
-  }
+  footer { border-top: 1px solid var(--border); padding: 20px 40px; font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.08em; margin-top: 60px; }
 
   @media (max-width: 600px) {
     header, main, footer { padding-left: 20px; padding-right: 20px; }
@@ -274,13 +159,10 @@
   <div>
     <h1>Baseball Stats <span style="color:var(--accent)">///</span></h1>
   </div>
-  <div class="header-sub">
-    <span class="accent-dot"></span>MLB Boxscore Aggregator
-  </div>
+  <div class="header-sub"><span class="accent-dot"></span>MLB Boxscore Aggregator</div>
 </header>
 
 <main>
-
   <div id="upload-section">
     <div class="section-label">01 — Upload Game List</div>
     <div class="upload-zone" id="drop-zone">
@@ -289,7 +171,6 @@
       <div class="upload-title">Drop your spreadsheet here</div>
       <div class="upload-hint">Accepts <code>.xlsx</code> · <code>.xls</code> · <code>.csv</code></div>
     </div>
-
     <div class="format-box">
       <div class="section-label" style="margin-bottom:10px;">Expected column order (no header row needed)</div>
       <table>
@@ -307,7 +188,6 @@
         Home team name must match the MLB team name exactly (e.g. "Yankees", "Red Sox", "Cubs")
       </div>
     </div>
-
     <div id="status-bar">
       <div id="status-text">Loading…</div>
       <div id="error-msg"></div>
@@ -322,28 +202,24 @@
         <button class="tab-btn active" id="tab-hitting" onclick="switchTab('hitting')">Hitting</button>
         <button class="tab-btn" id="tab-pitching" onclick="switchTab('pitching')">Pitching</button>
       </div>
+      <div class="year-filter">
+        <span class="year-filter-label">Year</span>
+        <div id="year-btns"></div>
+      </div>
       <div class="search-wrap">
         <span class="search-icon">⌕</span>
         <input type="text" id="player-search" placeholder="Search player…">
       </div>
       <button class="reset-btn" onclick="resetAll()">↺ Load New File</button>
     </div>
-
     <div class="table-wrap">
-      <div id="hitting-wrap">
-        <table id="hittingTable" class="stats-dt"></table>
-      </div>
-      <div id="pitching-wrap" style="display:none;">
-        <table id="pitchingTable" class="stats-dt"></table>
-      </div>
+      <div id="hitting-wrap"><table id="hittingTable" class="stats-dt"></table></div>
+      <div id="pitching-wrap" style="display:none;"><table id="pitchingTable" class="stats-dt"></table></div>
     </div>
   </div>
-
 </main>
 
-<footer>
-  Data sourced live from MLB Stats API &nbsp;·&nbsp; No data is stored or transmitted
-</footer>
+<footer>Data sourced live from MLB Stats API &nbsp;·&nbsp; No data is stored or transmitted</footer>
 
 <script>
 // ============================================================
@@ -386,11 +262,9 @@ const TEAM_ABBR = {
 function getAbbr(teamName) {
   if (!teamName) return '???';
   if (TEAM_ABBR[teamName]) return TEAM_ABBR[teamName];
-  // Try matching by last word (e.g. "Yankees" from "New York Yankees")
   const parts = teamName.trim().split(' ');
   const last = parts[parts.length - 1];
   if (TEAM_ABBR[last]) return TEAM_ABBR[last];
-  // Try last two words
   if (parts.length >= 2) {
     const last2 = parts.slice(-2).join(' ');
     if (TEAM_ABBR[last2]) return TEAM_ABBR[last2];
@@ -399,76 +273,53 @@ function getAbbr(teamName) {
 }
 
 // ============================================================
-// CONFIG
+// STATE
 // ============================================================
 const MLB_API = "https://statsapi.mlb.com/api/v1";
-
-let hittingDT = null;
-let pitchingDT = null;
-let currentTab = 'hitting';
+let hittingDT = null, pitchingDT = null, currentTab = 'hitting';
+let allHittingRaw = [], allPitchingRaw = [];
+let availableYears = [], selectedYear = 'All';
+let totalGameCount = 0;
 
 // ============================================================
-// FILE UPLOAD / DRAG-DROP
+// FILE UPLOAD
 // ============================================================
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
 
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file) processFile(file);
-});
-fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) processFile(fileInput.files[0]);
-});
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) processFile(fileInput.files[0]); });
 
 function processFile(file) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
       const games = rows
         .filter(r => r.length >= 6 && r[1] && r[2] && r[3] && r[4])
-        .map(r => ({
-          month: String(r[1]).trim(),
-          day: parseInt(r[2]),
-          year: parseInt(r[3]),
-          homeTeam: String(r[4]).trim(),
-          gameNumber: parseInt(r[5]) || 1,
-        }));
+        .map(r => ({ month: String(r[1]).trim(), day: parseInt(r[2]), year: parseInt(r[3]), homeTeam: String(r[4]).trim(), gameNumber: parseInt(r[5]) || 1 }));
       if (!games.length) { showError("No valid rows found in spreadsheet."); return; }
       fetchAllGames(games);
-    } catch(err) {
-      showError("Could not parse file: " + err.message);
-    }
+    } catch(err) { showError("Could not parse file: " + err.message); }
   };
   reader.readAsArrayBuffer(file);
 }
 
 // ============================================================
-// MLB API CALLS
+// MLB API
 // ============================================================
 async function getGamePk(date, homeTeam, gameNumber) {
-  const url = `${MLB_API}/schedule?sportId=1&date=${date}&hydrate=team`;
-  const resp = await fetch(url);
-  const json = await resp.json();
-  const dates = json.dates || [];
-  if (!dates.length) throw new Error(`No games on ${date}`);
+  const json = await fetch(`${MLB_API}/schedule?sportId=1&date=${date}&hydrate=team`).then(r => r.json());
   let games = [];
-  for (const d of dates) {
+  for (const d of (json.dates || [])) {
     for (const g of (d.games || [])) {
       const hn = g.teams?.home?.team?.name || '';
       const cn = g.teams?.home?.team?.clubName || '';
-      if (hn.toLowerCase().includes(homeTeam.toLowerCase()) ||
-          cn.toLowerCase().includes(homeTeam.toLowerCase())) {
+      if (hn.toLowerCase().includes(homeTeam.toLowerCase()) || cn.toLowerCase().includes(homeTeam.toLowerCase()))
         games.push(g);
-      }
     }
   }
   games.sort((a, b) => (a.gameNumber || 1) - (b.gameNumber || 1));
@@ -477,66 +328,47 @@ async function getGamePk(date, homeTeam, gameNumber) {
 }
 
 async function getBoxscoreData(gamePk) {
-  const url = `${MLB_API}/game/${gamePk}/boxscore`;
-  const resp = await fetch(url);
-  return await resp.json();
+  return fetch(`${MLB_API}/game/${gamePk}/boxscore`).then(r => r.json());
 }
 
 // ============================================================
 // PARSE BOXSCORE
 // ============================================================
-function parseBoxscore(box, gamePk) {
-  const hittingRows = [];
-  const pitchingRows = [];
-
+function parseBoxscore(box, gamePk, year) {
+  const hittingRows = [], pitchingRows = [];
   for (const side of ['home', 'away']) {
     const teamData = box.teams?.[side];
     if (!teamData) continue;
     const teamName = teamData.team?.name || side;
     const players = teamData.players || {};
 
-    // HITTING
     for (const [pid, player] of Object.entries(players)) {
       const batting = player.stats?.batting;
       if (!batting || Object.keys(batting).length === 0) continue;
       hittingRows.push({
-        game_id: gamePk,
-        player_id: pid,
-        player_name: player.person?.fullName || '',
-        team: teamName,
-        atBats: batting.atBats || 0,
-        hits: batting.hits || 0,
-        doubles: batting.doubles || 0,
-        triples: batting.triples || 0,
-        homeRuns: batting.homeRuns || 0,
-        runs: batting.runs || 0,
-        rbi: batting.rbi || 0,
-        stolenBases: batting.stolenBases || 0,
-        strikeOuts: batting.strikeOuts || 0,
-        baseOnBalls: batting.baseOnBalls || 0,
+        game_id: gamePk, player_id: pid, year,
+        player_name: player.person?.fullName || '', team: teamName,
+        atBats: batting.atBats || 0, hits: batting.hits || 0,
+        doubles: batting.doubles || 0, triples: batting.triples || 0,
+        homeRuns: batting.homeRuns || 0, runs: batting.runs || 0,
+        rbi: batting.rbi || 0, stolenBases: batting.stolenBases || 0,
+        strikeOuts: batting.strikeOuts || 0, baseOnBalls: batting.baseOnBalls || 0,
         leftOnBase: batting.leftOnBase || 0,
       });
     }
 
-    // PITCHING
-    const pitcherIds = teamData.pitchers || [];
-    for (const pid of pitcherIds) {
+    for (const pid of (teamData.pitchers || [])) {
       const player = players[`ID${pid}`] || players[pid];
       if (!player) continue;
       const stats = player.stats?.pitching;
       if (!stats || Object.keys(stats).length === 0) continue;
       pitchingRows.push({
-        game_id: gamePk,
-        player_id: pid,
-        player_name: player.person?.fullName || '',
-        team: teamName,
+        game_id: gamePk, player_id: pid, year,
+        player_name: player.person?.fullName || '', team: teamName,
         ip_str: stats.inningsPitched || '0',
-        hits: stats.hits || 0,
-        runs: stats.runs || 0,
-        earnedRuns: stats.earnedRuns || 0,
-        baseOnBalls: stats.baseOnBalls || 0,
-        strikeOuts: stats.strikeOuts || 0,
-        homeRuns: stats.homeRuns || 0,
+        hits: stats.hits || 0, runs: stats.runs || 0,
+        earnedRuns: stats.earnedRuns || 0, baseOnBalls: stats.baseOnBalls || 0,
+        strikeOuts: stats.strikeOuts || 0, homeRuns: stats.homeRuns || 0,
         numberOfPitches: stats.numberOfPitches || 0,
       });
     }
@@ -551,9 +383,7 @@ function ipToOuts(ipStr) {
   const parts = String(ipStr).split('.');
   return (parseInt(parts[0]) || 0) * 3 + (parseInt(parts[1]) || 0);
 }
-function outsToIpDisplay(outs) {
-  return `${Math.floor(outs / 3)}.${outs % 3}`;
-}
+function outsToIpDisplay(outs) { return `${Math.floor(outs / 3)}.${outs % 3}`; }
 
 function hittingStatsFromBucket(m) {
   const singles = m.hits - m.doubles - m.triples - m.homeRuns;
@@ -564,46 +394,44 @@ function hittingStatsFromBucket(m) {
   return { avg, obp, slg, tb };
 }
 
+function emptyHitBucket() {
+  return { games: new Set(), atBats:0, hits:0, doubles:0, triples:0, homeRuns:0, runs:0, rbi:0, stolenBases:0, strikeOuts:0, baseOnBalls:0, leftOnBase:0 };
+}
+function addHitRow(m, r) {
+  m.games.add(r.game_id);
+  m.atBats+=r.atBats; m.hits+=r.hits; m.doubles+=r.doubles; m.triples+=r.triples;
+  m.homeRuns+=r.homeRuns; m.runs+=r.runs; m.rbi+=r.rbi; m.stolenBases+=r.stolenBases;
+  m.strikeOuts+=r.strikeOuts; m.baseOnBalls+=r.baseOnBalls; m.leftOnBase+=r.leftOnBase;
+}
+
 function computeHittingSummary(rows) {
   const map = {};
   for (const r of rows) {
     const key = r.player_id;
-    if (!map[key]) map[key] = {
-      player_name: r.player_name, games: new Set(), teamGames: {},
-      atBats:0, hits:0, doubles:0, triples:0, homeRuns:0,
-      runs:0, rbi:0, stolenBases:0, strikeOuts:0, baseOnBalls:0, leftOnBase:0,
-    };
+    if (!map[key]) map[key] = { player_name: r.player_name, teamGames: {}, ...emptyHitBucket() };
     const m = map[key];
-    m.games.add(r.game_id);
-    // per-team bucket
+    addHitRow(m, r);
     const abbr = getAbbr(r.team);
-    if (!m.teamGames[abbr]) m.teamGames[abbr] = {
-      games: new Set(), atBats:0, hits:0, doubles:0, triples:0, homeRuns:0,
-      runs:0, rbi:0, stolenBases:0, strikeOuts:0, baseOnBalls:0, leftOnBase:0,
-    };
-    const t = m.teamGames[abbr];
-    t.games.add(r.game_id);
-    t.atBats+=r.atBats; t.hits+=r.hits; t.doubles+=r.doubles; t.triples+=r.triples;
-    t.homeRuns+=r.homeRuns; t.runs+=r.runs; t.rbi+=r.rbi; t.stolenBases+=r.stolenBases;
-    t.strikeOuts+=r.strikeOuts; t.baseOnBalls+=r.baseOnBalls; t.leftOnBase+=r.leftOnBase;
-    // totals
-    m.atBats+=r.atBats; m.hits+=r.hits; m.doubles+=r.doubles; m.triples+=r.triples;
-    m.homeRuns+=r.homeRuns; m.runs+=r.runs; m.rbi+=r.rbi; m.stolenBases+=r.stolenBases;
-    m.strikeOuts+=r.strikeOuts; m.baseOnBalls+=r.baseOnBalls; m.leftOnBase+=r.leftOnBase;
+    if (!m.teamGames[abbr]) m.teamGames[abbr] = emptyHitBucket();
+    addHitRow(m.teamGames[abbr], r);
   }
   return Object.values(map).map(m => {
     const { avg, obp, slg, tb } = hittingStatsFromBucket(m);
     const teams = Object.keys(m.teamGames);
     const teamBreakdown = teams.map(abbr => {
       const t = m.teamGames[abbr];
-      const { avg: ta, obp: to, slg: ts, tb: ttb } = hittingStatsFromBucket(t);
-      return { abbr, g: t.games.size, avg: ta.toFixed(3), obp: to.toFixed(3), slg: ts.toFixed(3), ops: (to+ts).toFixed(3), h: t.hits, ab: t.atBats, hr: t.homeRuns, rbi: t.rbi };
+      const { avg:ta, obp:to, slg:ts, tb:ttb } = hittingStatsFromBucket(t);
+      const singles = t.hits - t.doubles - t.triples - t.homeRuns;
+      return {
+        abbr, g: t.games.size,
+        avg: ta.toFixed(3), obp: to.toFixed(3), slg: ts.toFixed(3), ops: (to+ts).toFixed(3),
+        h: t.hits, ab: t.atBats, hr: t.homeRuns, rbi: t.rbi,
+        doubles: t.doubles, triples: t.triples, tb: ttb, r: t.runs,
+        sb: t.stolenBases, so: t.strikeOuts, bb: t.baseOnBalls, lob: t.leftOnBase,
+      };
     });
     return {
-      Name: m.player_name,
-      G: m.games.size,
-      _teams: teams,
-      _teamBreakdown: teamBreakdown,
+      Name: m.player_name, G: m.games.size, _teams: teams, _teamBreakdown: teamBreakdown,
       AVG: avg.toFixed(3), OBP: obp.toFixed(3), SLG: slg.toFixed(3), OPS: (obp+slg).toFixed(3),
       H: m.hits, AB: m.atBats, HR: m.homeRuns, RBI: m.rbi,
       '2B': m.doubles, '3B': m.triples, TB: tb, R: m.runs,
@@ -612,49 +440,51 @@ function computeHittingSummary(rows) {
   }).sort((a,b) => parseFloat(b.OPS) - parseFloat(a.OPS));
 }
 
+function emptyPitchBucket() {
+  return { games: new Set(), outs:0, hits:0, runs:0, earnedRuns:0, baseOnBalls:0, strikeOuts:0, homeRuns:0, numberOfPitches:0 };
+}
+function addPitchRow(m, r) {
+  m.games.add(r.game_id);
+  const o = ipToOuts(r.ip_str);
+  m.outs+=o; m.hits+=r.hits; m.runs+=r.runs; m.earnedRuns+=r.earnedRuns;
+  m.baseOnBalls+=r.baseOnBalls; m.strikeOuts+=r.strikeOuts; m.homeRuns+=r.homeRuns; m.numberOfPitches+=r.numberOfPitches;
+}
+
 function pitchingStatsFromBucket(m) {
   const ipTrue = m.outs / 3;
-  const era = ipTrue ? (m.earnedRuns * 9 / ipTrue) : 0;
-  const whip = ipTrue ? (m.baseOnBalls + m.hits) / ipTrue : 0;
-  const k9 = ipTrue ? (m.strikeOuts * 9 / ipTrue) : 0;
-  return { era, whip, k9, ipTrue };
+  return {
+    era: ipTrue ? (m.earnedRuns * 9 / ipTrue) : 0,
+    whip: ipTrue ? (m.baseOnBalls + m.hits) / ipTrue : 0,
+    k9: ipTrue ? (m.strikeOuts * 9 / ipTrue) : 0,
+  };
 }
 
 function computePitchingSummary(rows) {
   const map = {};
   for (const r of rows) {
     const key = r.player_id;
-    if (!map[key]) map[key] = {
-      player_name: r.player_name, games: new Set(), teamGames: {},
-      outs:0, hits:0, runs:0, earnedRuns:0, baseOnBalls:0, strikeOuts:0, homeRuns:0, numberOfPitches:0,
-    };
+    if (!map[key]) map[key] = { player_name: r.player_name, teamGames: {}, ...emptyPitchBucket() };
     const m = map[key];
-    m.games.add(r.game_id);
+    addPitchRow(m, r);
     const abbr = getAbbr(r.team);
-    if (!m.teamGames[abbr]) m.teamGames[abbr] = {
-      games: new Set(), outs:0, hits:0, runs:0, earnedRuns:0, baseOnBalls:0, strikeOuts:0, homeRuns:0, numberOfPitches:0,
-    };
-    const t = m.teamGames[abbr];
-    t.games.add(r.game_id);
-    const o = ipToOuts(r.ip_str);
-    t.outs+=o; t.hits+=r.hits; t.runs+=r.runs; t.earnedRuns+=r.earnedRuns;
-    t.baseOnBalls+=r.baseOnBalls; t.strikeOuts+=r.strikeOuts; t.homeRuns+=r.homeRuns; t.numberOfPitches+=r.numberOfPitches;
-    m.outs+=o; m.hits+=r.hits; m.runs+=r.runs; m.earnedRuns+=r.earnedRuns;
-    m.baseOnBalls+=r.baseOnBalls; m.strikeOuts+=r.strikeOuts; m.homeRuns+=r.homeRuns; m.numberOfPitches+=r.numberOfPitches;
+    if (!m.teamGames[abbr]) m.teamGames[abbr] = emptyPitchBucket();
+    addPitchRow(m.teamGames[abbr], r);
   }
   return Object.values(map).map(m => {
     const { era, whip, k9 } = pitchingStatsFromBucket(m);
     const teams = Object.keys(m.teamGames);
     const teamBreakdown = teams.map(abbr => {
       const t = m.teamGames[abbr];
-      const { era: te, whip: tw, k9: tk } = pitchingStatsFromBucket(t);
-      return { abbr, g: t.games.size, ip: outsToIpDisplay(t.outs), era: te.toFixed(2), whip: tw.toFixed(2), k9: tk.toFixed(2), k: t.strikeOuts, bb: t.baseOnBalls };
+      const { era:te, whip:tw, k9:tk } = pitchingStatsFromBucket(t);
+      return {
+        abbr, g: t.games.size, ip: outsToIpDisplay(t.outs),
+        era: te.toFixed(2), whip: tw.toFixed(2), k9: tk.toFixed(2),
+        h: t.hits, er: t.earnedRuns, r: t.runs,
+        bb: t.baseOnBalls, k: t.strikeOuts, hr: t.homeRuns, pitches: t.numberOfPitches,
+      };
     });
     return {
-      Name: m.player_name,
-      G: m.games.size,
-      _teams: teams,
-      _teamBreakdown: teamBreakdown,
+      Name: m.player_name, G: m.games.size, _teams: teams, _teamBreakdown: teamBreakdown,
       IP: outsToIpDisplay(m.outs),
       ERA: era.toFixed(2), WHIP: whip.toFixed(2), 'K/9': k9.toFixed(2),
       H: m.hits, ER: m.earnedRuns, R: m.runs,
@@ -664,12 +494,11 @@ function computePitchingSummary(rows) {
 }
 
 // ============================================================
-// MAIN FETCH LOOP
+// FETCH LOOP
 // ============================================================
 async function fetchAllGames(games) {
   showStatus("Fetching games…", 0);
-  const allHitting = [];
-  const allPitching = [];
+  allHittingRaw = []; allPitchingRaw = [];
 
   for (let i = 0; i < games.length; i++) {
     const g = games[i];
@@ -680,21 +509,58 @@ async function fetchAllGames(games) {
       setStatus(`[${i+1}/${games.length}] ${date} — ${g.homeTeam}`);
       const gamePk = await getGamePk(date, g.homeTeam, g.gameNumber);
       const box = await getBoxscoreData(gamePk);
-      const { hittingRows, pitchingRows } = parseBoxscore(box, gamePk);
-      allHitting.push(...hittingRows);
-      allPitching.push(...pitchingRows);
-    } catch(err) {
-      console.warn(`Skipped: ${g.homeTeam} — ${err.message}`);
-    }
+      const { hittingRows, pitchingRows } = parseBoxscore(box, gamePk, g.year);
+      allHittingRaw.push(...hittingRows);
+      allPitchingRaw.push(...pitchingRows);
+    } catch(err) { console.warn(`Skipped: ${g.homeTeam} — ${err.message}`); }
   }
 
   setProgress(100);
-  setStatus(`Done — processed ${games.length} game(s)`);
-  if (!allHitting.length && !allPitching.length) {
+  totalGameCount = games.length;
+
+  if (!allHittingRaw.length && !allPitchingRaw.length) {
     showError("No data could be retrieved. Check your game list and try again.");
     return;
   }
-  renderTables(computeHittingSummary(allHitting), computePitchingSummary(allPitching), games.length);
+
+  // Collect available years
+  const yearSet = new Set([...allHittingRaw.map(r => r.year), ...allPitchingRaw.map(r => r.year)]);
+  availableYears = [...yearSet].filter(Boolean).sort();
+  selectedYear = 'All';
+  buildYearButtons();
+  applyYearFilter();
+}
+
+// ============================================================
+// YEAR FILTER
+// ============================================================
+function buildYearButtons() {
+  const container = document.getElementById('year-btns');
+  const years = ['All', ...availableYears];
+  container.innerHTML = years.map(y =>
+    `<button class="year-btn${y === selectedYear ? ' active' : ''}" onclick="selectYear(${y === 'All' ? "'All'" : y})">${y}</button>`
+  ).join('');
+  // hide year filter row if only one year
+  document.querySelector('.year-filter').style.display = availableYears.length <= 1 ? 'none' : 'flex';
+}
+
+function selectYear(y) {
+  selectedYear = y;
+  buildYearButtons();
+  applyYearFilter();
+}
+
+function applyYearFilter() {
+  const hRows = selectedYear === 'All' ? allHittingRaw  : allHittingRaw.filter(r => r.year === selectedYear);
+  const pRows = selectedYear === 'All' ? allPitchingRaw : allPitchingRaw.filter(r => r.year === selectedYear);
+
+  // Count unique game IDs for the filtered set
+  const gameIds = new Set([...hRows.map(r=>r.game_id), ...pRows.map(r=>r.game_id)]);
+
+  const label = selectedYear === 'All' ? `Done — processed ${totalGameCount} game(s)` : `Showing ${gameIds.size} game(s) from ${selectedYear}`;
+  setStatus(label);
+
+  renderTables(computeHittingSummary(hRows), computePitchingSummary(pRows), gameIds.size);
 }
 
 // ============================================================
@@ -709,38 +575,32 @@ function teamCellHTML(row, type) {
   let dropdownHTML = '';
   if (isMulti) {
     if (type === 'hitting') {
-      const cols = ['Team','G','AVG','OBP','SLG','OPS','H','AB','HR','RBI'];
-      const colWidths = ['52px','36px','60px','60px','60px','60px','40px','40px','40px','40px'];
-      const gridTpl = colWidths.join(' ');
-      dropdownHTML = `
-        <div class="team-dropdown">
-          <div class="tdd-grid tdd-header" style="grid-template-columns:${gridTpl}">
-            ${cols.map(c => `<span>${c}</span>`).join('')}
-          </div>
-          ${bd.map(t => `
-            <div class="tdd-grid tdd-row" style="grid-template-columns:${gridTpl}">
-              <span class="tm">${t.abbr}</span>
-              <span>${t.g}</span><span>${t.avg}</span><span>${t.obp}</span>
-              <span>${t.slg}</span><span>${t.ops}</span><span>${t.h}</span>
-              <span>${t.ab}</span><span>${t.hr}</span><span>${t.rbi}</span>
-            </div>`).join('')}
-        </div>`;
+      const cols = ['Team','G','AVG','OBP','SLG','OPS','H','AB','2B','3B','HR','TB','R','RBI','SB','SO','BB','LOB'];
+      const widths = ['52px','34px','58px','58px','58px','58px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px'];
+      const grid = widths.join(' ');
+      dropdownHTML = `<div class="team-dropdown"><div class="tdd-scroll">
+        <div class="tdd-grid tdd-header" style="grid-template-columns:${grid}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>
+        ${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${grid}">
+          <span class="tm">${t.abbr}</span>
+          <span>${t.g}</span><span>${t.avg}</span><span>${t.obp}</span><span>${t.slg}</span><span>${t.ops}</span>
+          <span>${t.h}</span><span>${t.ab}</span><span>${t.doubles}</span><span>${t.triples}</span>
+          <span>${t.hr}</span><span>${t.tb}</span><span>${t.r}</span><span>${t.rbi}</span>
+          <span>${t.sb}</span><span>${t.so}</span><span>${t.bb}</span><span>${t.lob}</span>
+        </div>`).join('')}
+      </div></div>`;
     } else {
-      const cols = ['Team','G','IP','ERA','WHIP','K/9','K','BB'];
-      const colWidths = ['52px','36px','52px','60px','60px','60px','40px','40px'];
-      const gridTpl = colWidths.join(' ');
-      dropdownHTML = `
-        <div class="team-dropdown">
-          <div class="tdd-grid tdd-header" style="grid-template-columns:${gridTpl}">
-            ${cols.map(c => `<span>${c}</span>`).join('')}
-          </div>
-          ${bd.map(t => `
-            <div class="tdd-grid tdd-row" style="grid-template-columns:${gridTpl}">
-              <span class="tm">${t.abbr}</span>
-              <span>${t.g}</span><span>${t.ip}</span><span>${t.era}</span>
-              <span>${t.whip}</span><span>${t.k9}</span><span>${t.k}</span><span>${t.bb}</span>
-            </div>`).join('')}
-        </div>`;
+      const cols = ['Team','G','IP','ERA','WHIP','K/9','H','ER','R','BB','K','HR','Pitches'];
+      const widths = ['52px','34px','50px','58px','58px','58px','36px','36px','36px','36px','36px','36px','58px'];
+      const grid = widths.join(' ');
+      dropdownHTML = `<div class="team-dropdown"><div class="tdd-scroll">
+        <div class="tdd-grid tdd-header" style="grid-template-columns:${grid}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>
+        ${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${grid}">
+          <span class="tm">${t.abbr}</span>
+          <span>${t.g}</span><span>${t.ip}</span><span>${t.era}</span><span>${t.whip}</span><span>${t.k9}</span>
+          <span>${t.h}</span><span>${t.er}</span><span>${t.r}</span><span>${t.bb}</span>
+          <span>${t.k}</span><span>${t.hr}</span><span>${t.pitches}</span>
+        </div>`).join('')}
+      </div></div>`;
     }
   }
 
@@ -759,7 +619,7 @@ const HI_HIT = ['AVG','OBP','SLG','OPS'];
 const HI_PIT = ['ERA','WHIP','K/9'];
 
 function buildTableHTML(rows, cols, hiCols, type) {
-  let html = `<thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+  let html = `<thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
   for (const row of rows) {
     html += '<tr>' + cols.map(c => {
       if (c === 'Team') return `<td class="team-cell">${teamCellHTML(row, type)}</td>`;
@@ -780,7 +640,7 @@ function renderTables(hitting, pitching, gameCount) {
     `<div class="stat-pill"><div class="stat-pill-value">${p.value}</div><div class="stat-pill-label">${p.label}</div></div>`
   ).join('');
 
-  if (hittingDT) { hittingDT.destroy(); hittingDT = null; }
+  if (hittingDT)  { hittingDT.destroy();  hittingDT  = null; }
   if (pitchingDT) { pitchingDT.destroy(); pitchingDT = null; }
 
   document.getElementById('hittingTable').innerHTML  = buildTableHTML(hitting,  HITTING_COLS,  HI_HIT,  'hitting');
@@ -788,16 +648,20 @@ function renderTables(hitting, pitching, gameCount) {
 
   hittingDT = $('#hittingTable').DataTable({
     paging: true, info: true, searching: true, pageLength: 25,
-    order: [[5, 'desc']], // OPS
-    columnDefs: [{ targets: 2, orderable: false }], // Team col not sortable
+    order: [[5, 'desc']],
+    columnDefs: [{ targets: 2, orderable: false }],
   });
   pitchingDT = $('#pitchingTable').DataTable({
     paging: true, info: true, searching: true, pageLength: 25,
-    order: [[4, 'asc']], // ERA
+    order: [[4, 'asc']],
     columnDefs: [{ targets: 2, orderable: false }],
   });
 
-  document.getElementById('player-search').addEventListener('keyup', function() {
+  // Re-bind search (remove old listener by cloning)
+  const oldSearch = document.getElementById('player-search');
+  const newSearch = oldSearch.cloneNode(true);
+  oldSearch.parentNode.replaceChild(newSearch, oldSearch);
+  newSearch.addEventListener('keyup', function() {
     if (currentTab === 'hitting') hittingDT.search(this.value).draw();
     else pitchingDT.search(this.value).draw();
   });
@@ -814,11 +678,9 @@ function toggleTeamDrop(e, el) {
   if (!el.classList.contains('multi')) return;
   e.stopPropagation();
   const isOpen = el.classList.contains('open');
-  // close all
   document.querySelectorAll('.team-badge.open').forEach(b => b.classList.remove('open'));
   if (!isOpen) el.classList.add('open');
 }
-// close on outside click
 document.addEventListener('click', () => {
   document.querySelectorAll('.team-badge.open').forEach(b => b.classList.remove('open'));
 });
@@ -826,11 +688,7 @@ document.addEventListener('click', () => {
 // ============================================================
 // UI HELPERS
 // ============================================================
-function showStatus(msg, pct) {
-  document.getElementById('status-bar').classList.add('active');
-  document.getElementById('error-msg').style.display = 'none';
-  setStatus(msg); setProgress(pct ?? 0);
-}
+function showStatus(msg, pct) { document.getElementById('status-bar').classList.add('active'); document.getElementById('error-msg').style.display = 'none'; setStatus(msg); setProgress(pct ?? 0); }
 function setStatus(msg) { document.getElementById('status-text').textContent = msg; }
 function setProgress(pct) { document.getElementById('progress-fill').style.width = pct + '%'; }
 function showError(msg) {
@@ -855,6 +713,7 @@ function switchTab(tab) {
 function resetAll() {
   if (hittingDT)  { hittingDT.destroy();  hittingDT  = null; }
   if (pitchingDT) { pitchingDT.destroy(); pitchingDT = null; }
+  allHittingRaw = []; allPitchingRaw = []; availableYears = []; selectedYear = 'All';
   document.getElementById('stats-section').style.display  = 'none';
   document.getElementById('upload-section').style.display = 'block';
   document.getElementById('file-input').value = '';

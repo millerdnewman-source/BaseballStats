@@ -42,6 +42,7 @@
   main { padding: 36px 40px; max-width: 1600px; margin: 0 auto; }
   .section-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
 
+  /* UPLOAD */
   #upload-section { margin-bottom: 40px; }
   .upload-zone {
     border: 1px dashed var(--border); border-radius: 4px; padding: 40px; text-align: center;
@@ -61,6 +62,7 @@
   .format-box td:first-child { color: var(--muted); }
   .ex { color: var(--accent2) !important; }
 
+  /* STATUS */
   #status-bar { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin-bottom: 24px; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
   #status-bar.active { display: block; }
   #status-text { color: var(--text); }
@@ -68,24 +70,43 @@
   .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.3s ease; }
   #error-msg { color: var(--red); font-family: var(--mono); font-size: 0.75rem; margin-top: 8px; display: none; }
 
+  /* STATS SECTION */
   #stats-section { display: none; }
-  .controls-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
 
+  /* FILTER BAR — two rows */
+  .filter-bar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  /* shared filter group style */
+  .filter-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .filter-label { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+
+  /* pill buttons (year, game type) */
+  .pill-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+    font-family: var(--mono); font-size: 0.72rem; padding: 6px 14px; border-radius: 3px;
+    cursor: pointer; transition: all 0.15s; letter-spacing: 0.06em; white-space: nowrap;
+  }
+  .pill-btn:hover { color: var(--text); border-color: var(--muted); }
+  .pill-btn.active { background: rgba(200,240,74,0.12); border-color: var(--accent); color: var(--accent); }
+
+  /* opposing team select */
+  .opp-select {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 0.72rem; padding: 6px 28px 6px 10px; border-radius: 3px;
+    cursor: pointer; outline: none; transition: border-color 0.2s;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6578'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center;
+  }
+  .opp-select:focus { border-color: var(--accent); }
+  .opp-select option { background: #181d25; }
+
+  /* tabs + search + reset */
   .tab-group { display: flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
   .tab-btn { background: var(--surface); border: none; color: var(--muted); font-family: var(--display); font-size: 1rem; letter-spacing: 0.08em; padding: 10px 24px; cursor: pointer; transition: background 0.15s, color 0.15s; }
   .tab-btn:hover { color: var(--text); }
   .tab-btn.active { background: var(--accent); color: #0a0c0f; }
-
-  /* YEAR FILTER */
-  .year-filter { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .year-filter-label { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
-  .year-btn {
-    background: var(--surface); border: 1px solid var(--border); color: var(--muted);
-    font-family: var(--mono); font-size: 0.72rem; padding: 6px 14px; border-radius: 3px;
-    cursor: pointer; transition: all 0.15s; letter-spacing: 0.06em;
-  }
-  .year-btn:hover { color: var(--text); border-color: var(--muted); }
-  .year-btn.active { background: rgba(200,240,74,0.12); border-color: var(--accent); color: var(--accent); }
 
   .search-wrap { flex: 1; max-width: 280px; position: relative; }
   .search-wrap input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 0.78rem; padding: 10px 14px 10px 36px; outline: none; transition: border-color 0.2s; }
@@ -93,14 +114,16 @@
   .search-wrap input::placeholder { color: var(--muted); }
   .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.9rem; pointer-events: none; }
 
-  .reset-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 16px; border-radius: 4px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+  .reset-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 16px; border-radius: 4px; cursor: pointer; transition: border-color 0.2s, color 0.2s; margin-left: auto; }
   .reset-btn:hover { border-color: var(--red); color: var(--red); }
 
+  /* PILLS */
   .stat-pills { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
   .stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 10px 16px; text-align: center; min-width: 80px; }
   .stat-pill-value { font-family: var(--display); font-size: 1.6rem; letter-spacing: 0.04em; color: var(--accent); line-height: 1; }
   .stat-pill-label { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
 
+  /* TABLE */
   .table-wrap { overflow-x: auto; }
   table.stats-dt { width: 100% !important; border-collapse: collapse; font-family: var(--mono); font-size: 0.78rem; }
   table.stats-dt thead th { background: var(--surface); border-bottom: 1px solid var(--border); color: var(--muted); font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; padding: 10px 14px; text-align: right; white-space: nowrap; cursor: pointer; }
@@ -119,14 +142,12 @@
   .team-badge.multi:hover .team-label { color: var(--accent); }
   .team-chevron { font-size: 0.6rem; color: var(--muted); transition: transform 0.18s; display: inline-block; line-height: 1; }
   .team-badge.open .team-chevron { transform: rotate(180deg); }
-
   .team-dropdown {
     display: none; position: absolute; top: calc(100% + 2px); left: 0; z-index: 9999;
     background: #181d25; border: 1px solid var(--border); border-radius: 4px;
     box-shadow: 0 8px 28px rgba(0,0,0,0.6); overflow: hidden; white-space: nowrap;
   }
   .team-badge.open .team-dropdown { display: block; }
-
   .tdd-scroll { overflow-x: auto; }
   .tdd-grid { display: grid; }
   .tdd-header { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 7px 14px; background: var(--surface); border-bottom: 1px solid var(--border); }
@@ -136,6 +157,7 @@
   .tdd-row .tm { color: var(--accent2); font-weight: 500; }
   .tdd-row span { color: var(--text); text-align: right; padding-left: 10px; }
 
+  /* DataTables overrides */
   .dataTables_wrapper .dataTables_filter { display: none; }
   .dataTables_wrapper .dataTables_length select { background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 0.72rem; padding: 4px 8px; border-radius: 3px; outline: none; }
   .dataTables_wrapper .dataTables_length label { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; }
@@ -156,9 +178,7 @@
 <body>
 
 <header>
-  <div>
-    <h1>Baseball Stats <span style="color:var(--accent)">///</span></h1>
-  </div>
+  <div><h1>Baseball Stats <span style="color:var(--accent)">///</span></h1></div>
   <div class="header-sub"><span class="accent-dot"></span>MLB Boxscore Aggregator</div>
 </header>
 
@@ -197,21 +217,48 @@
 
   <div id="stats-section">
     <div class="stat-pills" id="summary-pills"></div>
-    <div class="controls-row">
-      <div class="tab-group">
-        <button class="tab-btn active" id="tab-hitting" onclick="switchTab('hitting')">Hitting</button>
-        <button class="tab-btn" id="tab-pitching" onclick="switchTab('pitching')">Pitching</button>
+
+    <div class="filter-bar">
+      <!-- Row 1: tabs, year, game type, opp filter -->
+      <div class="filter-row">
+        <div class="tab-group">
+          <button class="tab-btn active" id="tab-hitting" onclick="switchTab('hitting')">Hitting</button>
+          <button class="tab-btn" id="tab-pitching" onclick="switchTab('pitching')">Pitching</button>
+        </div>
+
+        <div class="filter-group" id="year-filter-group">
+          <span class="filter-label">Year</span>
+          <div id="year-btns" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+        </div>
+
+        <div class="filter-group" id="gametype-filter-group">
+          <span class="filter-label">Games</span>
+          <div style="display:flex;gap:6px;">
+            <button class="pill-btn active" id="gt-all"      onclick="selectGameType('all')">All</button>
+            <button class="pill-btn"        id="gt-regular"  onclick="selectGameType('regular')">Regular Season</button>
+            <button class="pill-btn"        id="gt-playoffs" onclick="selectGameType('playoffs')">Playoffs</button>
+          </div>
+        </div>
+
+        <div class="filter-group" id="opp-filter-group">
+          <span class="filter-label">Opponent</span>
+          <select class="opp-select" id="opp-select" onchange="selectOpponent(this.value)">
+            <option value="All">All Teams</option>
+          </select>
+        </div>
+
+        <button class="reset-btn" onclick="resetAll()">↺ Load New File</button>
       </div>
-      <div class="year-filter">
-        <span class="year-filter-label">Year</span>
-        <div id="year-btns"></div>
+
+      <!-- Row 2: player search -->
+      <div class="filter-row">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="text" id="player-search" placeholder="Search player…">
+        </div>
       </div>
-      <div class="search-wrap">
-        <span class="search-icon">⌕</span>
-        <input type="text" id="player-search" placeholder="Search player…">
-      </div>
-      <button class="reset-btn" onclick="resetAll()">↺ Load New File</button>
     </div>
+
     <div class="table-wrap">
       <div id="hitting-wrap"><table id="hittingTable" class="stats-dt"></table></div>
       <div id="pitching-wrap" style="display:none;"><table id="pitchingTable" class="stats-dt"></table></div>
@@ -272,6 +319,10 @@ function getAbbr(teamName) {
   return teamName.slice(0, 3).toUpperCase();
 }
 
+// Playoff game type codes from MLB API
+const PLAYOFF_TYPES = new Set(['F', 'D', 'L', 'W', 'C', 'P']);
+function isPlayoff(gameType) { return PLAYOFF_TYPES.has(gameType); }
+
 // ============================================================
 // STATE
 // ============================================================
@@ -279,7 +330,11 @@ const MLB_API = "https://statsapi.mlb.com/api/v1";
 let hittingDT = null, pitchingDT = null, currentTab = 'hitting';
 let allHittingRaw = [], allPitchingRaw = [];
 let availableYears = [], selectedYear = 'All';
+let selectedGameType = 'all';   // 'all' | 'regular' | 'playoffs'
+let selectedOpponent = 'All';
+let availableOpponents = [];
 let totalGameCount = 0;
+let hasPlayoffGames = false;
 
 // ============================================================
 // FILE UPLOAD
@@ -311,7 +366,7 @@ function processFile(file) {
 // ============================================================
 // MLB API
 // ============================================================
-async function getGamePk(date, homeTeam, gameNumber) {
+async function getGameInfo(date, homeTeam, gameNumber) {
   const json = await fetch(`${MLB_API}/schedule?sportId=1&date=${date}&hydrate=team`).then(r => r.json());
   let games = [];
   for (const d of (json.dates || [])) {
@@ -324,7 +379,13 @@ async function getGamePk(date, homeTeam, gameNumber) {
   }
   games.sort((a, b) => (a.gameNumber || 1) - (b.gameNumber || 1));
   if (games.length < gameNumber) throw new Error(`Game #${gameNumber} not found for ${homeTeam} on ${date}`);
-  return games[gameNumber - 1].gamePk;
+  const g = games[gameNumber - 1];
+  return {
+    gamePk: g.gamePk,
+    gameType: g.gameType || 'R',
+    homeTeamName: g.teams?.home?.team?.name || homeTeam,
+    awayTeamName: g.teams?.away?.team?.name || '',
+  };
 }
 
 async function getBoxscoreData(gamePk) {
@@ -334,20 +395,24 @@ async function getBoxscoreData(gamePk) {
 // ============================================================
 // PARSE BOXSCORE
 // ============================================================
-function parseBoxscore(box, gamePk, year) {
+function parseBoxscore(box, gamePk, year, gameType, homeTeamName, awayTeamName) {
   const hittingRows = [], pitchingRows = [];
+  const teamNames = { home: homeTeamName, away: awayTeamName };
+
   for (const side of ['home', 'away']) {
     const teamData = box.teams?.[side];
     if (!teamData) continue;
-    const teamName = teamData.team?.name || side;
-    const players = teamData.players || {};
+    const teamName = teamData.team?.name || teamNames[side] || side;
+    const oppName  = side === 'home' ? (box.teams?.away?.team?.name || teamNames.away) : (box.teams?.home?.team?.name || teamNames.home);
+    const players  = teamData.players || {};
 
     for (const [pid, player] of Object.entries(players)) {
       const batting = player.stats?.batting;
       if (!batting || Object.keys(batting).length === 0) continue;
       hittingRows.push({
-        game_id: gamePk, player_id: pid, year,
-        player_name: player.person?.fullName || '', team: teamName,
+        game_id: gamePk, player_id: pid, year, gameType,
+        player_name: player.person?.fullName || '',
+        team: teamName, opponent: oppName,
         atBats: batting.atBats || 0, hits: batting.hits || 0,
         doubles: batting.doubles || 0, triples: batting.triples || 0,
         homeRuns: batting.homeRuns || 0, runs: batting.runs || 0,
@@ -363,8 +428,9 @@ function parseBoxscore(box, gamePk, year) {
       const stats = player.stats?.pitching;
       if (!stats || Object.keys(stats).length === 0) continue;
       pitchingRows.push({
-        game_id: gamePk, player_id: pid, year,
-        player_name: player.person?.fullName || '', team: teamName,
+        game_id: gamePk, player_id: pid, year, gameType,
+        player_name: player.person?.fullName || '',
+        team: teamName, opponent: oppName,
         ip_str: stats.inningsPitched || '0',
         hits: stats.hits || 0, runs: stats.runs || 0,
         earnedRuns: stats.earnedRuns || 0, baseOnBalls: stats.baseOnBalls || 0,
@@ -421,12 +487,11 @@ function computeHittingSummary(rows) {
     const teamBreakdown = teams.map(abbr => {
       const t = m.teamGames[abbr];
       const { avg:ta, obp:to, slg:ts, tb:ttb } = hittingStatsFromBucket(t);
-      const singles = t.hits - t.doubles - t.triples - t.homeRuns;
       return {
         abbr, g: t.games.size,
         avg: ta.toFixed(3), obp: to.toFixed(3), slg: ts.toFixed(3), ops: (to+ts).toFixed(3),
-        h: t.hits, ab: t.atBats, hr: t.homeRuns, rbi: t.rbi,
-        doubles: t.doubles, triples: t.triples, tb: ttb, r: t.runs,
+        h: t.hits, ab: t.atBats, doubles: t.doubles, triples: t.triples,
+        hr: t.homeRuns, tb: ttb, r: t.runs, rbi: t.rbi,
         sb: t.stolenBases, so: t.strikeOuts, bb: t.baseOnBalls, lob: t.leftOnBase,
       };
     });
@@ -453,9 +518,9 @@ function addPitchRow(m, r) {
 function pitchingStatsFromBucket(m) {
   const ipTrue = m.outs / 3;
   return {
-    era: ipTrue ? (m.earnedRuns * 9 / ipTrue) : 0,
+    era:  ipTrue ? (m.earnedRuns * 9 / ipTrue) : 0,
     whip: ipTrue ? (m.baseOnBalls + m.hits) / ipTrue : 0,
-    k9: ipTrue ? (m.strikeOuts * 9 / ipTrue) : 0,
+    k9:   ipTrue ? (m.strikeOuts * 9 / ipTrue) : 0,
   };
 }
 
@@ -507,9 +572,9 @@ async function fetchAllGames(games) {
       const monthNum = new Date(`${g.month} 1 ${g.year}`).getMonth() + 1;
       const date = `${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
       setStatus(`[${i+1}/${games.length}] ${date} — ${g.homeTeam}`);
-      const gamePk = await getGamePk(date, g.homeTeam, g.gameNumber);
+      const { gamePk, gameType, homeTeamName, awayTeamName } = await getGameInfo(date, g.homeTeam, g.gameNumber);
       const box = await getBoxscoreData(gamePk);
-      const { hittingRows, pitchingRows } = parseBoxscore(box, gamePk, g.year);
+      const { hittingRows, pitchingRows } = parseBoxscore(box, gamePk, g.year, gameType, homeTeamName, awayTeamName);
       allHittingRaw.push(...hittingRows);
       allPitchingRaw.push(...pitchingRows);
     } catch(err) { console.warn(`Skipped: ${g.homeTeam} — ${err.message}`); }
@@ -523,44 +588,110 @@ async function fetchAllGames(games) {
     return;
   }
 
-  // Collect available years
+  // Build available years
   const yearSet = new Set([...allHittingRaw.map(r => r.year), ...allPitchingRaw.map(r => r.year)]);
   availableYears = [...yearSet].filter(Boolean).sort();
   selectedYear = 'All';
+
+  // Check if any playoff games exist
+  hasPlayoffGames = allHittingRaw.some(r => isPlayoff(r.gameType)) || allPitchingRaw.some(r => isPlayoff(r.gameType));
+
+  // Build available opponents
+  buildOpponentList();
+
+  // Reset filters
+  selectedGameType = 'all';
+  selectedOpponent = 'All';
+
   buildYearButtons();
-  applyYearFilter();
+  updateGameTypeButtons();
+  document.getElementById('gametype-filter-group').style.display = hasPlayoffGames ? 'flex' : 'none';
+
+  applyFilters();
 }
 
 // ============================================================
-// YEAR FILTER
+// FILTER STATE HELPERS
 // ============================================================
+function buildOpponentList() {
+  const oppSet = new Set();
+  for (const r of allHittingRaw)  if (r.opponent) oppSet.add(r.opponent);
+  for (const r of allPitchingRaw) if (r.opponent) oppSet.add(r.opponent);
+  availableOpponents = [...oppSet].sort();
+
+  const sel = document.getElementById('opp-select');
+  sel.innerHTML = '<option value="All">All Teams</option>' +
+    availableOpponents.map(o => `<option value="${o}">${getAbbr(o)} — ${o}</option>`).join('');
+  sel.value = 'All';
+}
+
 function buildYearButtons() {
   const container = document.getElementById('year-btns');
   const years = ['All', ...availableYears];
   container.innerHTML = years.map(y =>
-    `<button class="year-btn${y === selectedYear ? ' active' : ''}" onclick="selectYear(${y === 'All' ? "'All'" : y})">${y}</button>`
+    `<button class="pill-btn${y === selectedYear ? ' active' : ''}" onclick="selectYear(${y === 'All' ? "'All'" : y})">${y}</button>`
   ).join('');
-  // hide year filter row if only one year
-  document.querySelector('.year-filter').style.display = availableYears.length <= 1 ? 'none' : 'flex';
+  document.getElementById('year-filter-group').style.display = availableYears.length <= 1 ? 'none' : 'flex';
 }
 
+function updateGameTypeButtons() {
+  ['all','regular','playoffs'].forEach(t => {
+    document.getElementById(`gt-${t}`).classList.toggle('active', selectedGameType === t);
+  });
+}
+
+function getFilteredRows() {
+  let hRows = allHittingRaw;
+  let pRows = allPitchingRaw;
+
+  // Year
+  if (selectedYear !== 'All') {
+    hRows = hRows.filter(r => r.year === selectedYear);
+    pRows = pRows.filter(r => r.year === selectedYear);
+  }
+
+  // Game type
+  if (selectedGameType === 'regular') {
+    hRows = hRows.filter(r => !isPlayoff(r.gameType));
+    pRows = pRows.filter(r => !isPlayoff(r.gameType));
+  } else if (selectedGameType === 'playoffs') {
+    hRows = hRows.filter(r => isPlayoff(r.gameType));
+    pRows = pRows.filter(r => isPlayoff(r.gameType));
+  }
+
+  // Opponent
+  if (selectedOpponent !== 'All') {
+    hRows = hRows.filter(r => r.opponent === selectedOpponent);
+    pRows = pRows.filter(r => r.opponent === selectedOpponent);
+  }
+
+  return { hRows, pRows };
+}
+
+function applyFilters() {
+  const { hRows, pRows } = getFilteredRows();
+  const gameIds = new Set([...hRows.map(r => r.game_id), ...pRows.map(r => r.game_id)]);
+  renderTables(computeHittingSummary(hRows), computePitchingSummary(pRows), gameIds.size);
+}
+
+// ============================================================
+// FILTER ACTIONS
+// ============================================================
 function selectYear(y) {
   selectedYear = y;
   buildYearButtons();
-  applyYearFilter();
+  applyFilters();
 }
 
-function applyYearFilter() {
-  const hRows = selectedYear === 'All' ? allHittingRaw  : allHittingRaw.filter(r => r.year === selectedYear);
-  const pRows = selectedYear === 'All' ? allPitchingRaw : allPitchingRaw.filter(r => r.year === selectedYear);
+function selectGameType(t) {
+  selectedGameType = t;
+  updateGameTypeButtons();
+  applyFilters();
+}
 
-  // Count unique game IDs for the filtered set
-  const gameIds = new Set([...hRows.map(r=>r.game_id), ...pRows.map(r=>r.game_id)]);
-
-  const label = selectedYear === 'All' ? `Done — processed ${totalGameCount} game(s)` : `Showing ${gameIds.size} game(s) from ${selectedYear}`;
-  setStatus(label);
-
-  renderTables(computeHittingSummary(hRows), computePitchingSummary(pRows), gameIds.size);
+function selectOpponent(val) {
+  selectedOpponent = val;
+  applyFilters();
 }
 
 // ============================================================
@@ -568,16 +699,16 @@ function applyYearFilter() {
 // ============================================================
 function teamCellHTML(row, type) {
   const teams = row._teams || [];
-  const bd = row._teamBreakdown || [];
+  const bd    = row._teamBreakdown || [];
   const isMulti = teams.length > 1;
-  const label = isMulti ? `${teams.length}TMS` : (teams[0] || '—');
+  const label   = isMulti ? `${teams.length}TMS` : (teams[0] || '—');
 
   let dropdownHTML = '';
   if (isMulti) {
     if (type === 'hitting') {
-      const cols = ['Team','G','AVG','OBP','SLG','OPS','H','AB','2B','3B','HR','TB','R','RBI','SB','SO','BB','LOB'];
+      const cols   = ['Team','G','AVG','OBP','SLG','OPS','H','AB','2B','3B','HR','TB','R','RBI','SB','SO','BB','LOB'];
       const widths = ['52px','34px','58px','58px','58px','58px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px'];
-      const grid = widths.join(' ');
+      const grid   = widths.join(' ');
       dropdownHTML = `<div class="team-dropdown"><div class="tdd-scroll">
         <div class="tdd-grid tdd-header" style="grid-template-columns:${grid}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>
         ${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${grid}">
@@ -589,9 +720,9 @@ function teamCellHTML(row, type) {
         </div>`).join('')}
       </div></div>`;
     } else {
-      const cols = ['Team','G','IP','ERA','WHIP','K/9','H','ER','R','BB','K','HR','Pitches'];
+      const cols   = ['Team','G','IP','ERA','WHIP','K/9','H','ER','R','BB','K','HR','Pitches'];
       const widths = ['52px','34px','50px','58px','58px','58px','36px','36px','36px','36px','36px','36px','58px'];
-      const grid = widths.join(' ');
+      const grid   = widths.join(' ');
       dropdownHTML = `<div class="team-dropdown"><div class="tdd-scroll">
         <div class="tdd-grid tdd-header" style="grid-template-columns:${grid}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>
         ${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${grid}">
@@ -632,8 +763,8 @@ function buildTableHTML(rows, cols, hiCols, type) {
 
 function renderTables(hitting, pitching, gameCount) {
   const pills = [
-    { label: 'Games', value: gameCount },
-    { label: 'Batters', value: hitting.length },
+    { label: 'Games',    value: gameCount },
+    { label: 'Batters',  value: hitting.length },
     { label: 'Pitchers', value: pitching.length },
   ];
   document.getElementById('summary-pills').innerHTML = pills.map(p =>
@@ -657,7 +788,6 @@ function renderTables(hitting, pitching, gameCount) {
     columnDefs: [{ targets: 2, orderable: false }],
   });
 
-  // Re-bind search (remove old listener by cloning)
   const oldSearch = document.getElementById('player-search');
   const newSearch = oldSearch.cloneNode(true);
   oldSearch.parentNode.replaceChild(newSearch, oldSearch);
@@ -667,7 +797,7 @@ function renderTables(hitting, pitching, gameCount) {
   });
 
   document.getElementById('upload-section').style.display = 'none';
-  document.getElementById('stats-section').style.display = 'block';
+  document.getElementById('stats-section').style.display  = 'block';
   document.getElementById('status-bar').classList.remove('active');
 }
 
@@ -713,7 +843,9 @@ function switchTab(tab) {
 function resetAll() {
   if (hittingDT)  { hittingDT.destroy();  hittingDT  = null; }
   if (pitchingDT) { pitchingDT.destroy(); pitchingDT = null; }
-  allHittingRaw = []; allPitchingRaw = []; availableYears = []; selectedYear = 'All';
+  allHittingRaw = []; allPitchingRaw = [];
+  availableYears = []; selectedYear = 'All';
+  selectedGameType = 'all'; selectedOpponent = 'All';
   document.getElementById('stats-section').style.display  = 'none';
   document.getElementById('upload-section').style.display = 'block';
   document.getElementById('file-input').value = '';

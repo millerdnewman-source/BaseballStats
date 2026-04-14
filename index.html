@@ -97,7 +97,7 @@
   .opp-select:focus { border-color: var(--accent); }
   .opp-select option { background: #181d25; }
 
-  .tab-group { display: flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .tab-group { display: flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; flex-wrap: wrap; }
   .tab-btn { background: var(--surface); border: none; color: var(--muted); font-family: var(--display); font-size: 1rem; letter-spacing: 0.08em; padding: 10px 24px; cursor: pointer; transition: background 0.15s, color 0.15s; }
   .tab-btn:hover { color: var(--text); }
   .tab-btn.active { background: var(--accent); color: #0a0c0f; }
@@ -250,9 +250,34 @@
   .scoreboard-table .total-e { color: var(--red); }
   .scoreboard-table .winner-row td:first-child { color: var(--accent); }
   .scoreboard-table .divider-col { border-left: 1px solid var(--border); }
-  .scoreboard-attendees { padding: 8px 16px; border-top: 1px solid var(--border); font-size: 0.68rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .scoreboard-attendees { padding: 8px 16px; border-top: 1px solid var(--border); font-size: 0.68rem; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .scoreboard-attendees strong { color: var(--text); font-weight: 400; }
   .attendee-tag { display: inline-block; background: rgba(74,240,200,0.1); color: var(--accent2); border: 1px solid rgba(74,240,200,0.2); border-radius: 3px; padding: 1px 7px; font-size: 0.64rem; margin: 1px 2px; letter-spacing: 0.04em; }
+
+  /* SCOREBOARD NOTES */
+  .scoreboard-notes { padding: 8px 16px; border-top: 1px solid var(--border); font-size: 0.68rem; color: var(--muted); display: flex; align-items: flex-start; gap: 8px; }
+  .scoreboard-notes strong { color: var(--text); font-weight: 400; white-space: nowrap; }
+  .scoreboard-notes .note-text { color: var(--text); font-style: italic; line-height: 1.5; }
+  .scoreboard-notes .note-edit-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted); cursor: pointer;
+    font-family: var(--mono); font-size: 0.6rem; padding: 2px 7px; border-radius: 3px;
+    transition: all 0.15s; white-space: nowrap; margin-left: auto; flex-shrink: 0;
+  }
+  .scoreboard-notes .note-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .scoreboard-note-editor { padding: 8px 16px; border-top: 1px solid var(--border); display: none; }
+  .scoreboard-note-editor.open { display: block; }
+  .scoreboard-note-editor textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 0.76rem; padding: 10px 12px; border-radius: 4px;
+    outline: none; resize: vertical; min-height: 64px; transition: border-color 0.2s; line-height: 1.5;
+  }
+  .scoreboard-note-editor textarea:focus { border-color: var(--accent); }
+  .scoreboard-note-editor-actions { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
+  .note-save-btn { background: var(--accent); border: none; color: #0a0c0f; font-family: var(--mono); font-size: 0.68rem; padding: 6px 14px; border-radius: 3px; cursor: pointer; transition: opacity 0.15s; }
+  .note-save-btn:hover { opacity: 0.85; }
+  .note-cancel-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: var(--mono); font-size: 0.68rem; padding: 6px 12px; border-radius: 3px; cursor: pointer; transition: all 0.15s; }
+  .note-cancel-btn:hover { border-color: var(--muted); color: var(--text); }
+
   .sb-filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
   .sb-search { flex: 1; max-width: 260px; }
   .sb-search input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 0.76rem; padding: 8px 12px; outline: none; }
@@ -261,15 +286,21 @@
   .sb-count { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); margin-left: auto; }
   .no-games-msg { font-family: var(--mono); font-size: 0.76rem; color: var(--muted); padding: 24px 0; text-align: center; }
 
-  /* ATTENDANCE TABLE */
+  /* ATTENDANCE TABLE — sortable */
   #attendance-wrap { overflow-x: auto; padding: 4px 0; }
   .attendance-table { border-collapse: collapse; font-family: var(--mono); font-size: 0.76rem; white-space: nowrap; }
   .attendance-table th {
     background: var(--surface); border-bottom: 1px solid var(--border);
     color: var(--muted); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
     padding: 10px 14px; text-align: center; white-space: nowrap; position: sticky; top: 0; z-index: 2;
+    cursor: pointer; user-select: none; transition: color 0.15s;
   }
-  .attendance-table th:first-child { text-align: left; position: sticky; left: 0; z-index: 3; background: var(--surface); min-width: 130px; }
+  .attendance-table th:hover { color: var(--text); }
+  .attendance-table th.sort-asc, .attendance-table th.sort-desc { color: var(--accent); }
+  .attendance-table th .sort-arrow { display: inline-block; margin-left: 4px; opacity: 0.4; font-size: 0.55rem; transition: opacity 0.15s; }
+  .attendance-table th.sort-asc .sort-arrow, .attendance-table th.sort-desc .sort-arrow { opacity: 1; }
+  .attendance-table th:first-child { text-align: left; position: sticky; left: 0; z-index: 3; background: var(--surface); min-width: 130px; cursor: default; }
+  .attendance-table th:first-child:hover { color: var(--muted); }
   .attendance-table th.total-col { color: var(--accent); border-left: 1px solid var(--border); }
   .attendance-table td { padding: 9px 14px; text-align: center; border-bottom: 1px solid rgba(30,37,48,0.5); }
   .attendance-table td:first-child { text-align: left; font-weight: 500; color: var(--text); position: sticky; left: 0; background: var(--bg); border-right: 1px solid var(--border); }
@@ -281,6 +312,31 @@
   .att-section-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
   .att-note { font-family: var(--mono); font-size: 0.66rem; color: var(--muted); margin-top: 16px; }
   .att-stadium-header { writing-mode: horizontal-tb; font-size: 0.62rem; }
+
+  /* PERSONAL GAME STATS TAB */
+  #personal-wrap { overflow-x: auto; padding: 4px 0; }
+  .personal-section { margin-bottom: 36px; }
+  .personal-section-title { font-family: var(--display); font-size: 1.2rem; letter-spacing: 0.06em; color: var(--text); margin-bottom: 4px; }
+  .personal-section-sub { font-family: var(--mono); font-size: 0.64rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
+  .personal-table { border-collapse: collapse; font-family: var(--mono); font-size: 0.76rem; white-space: nowrap; }
+  .personal-table th {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    color: var(--muted); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 10px 14px; text-align: center; white-space: nowrap;
+  }
+  .personal-table th:first-child { text-align: left; min-width: 160px; position: sticky; left: 0; z-index: 2; background: var(--surface); }
+  .personal-table td { padding: 9px 14px; text-align: center; border-bottom: 1px solid rgba(30,37,48,0.5); }
+  .personal-table td:first-child { text-align: left; font-weight: 500; color: var(--text); position: sticky; left: 0; background: var(--bg); border-right: 1px solid var(--border); }
+  .personal-table tr:hover td { background: rgba(200,240,74,0.03); }
+  .personal-table tr:hover td:first-child { background: #0e1014; }
+  .personal-cell-filled { color: var(--accent2); font-weight: 500; }
+  .personal-cell-empty { color: rgba(90,101,120,0.3); }
+  .personal-total-col { color: var(--accent); font-weight: 500; border-left: 1px solid var(--border); }
+  .personal-total-row td { color: var(--muted); font-size: 0.7rem; border-top: 1px solid var(--border); }
+  .personal-total-row td:first-child { color: var(--muted); }
+  .personal-total-row td.personal-total-col { color: var(--accent); }
+  .personal-note { font-family: var(--mono); font-size: 0.66rem; color: var(--muted); margin-top: 16px; }
+  .personal-empty-msg { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); padding: 32px 0; text-align: center; }
 
   footer { border-top: 1px solid var(--border); padding: 20px 40px; font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.08em; margin-top: 60px; }
 
@@ -345,11 +401,19 @@
           <button class="tab-btn"        id="tab-pitching"   onclick="switchTab('pitching')">Pitching</button>
           <button class="tab-btn"        id="tab-scoreboard" onclick="switchTab('scoreboard')">Scoreboard</button>
           <button class="tab-btn"        id="tab-attendance" onclick="switchTab('attendance')">Attendance</button>
+          <button class="tab-btn"        id="tab-personal"   onclick="switchTab('personal')">Personal Game Stats</button>
         </div>
+      </div>
 
+      <div class="filter-row">
         <div class="filter-group" id="year-filter-group">
           <span class="filter-label">Year</span>
           <div id="year-btns" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+        </div>
+
+        <div class="filter-group" id="month-filter-group" style="display:none;">
+          <span class="filter-label">Month</span>
+          <div id="month-btns" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
         </div>
 
         <div class="filter-group" id="gametype-filter-group" style="display:none;">
@@ -401,6 +465,7 @@
       <div id="pitching-wrap" style="display:none;"><table id="pitchingTable" class="stats-dt"></table></div>
       <div id="scoreboard-wrap" style="display:none;"></div>
       <div id="attendance-wrap" style="display:none;"></div>
+      <div id="personal-wrap" style="display:none;"></div>
     </div>
   </div>
 </main>
@@ -504,7 +569,6 @@ const TEAM_ABBR = {
   'Yankees':'NYY','New York Yankees':'NYY',
 };
 
-// MLB team → home stadium (abbreviated)
 const TEAM_STADIUM = {
   'Angels':'Angel Stadium','Los Angeles Angels':'Angel Stadium',
   'Astros':'Minute Maid','Houston Astros':'Minute Maid',
@@ -550,6 +614,8 @@ function getStadium(teamName) {
 }
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const PLAYOFF_TYPES = new Set(['F','D','L','W','C','P']);
 function isPlayoff(t) { return PLAYOFF_TYPES.has(t); }
 
@@ -569,14 +635,17 @@ function getAbbr(teamName) {
 const MLB_API = "https://statsapi.mlb.com/api/v1";
 let hittingDT = null, pitchingDT = null, currentTab = 'hitting';
 let allHittingRaw = [], allPitchingRaw = [];
-// gameList: [{month,day,year,homeTeam,gameNumber,gameType,gamePk,awayTeam,attendedWith:[]}]
-// scoreboardData: [{gamePk, date, homeTeamName, awayTeamName, gameType, attendedWith,
-//                   homeLineScore, awayLineScore, homeR,homeH,homeE,awayR,awayH,awayE}]
 let gameList = [], scoreboardData = [];
-let availableYears = [], selectedYear = 'All';
+// gameNotes: { [gamePk]: string }
+let gameNotes = {};
+let availableYears = [], availableMonths = [], selectedYear = 'All', selectedMonth = 'All';
 let selectedGameType = 'all', selectedOpponent = 'All';
 let availableOpponents = [], hasPlayoffGames = false;
 let totalGameCount = 0;
+
+// Attendance sort state
+let attSortCol = null; // column index (0 = name, 1..n = stadiums, last = total)
+let attSortDir = 'desc'; // 'asc' | 'desc'
 
 // ============================================================
 // POPULATE TEAM DROPDOWN IN MODAL
@@ -799,9 +868,14 @@ async function fetchSingleGame(date, homeTeam, gameNumber, overrideType, attende
 function initFiltersAndRender() {
   const yearSet=new Set([...allHittingRaw.map(r=>r.year),...allPitchingRaw.map(r=>r.year),...scoreboardData.map(r=>r.year)]);
   availableYears=[...yearSet].filter(Boolean).sort();
-  selectedYear='All'; selectedGameType='all'; selectedOpponent='All';
+
+  // Collect available months from scoreboardData (month numbers)
+  const monthSet=new Set(scoreboardData.map(r=>{ const m=new Date(r.date+'T12:00:00').getMonth(); return m; }));
+  availableMonths=[...monthSet].sort((a,b)=>a-b);
+
+  selectedYear='All'; selectedMonth='All'; selectedGameType='all'; selectedOpponent='All';
   hasPlayoffGames=allHittingRaw.some(r=>isPlayoff(r.gameType))||allPitchingRaw.some(r=>isPlayoff(r.gameType));
-  buildOpponentList(); buildYearButtons(); updateGameTypeButtons();
+  buildOpponentList(); buildYearButtons(); buildMonthButtons(); updateGameTypeButtons();
   document.getElementById('gametype-filter-group').style.display=hasPlayoffGames?'flex':'none';
   applyFilters();
 }
@@ -820,13 +894,33 @@ function buildYearButtons() {
   document.getElementById('year-filter-group').style.display=availableYears.length<=1?'none':'flex';
 }
 
+function buildMonthButtons() {
+  if (!availableMonths.length) { document.getElementById('month-filter-group').style.display='none'; return; }
+  document.getElementById('month-btns').innerHTML=
+    `<button class="pill-btn${selectedMonth==='All'?' active':''}" onclick="selectMonth('All')">All</button>` +
+    availableMonths.map(m=>
+      `<button class="pill-btn${selectedMonth===m?' active':''}" onclick="selectMonth(${m})">${MONTH_SHORT[m]}</button>`
+    ).join('');
+  document.getElementById('month-filter-group').style.display='flex';
+}
+
 function updateGameTypeButtons() {
   ['all','regular','playoffs'].forEach(t=>document.getElementById(`gt-${t}`).classList.toggle('active',selectedGameType===t));
 }
 
 function getFilteredRows() {
   let h=allHittingRaw, p=allPitchingRaw, sb=scoreboardData;
-  if (selectedYear!=='All')        { h=h.filter(r=>r.year===selectedYear); p=p.filter(r=>r.year===selectedYear); sb=sb.filter(r=>r.year===selectedYear); }
+
+  if (selectedYear!=='All') {
+    h=h.filter(r=>r.year===selectedYear); p=p.filter(r=>r.year===selectedYear); sb=sb.filter(r=>r.year===selectedYear);
+  }
+  if (selectedMonth!=='All') {
+    // Filter sb by month (0-indexed)
+    sb=sb.filter(r=>{ const m=new Date(r.date+'T12:00:00').getMonth(); return m===selectedMonth; });
+    // For h/p we match by game_id presence in filtered sb
+    const sbPks=new Set(sb.map(r=>r.gamePk));
+    h=h.filter(r=>sbPks.has(r.game_id)); p=p.filter(r=>sbPks.has(r.game_id));
+  }
   if (selectedGameType==='regular'){ h=h.filter(r=>!isPlayoff(r.gameType)); p=p.filter(r=>!isPlayoff(r.gameType)); sb=sb.filter(r=>!isPlayoff(r.gameType)); }
   if (selectedGameType==='playoffs'){ h=h.filter(r=>isPlayoff(r.gameType)); p=p.filter(r=>isPlayoff(r.gameType)); sb=sb.filter(r=>isPlayoff(r.gameType)); }
   if (selectedOpponent!=='All')    { h=h.filter(r=>r.opponent===selectedOpponent); p=p.filter(r=>r.opponent===selectedOpponent);
@@ -841,9 +935,10 @@ function applyFilters() {
   renderGameList();
 }
 
-function selectYear(y)     { selectedYear=y;         buildYearButtons();       applyFilters(); }
-function selectGameType(t) { selectedGameType=t;     updateGameTypeButtons();  applyFilters(); }
-function selectOpponent(v) { selectedOpponent=v;                               applyFilters(); }
+function selectYear(y)     { selectedYear=y;         buildYearButtons(); buildMonthButtons(); applyFilters(); }
+function selectMonth(m)    { selectedMonth=m;         buildMonthButtons();                    applyFilters(); }
+function selectGameType(t) { selectedGameType=t;     updateGameTypeButtons();               applyFilters(); }
+function selectOpponent(v) { selectedOpponent=v;                                            applyFilters(); }
 
 // ============================================================
 // GAME LIST PANEL
@@ -879,7 +974,8 @@ function removeGame(idx) {
   allHittingRaw =allHittingRaw.filter(r=>r.game_id!==g.gamePk);
   allPitchingRaw=allPitchingRaw.filter(r=>r.game_id!==g.gamePk);
   scoreboardData=scoreboardData.filter(r=>r.gamePk!==g.gamePk);
-  buildOpponentList(); buildYearButtons();
+  delete gameNotes[g.gamePk];
+  buildOpponentList(); buildYearButtons(); buildMonthButtons();
   hasPlayoffGames=allHittingRaw.some(r=>isPlayoff(r.gameType))||allPitchingRaw.some(r=>isPlayoff(r.gameType));
   document.getElementById('gametype-filter-group').style.display=hasPlayoffGames?'flex':'none';
   applyFilters();
@@ -958,6 +1054,7 @@ function shareLink() {
       hRaw: allHittingRaw.map(r=>({...r})),
       pRaw: allPitchingRaw.map(r=>({...r})),
       sbData: scoreboardData,
+      notes: gameNotes,
     };
     const json   = JSON.stringify(safePayload);
     const compressed = pako.deflate(json);
@@ -986,6 +1083,7 @@ function loadFromURL() {
     allHittingRaw=payload.hRaw||[];
     allPitchingRaw=payload.pRaw||[];
     scoreboardData=payload.sbData||[];
+    gameNotes=payload.notes||{};
     totalGameCount=gameList.length;
     if (!allHittingRaw.length&&!allPitchingRaw.length&&!scoreboardData.length) return false;
     initFiltersAndRender();
@@ -1019,6 +1117,64 @@ function teamCellHTML(row,type) {
 }
 
 // ============================================================
+// SCOREBOARD NOTES
+// ============================================================
+function toggleNoteEditor(gamePk) {
+  const editor = document.getElementById(`note-editor-${gamePk}`);
+  if (!editor) return;
+  const isOpen = editor.classList.contains('open');
+  if (isOpen) {
+    editor.classList.remove('open');
+  } else {
+    const ta = editor.querySelector('textarea');
+    ta.value = gameNotes[gamePk] || '';
+    editor.classList.add('open');
+    ta.focus();
+  }
+}
+
+function saveNote(gamePk) {
+  const editor = document.getElementById(`note-editor-${gamePk}`);
+  if (!editor) return;
+  const ta = editor.querySelector('textarea');
+  const val = ta.value.trim();
+  if (val) {
+    gameNotes[gamePk] = val;
+  } else {
+    delete gameNotes[gamePk];
+  }
+  editor.classList.remove('open');
+  // Re-render just the notes row for this card
+  const notesRow = document.getElementById(`note-row-${gamePk}`);
+  if (notesRow) {
+    notesRow.outerHTML = buildNoteRow(gamePk);
+  }
+  showToast('Note saved');
+}
+
+function cancelNote(gamePk) {
+  const editor = document.getElementById(`note-editor-${gamePk}`);
+  if (editor) editor.classList.remove('open');
+}
+
+function buildNoteRow(gamePk) {
+  const note = gameNotes[gamePk] || '';
+  if (note) {
+    return `<div class="scoreboard-notes" id="note-row-${gamePk}">
+      <strong>Note:</strong>
+      <span class="note-text">${escHtml(note)}</span>
+      <button class="note-edit-btn" onclick="toggleNoteEditor(${gamePk})">Edit</button>
+    </div>`;
+  } else {
+    return `<div class="scoreboard-notes" id="note-row-${gamePk}" style="color:rgba(90,101,120,0.5);">
+      <strong style="color:var(--muted)">Note:</strong>
+      <span style="font-style:italic;">No note — </span>
+      <button class="note-edit-btn" onclick="toggleNoteEditor(${gamePk})">Add note</button>
+    </div>`;
+  }
+}
+
+// ============================================================
 // RENDER SCOREBOARD
 // ============================================================
 let sbSearchTerm = '';
@@ -1029,7 +1185,6 @@ function renderScoreboard(sbRows) {
   const wrap = document.getElementById('scoreboard-wrap');
   if (!sbRows.length) { wrap.innerHTML = '<div class="no-games-msg">No games match the current filters.</div>'; return; }
 
-  // Sort by date descending
   const sorted = [...sbRows].sort((a,b) => b.date.localeCompare(a.date));
 
   const filterBar = `<div class="sb-filter-bar">
@@ -1067,6 +1222,15 @@ function renderScoreboardCard(g) {
   const attendeeRow = (g.attendedWith||[]).length
     ? `<div class="scoreboard-attendees"><strong>Attended with:</strong> ${attendeeTags}</div>`
     : '';
+
+  const noteRow = buildNoteRow(g.gamePk);
+  const noteEditor = `<div class="scoreboard-note-editor" id="note-editor-${g.gamePk}">
+    <textarea placeholder="Add a note about this game…"></textarea>
+    <div class="scoreboard-note-editor-actions">
+      <button class="note-cancel-btn" onclick="cancelNote(${g.gamePk})">Cancel</button>
+      <button class="note-save-btn" onclick="saveNote(${g.gamePk})">Save Note</button>
+    </div>
+  </div>`;
 
   const searchKey = `${g.date} ${g.awayTeamName} ${g.homeTeamName} ${awayAbbr} ${homeAbbr}`.toLowerCase();
 
@@ -1108,6 +1272,8 @@ function renderScoreboardCard(g) {
       </table>
     </div>
     ${attendeeRow}
+    ${noteRow}
+    ${noteEditor}
   </div>`;
 }
 
@@ -1133,13 +1299,12 @@ function filterScoreboard(val, updateInput) {
 }
 
 // ============================================================
-// RENDER ATTENDANCE TABLE
+// RENDER ATTENDANCE TABLE (sortable)
 // ============================================================
 function renderAttendance(sbRows) {
   const wrap = document.getElementById('attendance-wrap');
-  // Collect all attendees and stadiums
   const peopleSet = new Set();
-  const stadiumGameMap = {}; // stadium -> [gamePk]
+  const stadiumGameMap = {};
 
   for (const g of sbRows) {
     const stadium = getStadium(g.homeTeamName);
@@ -1158,13 +1323,8 @@ function renderAttendance(sbRows) {
     return;
   }
 
-  // For each person × stadium: count games attended together
-  // person_stadium_count[person][stadium] = count
   const psc = {};
-  for (const p of people) {
-    psc[p] = {};
-    for (const s of stadiums) psc[p][s] = 0;
-  }
+  for (const p of people) { psc[p] = {}; for (const s of stadiums) psc[p][s] = 0; }
 
   for (const g of sbRows) {
     const stadium = getStadium(g.homeTeamName);
@@ -1173,38 +1333,70 @@ function renderAttendance(sbRows) {
     }
   }
 
-  // Person totals
   const personTotals = {};
   for (const p of people) personTotals[p] = stadiums.reduce((s,st)=>s+(psc[p][st]||0),0);
-
-  // Stadium totals (total games held there in filtered set)
   const stadiumTotals = {};
   for (const s of stadiums) stadiumTotals[s] = stadiumGameMap[s].size;
 
-  const thStadiums = stadiums.map(s=>`<th class="att-stadium-header" title="${escAttr(s)}">${escHtml(s.length>14?s.slice(0,13)+'…':s)}</th>`).join('');
+  // Build data rows for sorting
+  // Each row: { name, values: [count per stadium in stadiums order], total }
+  let dataRows = people.map(p => ({
+    name: p,
+    values: stadiums.map(s => psc[p][s]||0),
+    total: personTotals[p]
+  }));
 
-  const rows = people.map(p => {
-    const cells = stadiums.map(s => {
-      const v = psc[p][s]||0;
-      return `<td class="${v>0?'att-cell-filled':'att-cell-empty'}">${v>0?v:'·'}</td>`;
-    }).join('');
-    return `<tr><td>${escHtml(p)}</td>${cells}<td class="att-total">${personTotals[p]}</td></tr>`;
+  // Apply sort
+  // attSortCol: null = no sort, 0 = name, 1..n = stadium index (0-based), n+1 = total
+  const totalColIdx = stadiums.length; // 0-indexed among [stadiums..., total]
+  if (attSortCol !== null) {
+    dataRows.sort((a,b) => {
+      let va, vb;
+      if (attSortCol === 0) { // name — sort asc/desc as strings
+        va = a.name; vb = b.name;
+        if (attSortDir === 'asc') return va.localeCompare(vb);
+        return vb.localeCompare(va);
+      } else if (attSortCol <= stadiums.length) {
+        va = a.values[attSortCol-1]; vb = b.values[attSortCol-1];
+      } else {
+        va = a.total; vb = b.total;
+      }
+      return attSortDir === 'asc' ? va-vb : vb-va;
+    });
+  }
+
+  function sortArrow(colIdx) {
+    if (attSortCol !== colIdx) return '<span class="sort-arrow">↕</span>';
+    return `<span class="sort-arrow">${attSortDir==='asc'?'↑':'↓'}</span>`;
+  }
+  function thClass(colIdx) {
+    if (attSortCol !== colIdx) return '';
+    return ` ${attSortDir==='asc'?'sort-asc':'sort-desc'}`;
+  }
+
+  const thStadiums = stadiums.map((s,i)=>
+    `<th class="att-stadium-header${thClass(i+1)}" onclick="sortAttendance(${i+1})" title="${escAttr(s)}">${escHtml(s.length>14?s.slice(0,13)+'…':s)}${sortArrow(i+1)}</th>`
+  ).join('');
+  const totalThIdx = stadiums.length+1;
+  const thTotal = `<th class="total-col${thClass(totalThIdx)}" onclick="sortAttendance(${totalThIdx})">Total${sortArrow(totalThIdx)}</th>`;
+
+  const rows = dataRows.map(row => {
+    const cells = row.values.map(v =>
+      `<td class="${v>0?'att-cell-filled':'att-cell-empty'}">${v>0?v:'·'}</td>`
+    ).join('');
+    return `<tr><td>${escHtml(row.name)}</td>${cells}<td class="att-total">${row.total}</td></tr>`;
   }).join('');
 
-  // Total row
-  const totalCells = stadiums.map(s => {
-    const v = stadiumTotals[s];
-    return `<td style="color:var(--muted);font-size:0.7rem;">${v}</td>`;
-  }).join('');
+  const totalCells = stadiums.map(s => `<td style="color:var(--muted);font-size:0.7rem;">${stadiumTotals[s]}</td>`).join('');
 
   wrap.innerHTML = `
-    <div class="att-section-label">Games attended with each person, by stadium</div>
-    <table class="attendance-table">
+    <div class="att-section-label">Games attended with each person, by stadium · Click column headers to sort</div>
+    <table class="attendance-table" id="att-table">
       <thead>
         <tr>
-          <th>Person</th>
+          <th style="cursor:default">Person</th>
           ${thStadiums}
-          <th class="total-col">Total</th>
+          ${thTotal}
         </tr>
       </thead>
       <tbody>
@@ -1217,6 +1409,120 @@ function renderAttendance(sbRows) {
       </tbody>
     </table>
     <div class="att-note">Numbers show how many games at each stadium you attended with that person. Bottom row shows total games at each stadium in the filtered set.</div>
+  `;
+}
+
+function sortAttendance(colIdx) {
+  if (attSortCol === colIdx) {
+    attSortDir = attSortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    attSortCol = colIdx;
+    attSortDir = 'desc';
+  }
+  // Re-render only attendance from current filtered data
+  const {sb} = getFilteredRows();
+  renderAttendance(sb);
+}
+
+// ============================================================
+// RENDER PERSONAL GAME STATS (stadium × day-of-week)
+// ============================================================
+function renderPersonalGameStats(sbRows) {
+  const wrap = document.getElementById('personal-wrap');
+
+  if (!sbRows.length) {
+    wrap.innerHTML = '<div class="personal-empty-msg">No games match the current filters.</div>';
+    return;
+  }
+
+  // Build stadium × day matrix
+  const stadiumSet = new Set();
+  const daySet = new Set();
+
+  // gamePk → day-of-week index
+  const gameDay = {}; // gamePk → { dayIdx, stadium }
+
+  for (const g of sbRows) {
+    const stadium = getStadium(g.homeTeamName);
+    const d = new Date(g.date + 'T12:00:00');
+    const dayIdx = d.getDay(); // 0=Sun, 6=Sat
+    stadiumSet.add(stadium);
+    daySet.add(dayIdx);
+    gameDay[g.gamePk] = { dayIdx, stadium };
+  }
+
+  const stadiums = [...stadiumSet].sort();
+  // Always show all 7 days in calendar order
+  const days = [0,1,2,3,4,5,6]; // Sun-Sat
+
+  // matrix[stadium][dayIdx] = count of games
+  const matrix = {};
+  for (const s of stadiums) {
+    matrix[s] = {};
+    for (const d of days) matrix[s][d] = 0;
+  }
+
+  for (const g of sbRows) {
+    const info = gameDay[g.gamePk];
+    if (info && matrix[info.stadium]) {
+      matrix[info.stadium][info.dayIdx]++;
+    }
+  }
+
+  // Stadium totals
+  const stadiumTotals = {};
+  for (const s of stadiums) stadiumTotals[s] = days.reduce((acc,d)=>acc+matrix[s][d],0);
+
+  // Day totals
+  const dayTotals = {};
+  for (const d of days) dayTotals[d] = stadiums.reduce((acc,s)=>acc+matrix[s][d],0);
+
+  const grandTotal = sbRows.length;
+
+  const thDays = days.map(d =>
+    `<th>${DAY_NAMES[d].slice(0,3)}<span style="display:block;font-size:0.55rem;font-weight:400;color:rgba(90,101,120,0.7)">${DAY_NAMES[d].slice(3)}</span></th>`
+  ).join('');
+
+  const dataRows = stadiums.map(s => {
+    const cells = days.map(d => {
+      const v = matrix[s][d];
+      return `<td class="${v>0?'personal-cell-filled':'personal-cell-empty'}">${v>0?v:'·'}</td>`;
+    }).join('');
+    return `<tr>
+      <td title="${escAttr(s)}">${escHtml(s.length>22?s.slice(0,21)+'…':s)}</td>
+      ${cells}
+      <td class="personal-total-col">${stadiumTotals[s]}</td>
+    </tr>`;
+  }).join('');
+
+  const totalCells = days.map(d => {
+    const v = dayTotals[d];
+    return `<td class="${v>0?'personal-cell-filled':'personal-cell-empty'}" style="font-size:0.7rem;">${v>0?v:'·'}</td>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="personal-section">
+      <div class="personal-section-title">Games by Stadium & Day of Week</div>
+      <div class="personal-section-sub">Each cell shows how many games you attended at that stadium on that day</div>
+      <table class="personal-table">
+        <thead>
+          <tr>
+            <th>Stadium</th>
+            ${thDays}
+            <th class="personal-total-col">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dataRows}
+          <tr class="personal-total-row">
+            <td>Total</td>
+            ${totalCells}
+            <td class="personal-total-col">${grandTotal}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="personal-note">Rows = stadiums visited · Columns = day of week · Values = games attended</div>
+    </div>
   `;
 }
 
@@ -1252,6 +1558,7 @@ function renderTables(hitting,pitching,gameCount,sbRows) {
 
   renderScoreboard(sbRows);
   renderAttendance(sbRows);
+  renderPersonalGameStats(sbRows);
 
   document.getElementById('upload-section').style.display='none';
   document.getElementById('stats-section').style.display='block';
@@ -1299,15 +1606,16 @@ function switchTab(tab) {
   document.getElementById('pitching-wrap').style.display  =(tab==='pitching')   ?'block':'none';
   document.getElementById('scoreboard-wrap').style.display=(tab==='scoreboard') ?'block':'none';
   document.getElementById('attendance-wrap').style.display=(tab==='attendance') ?'block':'none';
+  document.getElementById('personal-wrap').style.display  =(tab==='personal')   ?'block':'none';
 
-  ['hitting','pitching','scoreboard','attendance'].forEach(t=>{
+  ['hitting','pitching','scoreboard','attendance','personal'].forEach(t=>{
     document.getElementById(`tab-${t}`).classList.toggle('active',tab===t);
   });
 
   const searchWrap = document.querySelector('.search-wrap');
   searchWrap.style.visibility = (tab==='hitting'||tab==='pitching') ? 'visible' : 'hidden';
   const oppGroup = document.getElementById('opp-filter-group');
-  oppGroup.style.display = (tab==='attendance') ? 'none' : 'flex';
+  oppGroup.style.display = (tab==='attendance'||tab==='personal') ? 'none' : 'flex';
 
   document.getElementById('player-search').value='';
   if(tab==='hitting' &&hittingDT)  { hittingDT.search('').draw();  hittingDT.columns.adjust(); }
@@ -1318,8 +1626,10 @@ function switchTab(tab) {
 function resetAll() {
   if(hittingDT)  { hittingDT.destroy();  hittingDT=null; }
   if(pitchingDT) { pitchingDT.destroy(); pitchingDT=null; }
-  allHittingRaw=[]; allPitchingRaw=[]; gameList=[]; scoreboardData=[];
-  availableYears=[]; selectedYear='All'; selectedGameType='all'; selectedOpponent='All';
+  allHittingRaw=[]; allPitchingRaw=[]; gameList=[]; scoreboardData=[]; gameNotes={};
+  availableYears=[]; availableMonths=[]; selectedYear='All'; selectedMonth='All';
+  selectedGameType='all'; selectedOpponent='All';
+  attSortCol=null; attSortDir='desc';
   sbSearchTerm='';
   document.getElementById('stats-section').style.display='none';
   document.getElementById('upload-section').style.display='block';

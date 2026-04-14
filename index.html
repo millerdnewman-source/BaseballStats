@@ -13,7 +13,6 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<!-- pako for URL compression -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 
 <style>
@@ -222,6 +221,67 @@
   .dataTables_wrapper .dataTables_paginate .paginate_button.current { color: #0a0c0f !important; background: var(--accent) !important; border-color: var(--accent) !important; }
   .dataTables_wrapper .dataTables_paginate .paginate_button.disabled { opacity: 0.3; cursor: not-allowed !important; }
 
+  /* SCOREBOARD */
+  #scoreboard-wrap { padding: 4px 0; }
+  .scoreboard-game {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+    margin-bottom: 12px; overflow: hidden; font-family: var(--mono);
+  }
+  .scoreboard-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 16px; border-bottom: 1px solid var(--border);
+    font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+  }
+  .scoreboard-header .date-info { display: flex; gap: 12px; align-items: center; }
+  .scoreboard-header .playoff-badge { margin-left: 0; }
+  .scoreboard-table-wrap { overflow-x: auto; }
+  .scoreboard-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .scoreboard-table th {
+    padding: 7px 10px; background: rgba(30,37,48,0.4); color: var(--muted);
+    font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
+    text-align: center; white-space: nowrap; font-weight: 400;
+  }
+  .scoreboard-table th:first-child { text-align: left; min-width: 110px; }
+  .scoreboard-table td { padding: 9px 10px; text-align: center; border-top: 1px solid rgba(30,37,48,0.5); white-space: nowrap; }
+  .scoreboard-table td:first-child { text-align: left; font-weight: 500; color: var(--text); }
+  .scoreboard-table .inning-score { color: var(--muted); font-size: 0.78rem; }
+  .scoreboard-table .total-r { color: var(--accent); font-weight: 500; font-size: 0.9rem; }
+  .scoreboard-table .total-h { color: var(--accent2); }
+  .scoreboard-table .total-e { color: var(--red); }
+  .scoreboard-table .winner-row td:first-child { color: var(--accent); }
+  .scoreboard-table .divider-col { border-left: 1px solid var(--border); }
+  .scoreboard-attendees { padding: 8px 16px; border-top: 1px solid var(--border); font-size: 0.68rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .scoreboard-attendees strong { color: var(--text); font-weight: 400; }
+  .attendee-tag { display: inline-block; background: rgba(74,240,200,0.1); color: var(--accent2); border: 1px solid rgba(74,240,200,0.2); border-radius: 3px; padding: 1px 7px; font-size: 0.64rem; margin: 1px 2px; letter-spacing: 0.04em; }
+  .sb-filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .sb-search { flex: 1; max-width: 260px; }
+  .sb-search input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 0.76rem; padding: 8px 12px; outline: none; }
+  .sb-search input:focus { border-color: var(--accent); }
+  .sb-search input::placeholder { color: var(--muted); }
+  .sb-count { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); margin-left: auto; }
+  .no-games-msg { font-family: var(--mono); font-size: 0.76rem; color: var(--muted); padding: 24px 0; text-align: center; }
+
+  /* ATTENDANCE TABLE */
+  #attendance-wrap { overflow-x: auto; padding: 4px 0; }
+  .attendance-table { border-collapse: collapse; font-family: var(--mono); font-size: 0.76rem; white-space: nowrap; }
+  .attendance-table th {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    color: var(--muted); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 10px 14px; text-align: center; white-space: nowrap; position: sticky; top: 0; z-index: 2;
+  }
+  .attendance-table th:first-child { text-align: left; position: sticky; left: 0; z-index: 3; background: var(--surface); min-width: 130px; }
+  .attendance-table th.total-col { color: var(--accent); border-left: 1px solid var(--border); }
+  .attendance-table td { padding: 9px 14px; text-align: center; border-bottom: 1px solid rgba(30,37,48,0.5); }
+  .attendance-table td:first-child { text-align: left; font-weight: 500; color: var(--text); position: sticky; left: 0; background: var(--bg); border-right: 1px solid var(--border); }
+  .attendance-table tr:hover td { background: rgba(200,240,74,0.03); }
+  .attendance-table tr:hover td:first-child { background: #0e1014; }
+  .att-cell-filled { color: var(--accent2); font-weight: 500; }
+  .att-cell-empty { color: rgba(90,101,120,0.3); }
+  .att-total { color: var(--accent); font-weight: 500; border-left: 1px solid var(--border); }
+  .att-section-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .att-note { font-family: var(--mono); font-size: 0.66rem; color: var(--muted); margin-top: 16px; }
+  .att-stadium-header { writing-mode: horizontal-tb; font-size: 0.62rem; }
+
   footer { border-top: 1px solid var(--border); padding: 20px 40px; font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.08em; margin-top: 60px; }
 
   @media (max-width: 600px) {
@@ -259,10 +319,11 @@
           <tr><td>D</td><td>Year</td><td class="ex">2024</td></tr>
           <tr><td>E</td><td>Home team name</td><td class="ex">Yankees</td></tr>
           <tr><td>F</td><td>Game number</td><td class="ex">1</td></tr>
+          <tr><td>G</td><td>Attended with (comma-separated)</td><td class="ex">Alice, Bob, Carol</td></tr>
         </tbody>
       </table>
       <div style="margin-top:12px; font-family:var(--mono); font-size:0.66rem; color:var(--muted);">
-        Home team name must match the MLB team name exactly (e.g. "Yankees", "Red Sox", "Cubs")
+        Column G is optional. Home team name must match the MLB team name exactly (e.g. "Yankees", "Red Sox", "Cubs")
       </div>
     </div>
     <div id="status-bar">
@@ -280,8 +341,10 @@
     <div class="filter-bar">
       <div class="filter-row">
         <div class="tab-group">
-          <button class="tab-btn active" id="tab-hitting"  onclick="switchTab('hitting')">Hitting</button>
-          <button class="tab-btn"        id="tab-pitching" onclick="switchTab('pitching')">Pitching</button>
+          <button class="tab-btn active" id="tab-hitting"    onclick="switchTab('hitting')">Hitting</button>
+          <button class="tab-btn"        id="tab-pitching"   onclick="switchTab('pitching')">Pitching</button>
+          <button class="tab-btn"        id="tab-scoreboard" onclick="switchTab('scoreboard')">Scoreboard</button>
+          <button class="tab-btn"        id="tab-attendance" onclick="switchTab('attendance')">Attendance</button>
         </div>
 
         <div class="filter-group" id="year-filter-group">
@@ -327,7 +390,7 @@
       </div>
       <div style="overflow-x:auto;">
         <table class="game-list-table" id="game-list-table">
-          <thead><tr><th>#</th><th>Date</th><th>Home Team</th><th>Game #</th><th>Type</th><th></th></tr></thead>
+          <thead><tr><th>#</th><th>Date</th><th>Home Team</th><th>Game #</th><th>Type</th><th>Attended With</th><th></th></tr></thead>
           <tbody id="game-list-body"></tbody>
         </table>
       </div>
@@ -336,6 +399,8 @@
     <div class="table-wrap">
       <div id="hitting-wrap"><table id="hittingTable" class="stats-dt"></table></div>
       <div id="pitching-wrap" style="display:none;"><table id="pitchingTable" class="stats-dt"></table></div>
+      <div id="scoreboard-wrap" style="display:none;"></div>
+      <div id="attendance-wrap" style="display:none;"></div>
     </div>
   </div>
 </main>
@@ -377,6 +442,10 @@
           <option value="F">Wild Card</option>
         </select>
       </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Attended With (comma-separated, optional)</label>
+      <input type="text" class="form-input" id="ag-attendees" placeholder="Alice, Bob, Carol">
     </div>
 
     <div class="modal-status" id="ag-status"></div>
@@ -435,6 +504,51 @@ const TEAM_ABBR = {
   'Yankees':'NYY','New York Yankees':'NYY',
 };
 
+// MLB team → home stadium (abbreviated)
+const TEAM_STADIUM = {
+  'Angels':'Angel Stadium','Los Angeles Angels':'Angel Stadium',
+  'Astros':'Minute Maid','Houston Astros':'Minute Maid',
+  'Athletics':'Oakland Coliseum','Oakland Athletics':'Oakland Coliseum','Sacramento Athletics':'Sutter Health Park',
+  'Blue Jays':'Rogers Centre','Toronto Blue Jays':'Rogers Centre',
+  'Braves':'Truist Park','Atlanta Braves':'Truist Park',
+  'Brewers':'American Family Field','Milwaukee Brewers':'American Family Field',
+  'Cardinals':'Busch Stadium','St. Louis Cardinals':'Busch Stadium',
+  'Cubs':'Wrigley Field','Chicago Cubs':'Wrigley Field',
+  'Diamondbacks':'Chase Field','Arizona Diamondbacks':'Chase Field',
+  'Dodgers':'Dodger Stadium','Los Angeles Dodgers':'Dodger Stadium',
+  'Giants':'Oracle Park','San Francisco Giants':'Oracle Park',
+  'Guardians':'Progressive Field','Cleveland Guardians':'Progressive Field',
+  'Indians':'Progressive Field','Cleveland Indians':'Progressive Field',
+  'Mariners':'T-Mobile Park','Seattle Mariners':'T-Mobile Park',
+  'Marlins':'loanDepot park','Miami Marlins':'loanDepot park',
+  'Mets':'Citi Field','New York Mets':'Citi Field',
+  'Nationals':'Nationals Park','Washington Nationals':'Nationals Park',
+  'Orioles':'Camden Yards','Baltimore Orioles':'Camden Yards',
+  'Padres':'Petco Park','San Diego Padres':'Petco Park',
+  'Phillies':'Citizens Bank Park','Philadelphia Phillies':'Citizens Bank Park',
+  'Pirates':'PNC Park','Pittsburgh Pirates':'PNC Park',
+  'Rangers':'Globe Life Field','Texas Rangers':'Globe Life Field',
+  'Rays':'Tropicana Field','Tampa Bay Rays':'Tropicana Field',
+  'Red Sox':'Fenway Park','Boston Red Sox':'Fenway Park',
+  'Reds':'Great American Ball Park','Cincinnati Reds':'Great American Ball Park',
+  'Rockies':'Coors Field','Colorado Rockies':'Coors Field',
+  'Royals':'Kauffman Stadium','Kansas City Royals':'Kauffman Stadium',
+  'Tigers':'Comerica Park','Detroit Tigers':'Comerica Park',
+  'Twins':'Target Field','Minnesota Twins':'Target Field',
+  'White Sox':'Guaranteed Rate Field','Chicago White Sox':'Guaranteed Rate Field',
+  'Yankees':'Yankee Stadium','New York Yankees':'Yankee Stadium',
+};
+
+function getStadium(teamName) {
+  if (!teamName) return 'Unknown';
+  if (TEAM_STADIUM[teamName]) return TEAM_STADIUM[teamName];
+  const parts = teamName.trim().split(' ');
+  const last = parts[parts.length-1];
+  if (TEAM_STADIUM[last]) return TEAM_STADIUM[last];
+  if (parts.length >= 2) { const l2 = parts.slice(-2).join(' '); if (TEAM_STADIUM[l2]) return TEAM_STADIUM[l2]; }
+  return teamName;
+}
+
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const PLAYOFF_TYPES = new Set(['F','D','L','W','C','P']);
 function isPlayoff(t) { return PLAYOFF_TYPES.has(t); }
@@ -455,8 +569,10 @@ function getAbbr(teamName) {
 const MLB_API = "https://statsapi.mlb.com/api/v1";
 let hittingDT = null, pitchingDT = null, currentTab = 'hitting';
 let allHittingRaw = [], allPitchingRaw = [];
-// gameList: [{month, day, year, homeTeam, gameNumber, gameType, gamePk, awayTeam}]
-let gameList = [];
+// gameList: [{month,day,year,homeTeam,gameNumber,gameType,gamePk,awayTeam,attendedWith:[]}]
+// scoreboardData: [{gamePk, date, homeTeamName, awayTeamName, gameType, attendedWith,
+//                   homeLineScore, awayLineScore, homeR,homeH,homeE,awayR,awayH,awayE}]
+let gameList = [], scoreboardData = [];
 let availableYears = [], selectedYear = 'All';
 let selectedGameType = 'all', selectedOpponent = 'All';
 let availableOpponents = [], hasPlayoffGames = false;
@@ -480,6 +596,11 @@ dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-ove
 dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
 fileInput.addEventListener('change', () => { if (fileInput.files[0]) processFile(fileInput.files[0]); });
 
+function parseAttendeesStr(str) {
+  if (!str || String(str).trim() === '') return [];
+  return String(str).split(',').map(s => s.trim()).filter(Boolean);
+}
+
 function processFile(file) {
   const reader = new FileReader();
   reader.onload = e => {
@@ -488,7 +609,11 @@ function processFile(file) {
       const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
       const games = rows
         .filter(r => r.length >= 6 && r[1] && r[2] && r[3] && r[4])
-        .map(r => ({ month: String(r[1]).trim(), day: parseInt(r[2]), year: parseInt(r[3]), homeTeam: String(r[4]).trim(), gameNumber: parseInt(r[5]) || 1 }));
+        .map(r => ({
+          month: String(r[1]).trim(), day: parseInt(r[2]), year: parseInt(r[3]),
+          homeTeam: String(r[4]).trim(), gameNumber: parseInt(r[5]) || 1,
+          attendedWith: parseAttendeesStr(r[6] || '')
+        }));
       if (!games.length) { showError("No valid rows found in spreadsheet."); return; }
       fetchAllGames(games);
     } catch(err) { showError("Could not parse file: " + err.message); }
@@ -515,6 +640,7 @@ async function getGameInfo(date, homeTeam, gameNumber) {
 }
 
 async function getBoxscoreData(gamePk) { return fetch(`${MLB_API}/game/${gamePk}/boxscore`).then(r=>r.json()); }
+async function getLinescoreData(gamePk) { return fetch(`${MLB_API}/game/${gamePk}/linescore`).then(r=>r.json()); }
 
 // ============================================================
 // PARSE BOXSCORE
@@ -543,6 +669,20 @@ function parseBoxscore(box, gamePk, year, gameType, homeTeamName, awayTeamName) 
     }
   }
   return { hittingRows, pitchingRows };
+}
+
+function parseLinescoreForScoreboard(ls, gamePk, gameType, homeTeamName, awayTeamName, attendedWith) {
+  const innings = ls.innings || [];
+  const homeScores = innings.map(i => i.home?.runs ?? '');
+  const awayScores = innings.map(i => i.away?.runs ?? '');
+  return {
+    gamePk, gameType, homeTeamName, awayTeamName, attendedWith,
+    homeScores, awayScores,
+    homeR: ls.teams?.home?.runs ?? 0,   awayR: ls.teams?.away?.runs ?? 0,
+    homeH: ls.teams?.home?.hits ?? 0,   awayH: ls.teams?.away?.hits ?? 0,
+    homeE: ls.teams?.home?.errors ?? 0, awayE: ls.teams?.away?.errors ?? 0,
+    innings: innings.length
+  };
 }
 
 // ============================================================
@@ -611,7 +751,7 @@ function computePitching(rows) {
 // ============================================================
 async function fetchAllGames(games) {
   showStatus("Fetching games…",0);
-  allHittingRaw=[]; allPitchingRaw=[]; gameList=[];
+  allHittingRaw=[]; allPitchingRaw=[]; gameList=[]; scoreboardData=[];
 
   for (let i=0;i<games.length;i++) {
     const g=games[i];
@@ -621,29 +761,35 @@ async function fetchAllGames(games) {
       const date=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
       setStatus(`[${i+1}/${games.length}] ${date} — ${g.homeTeam}`);
       const {gamePk,gameType,homeTeamName,awayTeamName}=await getGameInfo(date,g.homeTeam,g.gameNumber);
-      const box=await getBoxscoreData(gamePk);
+      const [box, ls] = await Promise.all([getBoxscoreData(gamePk), getLinescoreData(gamePk)]);
       const {hittingRows,pitchingRows}=parseBoxscore(box,gamePk,g.year,gameType,homeTeamName,awayTeamName);
+      const sbEntry = parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,g.attendedWith||[]);
+      sbEntry.date = date; sbEntry.year = g.year;
       allHittingRaw.push(...hittingRows);
       allPitchingRaw.push(...pitchingRows);
+      scoreboardData.push(sbEntry);
       gameList.push({...g,gamePk,gameType,homeTeamName,awayTeamName});
     } catch(err) { console.warn(`Skipped: ${g.homeTeam} — ${err.message}`); }
   }
 
   setProgress(100); totalGameCount=games.length;
-  if (!allHittingRaw.length&&!allPitchingRaw.length) { showError("No data could be retrieved."); return; }
+  if (!allHittingRaw.length&&!allPitchingRaw.length&&!scoreboardData.length) { showError("No data could be retrieved."); return; }
   initFiltersAndRender();
 }
 
-async function fetchSingleGame(date, homeTeam, gameNumber, overrideType) {
+async function fetchSingleGame(date, homeTeam, gameNumber, overrideType, attendedWith) {
   const {gamePk,gameType:detectedType,homeTeamName,awayTeamName}=await getGameInfo(date,homeTeam,gameNumber);
   const gameType = (overrideType&&overrideType!=='auto') ? overrideType : detectedType;
-  const box=await getBoxscoreData(gamePk);
   const parts=date.split('-');
   const year=parseInt(parts[0]), month=MONTH_NAMES[parseInt(parts[1])-1], day=parseInt(parts[2]);
+  const [box, ls] = await Promise.all([getBoxscoreData(gamePk), getLinescoreData(gamePk)]);
   const {hittingRows,pitchingRows}=parseBoxscore(box,gamePk,year,gameType,homeTeamName,awayTeamName);
+  const sbEntry = parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,attendedWith||[]);
+  sbEntry.date = date; sbEntry.year = year;
   allHittingRaw.push(...hittingRows);
   allPitchingRaw.push(...pitchingRows);
-  gameList.push({month,day,year,homeTeam,gameNumber,gamePk,gameType,homeTeamName,awayTeamName});
+  scoreboardData.push(sbEntry);
+  gameList.push({month,day,year,homeTeam,gameNumber,gamePk,gameType,homeTeamName,awayTeamName,attendedWith:attendedWith||[]});
   return {gamePk,gameType,homeTeamName,awayTeamName};
 }
 
@@ -651,7 +797,7 @@ async function fetchSingleGame(date, homeTeam, gameNumber, overrideType) {
 // FILTERS
 // ============================================================
 function initFiltersAndRender() {
-  const yearSet=new Set([...allHittingRaw.map(r=>r.year),...allPitchingRaw.map(r=>r.year)]);
+  const yearSet=new Set([...allHittingRaw.map(r=>r.year),...allPitchingRaw.map(r=>r.year),...scoreboardData.map(r=>r.year)]);
   availableYears=[...yearSet].filter(Boolean).sort();
   selectedYear='All'; selectedGameType='all'; selectedOpponent='All';
   hasPlayoffGames=allHittingRaw.some(r=>isPlayoff(r.gameType))||allPitchingRaw.some(r=>isPlayoff(r.gameType));
@@ -679,18 +825,19 @@ function updateGameTypeButtons() {
 }
 
 function getFilteredRows() {
-  let h=allHittingRaw, p=allPitchingRaw;
-  if (selectedYear!=='All')       { h=h.filter(r=>r.year===selectedYear);           p=p.filter(r=>r.year===selectedYear); }
-  if (selectedGameType==='regular') { h=h.filter(r=>!isPlayoff(r.gameType));         p=p.filter(r=>!isPlayoff(r.gameType)); }
-  if (selectedGameType==='playoffs'){ h=h.filter(r=>isPlayoff(r.gameType));          p=p.filter(r=>isPlayoff(r.gameType)); }
-  if (selectedOpponent!=='All')   { h=h.filter(r=>r.opponent===selectedOpponent);    p=p.filter(r=>r.opponent===selectedOpponent); }
-  return {h,p};
+  let h=allHittingRaw, p=allPitchingRaw, sb=scoreboardData;
+  if (selectedYear!=='All')        { h=h.filter(r=>r.year===selectedYear); p=p.filter(r=>r.year===selectedYear); sb=sb.filter(r=>r.year===selectedYear); }
+  if (selectedGameType==='regular'){ h=h.filter(r=>!isPlayoff(r.gameType)); p=p.filter(r=>!isPlayoff(r.gameType)); sb=sb.filter(r=>!isPlayoff(r.gameType)); }
+  if (selectedGameType==='playoffs'){ h=h.filter(r=>isPlayoff(r.gameType)); p=p.filter(r=>isPlayoff(r.gameType)); sb=sb.filter(r=>isPlayoff(r.gameType)); }
+  if (selectedOpponent!=='All')    { h=h.filter(r=>r.opponent===selectedOpponent); p=p.filter(r=>r.opponent===selectedOpponent);
+    sb=sb.filter(r=>r.awayTeamName===selectedOpponent||r.homeTeamName===selectedOpponent); }
+  return {h,p,sb};
 }
 
 function applyFilters() {
-  const {h,p}=getFilteredRows();
+  const {h,p,sb}=getFilteredRows();
   const ids=new Set([...h.map(r=>r.game_id),...p.map(r=>r.game_id)]);
-  renderTables(computeHitting(h),computePitching(p),ids.size);
+  renderTables(computeHitting(h),computePitching(p),ids.size,sb);
   renderGameList();
 }
 
@@ -707,12 +854,14 @@ function renderGameList() {
     const monthNum=MONTH_NAMES.indexOf(g.month)+1;
     const dateStr=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
     const playoff=isPlayoff(g.gameType);
+    const attendStr = (g.attendedWith||[]).join(', ') || '—';
     return `<tr>
       <td style="color:var(--muted)">${i+1}</td>
       <td>${dateStr}</td>
       <td>${g.homeTeamName||g.homeTeam}${playoff?`<span class="playoff-badge">Playoffs</span>`:''}</td>
       <td style="text-align:center">${g.gameNumber}</td>
       <td style="font-family:var(--mono);font-size:0.68rem;color:var(--muted)">${g.gameType||'R'}</td>
+      <td style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="${attendStr}">${attendStr}</td>
       <td><button class="remove-game-btn" onclick="removeGame(${i})" title="Remove">✕</button></td>
     </tr>`;
   }).join('');
@@ -729,6 +878,7 @@ function removeGame(idx) {
   gameList.splice(idx,1);
   allHittingRaw =allHittingRaw.filter(r=>r.game_id!==g.gamePk);
   allPitchingRaw=allPitchingRaw.filter(r=>r.game_id!==g.gamePk);
+  scoreboardData=scoreboardData.filter(r=>r.gamePk!==g.gamePk);
   buildOpponentList(); buildYearButtons();
   hasPlayoffGames=allHittingRaw.some(r=>isPlayoff(r.gameType))||allPitchingRaw.some(r=>isPlayoff(r.gameType));
   document.getElementById('gametype-filter-group').style.display=hasPlayoffGames?'flex':'none';
@@ -740,12 +890,12 @@ function removeGame(idx) {
 // ADD GAME MODAL
 // ============================================================
 function openAddGameModal() {
-  // default date to today
   const today=new Date(); const yy=today.getFullYear(), mm=String(today.getMonth()+1).padStart(2,'0'), dd=String(today.getDate()).padStart(2,'0');
   document.getElementById('ag-date').value=`${yy}-${mm}-${dd}`;
   document.getElementById('ag-status').textContent='';
   document.getElementById('ag-status').className='modal-status';
   document.getElementById('ag-submit').disabled=false;
+  document.getElementById('ag-attendees').value='';
   document.getElementById('add-game-modal').classList.add('open');
 }
 function closeAddGameModal() { document.getElementById('add-game-modal').classList.remove('open'); }
@@ -756,11 +906,11 @@ async function submitAddGame() {
   const homeTeam=document.getElementById('ag-team').value;
   const gameNum =parseInt(document.getElementById('ag-gamenum').value)||1;
   const gameType=document.getElementById('ag-gametype').value;
+  const attendedWith = parseAttendeesStr(document.getElementById('ag-attendees').value);
 
   if (!date)     { setModalStatus('Please select a date.','err'); return; }
   if (!homeTeam) { setModalStatus('Please select a home team.','err'); return; }
 
-  // Check for duplicate
   const parts=date.split('-');
   const year=parseInt(parts[0]),month=MONTH_NAMES[parseInt(parts[1])-1],day=parseInt(parts[2]);
   const dup=gameList.find(g=>g.year===year&&g.month===month&&g.day===day&&g.homeTeam===homeTeam&&g.gameNumber===gameNum);
@@ -770,7 +920,7 @@ async function submitAddGame() {
   setModalStatus('Fetching game data…','');
 
   try {
-    const {homeTeamName,awayTeamName,gameType:gt}=await fetchSingleGame(date,homeTeam,gameNum,gameType);
+    const {homeTeamName,awayTeamName}=await fetchSingleGame(date,homeTeam,gameNum,gameType,attendedWith);
     initFiltersAndRender();
     closeAddGameModal();
     showToast(`Added: ${homeTeamName} vs ${awayTeamName} (${date})`);
@@ -790,7 +940,7 @@ function setModalStatus(msg,type) {
 // ============================================================
 function exportGameList() {
   if (!gameList.length) { showToast('No games to export'); return; }
-  const rows=gameList.map((g,i)=>[i+1,g.month,g.day,g.year,g.homeTeam,g.gameNumber]);
+  const rows=gameList.map((g,i)=>[i+1,g.month,g.day,g.year,g.homeTeam,g.gameNumber,(g.attendedWith||[]).join(', ')]);
   const ws=XLSX.utils.aoa_to_sheet(rows);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Games');
@@ -803,16 +953,14 @@ function exportGameList() {
 // ============================================================
 function shareLink() {
   try {
-    const payload = { gameList, hRaw: allHittingRaw, pRaw: allPitchingRaw };
-    // Serialize Sets as arrays for JSON
     const safePayload = {
       gameList,
       hRaw: allHittingRaw.map(r=>({...r})),
       pRaw: allPitchingRaw.map(r=>({...r})),
+      sbData: scoreboardData,
     };
     const json   = JSON.stringify(safePayload);
     const compressed = pako.deflate(json);
-    // base64url encode
     let b64 = btoa(String.fromCharCode(...compressed)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
     const url = `${location.origin}${location.pathname}?d=${b64}`;
     navigator.clipboard.writeText(url).then(()=>showToast('Share link copied to clipboard!')).catch(()=>{
@@ -837,8 +985,9 @@ function loadFromURL() {
     gameList=payload.gameList||[];
     allHittingRaw=payload.hRaw||[];
     allPitchingRaw=payload.pRaw||[];
+    scoreboardData=payload.sbData||[];
     totalGameCount=gameList.length;
-    if (!allHittingRaw.length&&!allPitchingRaw.length) return false;
+    if (!allHittingRaw.length&&!allPitchingRaw.length&&!scoreboardData.length) return false;
     initFiltersAndRender();
     document.getElementById('upload-section').style.display='none';
     document.getElementById('stats-section').style.display='block';
@@ -870,7 +1019,209 @@ function teamCellHTML(row,type) {
 }
 
 // ============================================================
-// RENDER
+// RENDER SCOREBOARD
+// ============================================================
+let sbSearchTerm = '';
+let filteredSbData = [];
+
+function renderScoreboard(sbRows) {
+  filteredSbData = sbRows;
+  const wrap = document.getElementById('scoreboard-wrap');
+  if (!sbRows.length) { wrap.innerHTML = '<div class="no-games-msg">No games match the current filters.</div>'; return; }
+
+  // Sort by date descending
+  const sorted = [...sbRows].sort((a,b) => b.date.localeCompare(a.date));
+
+  const filterBar = `<div class="sb-filter-bar">
+    <div class="sb-search"><input type="text" id="sb-search-input" placeholder="Search team or date…" oninput="filterScoreboard(this.value)" value="${sbSearchTerm}"></div>
+    <span class="sb-count" id="sb-count">${sorted.length} game${sorted.length!==1?'s':''}</span>
+  </div>`;
+
+  const cards = sorted.map(g => renderScoreboardCard(g)).join('');
+  wrap.innerHTML = filterBar + `<div id="sb-cards">${cards}</div>`;
+  filterScoreboard(sbSearchTerm, false);
+}
+
+function renderScoreboardCard(g) {
+  const homeWin = g.homeR > g.awayR;
+  const maxInn = Math.max(g.innings, 9);
+  const innNums = Array.from({length: maxInn}, (_,i) => i+1);
+
+  const thInn = innNums.map(n => `<th>${n}</th>`).join('');
+  const awayRow = innNums.map(n => {
+    const v = g.awayScores[n-1];
+    return `<td class="inning-score">${v !== undefined && v !== '' ? v : (n <= g.innings ? '0' : '-')}</td>`;
+  }).join('');
+  const homeRow = innNums.map(n => {
+    const v = g.homeScores[n-1];
+    return `<td class="inning-score">${v !== undefined && v !== '' ? v : (n <= g.innings ? '0' : '-')}</td>`;
+  }).join('');
+
+  const playoffBadge = isPlayoff(g.gameType) ? `<span class="playoff-badge">${gameTypeName(g.gameType)}</span>` : '';
+  const awayAbbr = getAbbr(g.awayTeamName);
+  const homeAbbr = getAbbr(g.homeTeamName);
+
+  const attendeeTags = (g.attendedWith||[]).length
+    ? (g.attendedWith.map(p=>`<span class="attendee-tag">${escHtml(p)}</span>`).join(''))
+    : '';
+  const attendeeRow = (g.attendedWith||[]).length
+    ? `<div class="scoreboard-attendees"><strong>Attended with:</strong> ${attendeeTags}</div>`
+    : '';
+
+  const searchKey = `${g.date} ${g.awayTeamName} ${g.homeTeamName} ${awayAbbr} ${homeAbbr}`.toLowerCase();
+
+  return `<div class="scoreboard-game" data-search="${escAttr(searchKey)}">
+    <div class="scoreboard-header">
+      <div class="date-info">
+        <span>${g.date}</span>
+        ${playoffBadge}
+      </div>
+      <span style="color:var(--text)">${escHtml(g.awayTeamName)} @ ${escHtml(g.homeTeamName)}</span>
+    </div>
+    <div class="scoreboard-table-wrap">
+      <table class="scoreboard-table">
+        <thead>
+          <tr>
+            <th></th>
+            ${thInn}
+            <th class="divider-col" style="color:var(--accent)">R</th>
+            <th style="color:var(--accent2)">H</th>
+            <th style="color:var(--red)">E</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="${!homeWin?'winner-row':''}">
+            <td>${awayAbbr}${!homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>
+            ${awayRow}
+            <td class="divider-col total-r">${g.awayR}</td>
+            <td class="total-h">${g.awayH}</td>
+            <td class="total-e">${g.awayE}</td>
+          </tr>
+          <tr class="${homeWin?'winner-row':''}">
+            <td>${homeAbbr}${homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>
+            ${homeRow}
+            <td class="divider-col total-r">${g.homeR}</td>
+            <td class="total-h">${g.homeH}</td>
+            <td class="total-e">${g.homeE}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    ${attendeeRow}
+  </div>`;
+}
+
+function gameTypeName(t) {
+  return {F:'Wild Card',D:'Division Series',L:'LCS',W:'World Series',C:'Championship',P:'Playoffs'}[t]||'Playoffs';
+}
+
+function filterScoreboard(val, updateInput) {
+  sbSearchTerm = val.toLowerCase();
+  if (updateInput !== false) {
+    const inp = document.getElementById('sb-search-input');
+    if (inp) inp.value = val;
+  }
+  const cards = document.querySelectorAll('#sb-cards .scoreboard-game');
+  let visible = 0;
+  cards.forEach(card => {
+    const match = !sbSearchTerm || card.dataset.search.includes(sbSearchTerm);
+    card.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  const cnt = document.getElementById('sb-count');
+  if (cnt) cnt.textContent = `${visible} game${visible!==1?'s':''}`;
+}
+
+// ============================================================
+// RENDER ATTENDANCE TABLE
+// ============================================================
+function renderAttendance(sbRows) {
+  const wrap = document.getElementById('attendance-wrap');
+  // Collect all attendees and stadiums
+  const peopleSet = new Set();
+  const stadiumGameMap = {}; // stadium -> [gamePk]
+
+  for (const g of sbRows) {
+    const stadium = getStadium(g.homeTeamName);
+    if (!stadiumGameMap[stadium]) stadiumGameMap[stadium] = new Set();
+    stadiumGameMap[stadium].add(g.gamePk);
+    for (const p of (g.attendedWith||[])) peopleSet.add(p);
+  }
+
+  const people = [...peopleSet].sort();
+  const stadiums = Object.keys(stadiumGameMap).sort();
+
+  if (!people.length) {
+    wrap.innerHTML = `<div style="font-family:var(--mono);font-size:0.8rem;color:var(--muted);padding:32px 0;text-align:center;">
+      No attendance data found. Add names in column G of your spreadsheet to track who you attended games with.
+    </div>`;
+    return;
+  }
+
+  // For each person × stadium: count games attended together
+  // person_stadium_count[person][stadium] = count
+  const psc = {};
+  for (const p of people) {
+    psc[p] = {};
+    for (const s of stadiums) psc[p][s] = 0;
+  }
+
+  for (const g of sbRows) {
+    const stadium = getStadium(g.homeTeamName);
+    for (const p of (g.attendedWith||[])) {
+      if (psc[p]) psc[p][stadium] = (psc[p][stadium]||0) + 1;
+    }
+  }
+
+  // Person totals
+  const personTotals = {};
+  for (const p of people) personTotals[p] = stadiums.reduce((s,st)=>s+(psc[p][st]||0),0);
+
+  // Stadium totals (total games held there in filtered set)
+  const stadiumTotals = {};
+  for (const s of stadiums) stadiumTotals[s] = stadiumGameMap[s].size;
+
+  const thStadiums = stadiums.map(s=>`<th class="att-stadium-header" title="${escAttr(s)}">${escHtml(s.length>14?s.slice(0,13)+'…':s)}</th>`).join('');
+
+  const rows = people.map(p => {
+    const cells = stadiums.map(s => {
+      const v = psc[p][s]||0;
+      return `<td class="${v>0?'att-cell-filled':'att-cell-empty'}">${v>0?v:'·'}</td>`;
+    }).join('');
+    return `<tr><td>${escHtml(p)}</td>${cells}<td class="att-total">${personTotals[p]}</td></tr>`;
+  }).join('');
+
+  // Total row
+  const totalCells = stadiums.map(s => {
+    const v = stadiumTotals[s];
+    return `<td style="color:var(--muted);font-size:0.7rem;">${v}</td>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="att-section-label">Games attended with each person, by stadium</div>
+    <table class="attendance-table">
+      <thead>
+        <tr>
+          <th>Person</th>
+          ${thStadiums}
+          <th class="total-col">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+        <tr style="border-top:1px solid var(--border)">
+          <td style="color:var(--muted);font-size:0.7rem;">Games at stadium</td>
+          ${totalCells}
+          <td class="att-total">${sbRows.length}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="att-note">Numbers show how many games at each stadium you attended with that person. Bottom row shows total games at each stadium in the filtered set.</div>
+  `;
+}
+
+// ============================================================
+// RENDER TABLES
 // ============================================================
 const HITTING_COLS  =['Name','G','Team','AVG','OBP','SLG','OPS','H','AB','HR','RBI','2B','3B','TB','R','SB','SO','BB','LOB'];
 const PITCHING_COLS =['Name','G','Team','IP','ERA','WHIP','K/9','H','ER','R','BB','K','HR','Pitches'];
@@ -882,7 +1233,7 @@ function buildTableHTML(rows,cols,hiCols,type) {
   return html+'</tbody>';
 }
 
-function renderTables(hitting,pitching,gameCount) {
+function renderTables(hitting,pitching,gameCount,sbRows) {
   document.getElementById('summary-pills').innerHTML=[{label:'Games',value:gameCount},{label:'Batters',value:hitting.length},{label:'Pitchers',value:pitching.length}]
     .map(p=>`<div class="stat-pill"><div class="stat-pill-value">${p.value}</div><div class="stat-pill-label">${p.label}</div></div>`).join('');
 
@@ -898,6 +1249,9 @@ function renderTables(hitting,pitching,gameCount) {
   const old=document.getElementById('player-search'), nw=old.cloneNode(true);
   old.parentNode.replaceChild(nw,old);
   nw.addEventListener('keyup',function(){ if(currentTab==='hitting') hittingDT.search(this.value).draw(); else pitchingDT.search(this.value).draw(); });
+
+  renderScoreboard(sbRows);
+  renderAttendance(sbRows);
 
   document.getElementById('upload-section').style.display='none';
   document.getElementById('stats-section').style.display='block';
@@ -936,12 +1290,25 @@ function setStatus(msg) { document.getElementById('status-text').textContent=msg
 function setProgress(pct) { document.getElementById('progress-fill').style.width=pct+'%'; }
 function showError(msg) { document.getElementById('status-bar').classList.add('active'); const el=document.getElementById('error-msg'); el.style.display='block'; el.textContent='⚠ '+msg; setStatus(''); setProgress(0); }
 
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
+
 function switchTab(tab) {
   currentTab=tab;
-  document.getElementById('hitting-wrap').style.display =tab==='hitting' ?'block':'none';
-  document.getElementById('pitching-wrap').style.display=tab==='pitching'?'block':'none';
-  document.getElementById('tab-hitting').classList.toggle('active', tab==='hitting');
-  document.getElementById('tab-pitching').classList.toggle('active',tab==='pitching');
+  document.getElementById('hitting-wrap').style.display   =(tab==='hitting')    ?'block':'none';
+  document.getElementById('pitching-wrap').style.display  =(tab==='pitching')   ?'block':'none';
+  document.getElementById('scoreboard-wrap').style.display=(tab==='scoreboard') ?'block':'none';
+  document.getElementById('attendance-wrap').style.display=(tab==='attendance') ?'block':'none';
+
+  ['hitting','pitching','scoreboard','attendance'].forEach(t=>{
+    document.getElementById(`tab-${t}`).classList.toggle('active',tab===t);
+  });
+
+  const searchWrap = document.querySelector('.search-wrap');
+  searchWrap.style.visibility = (tab==='hitting'||tab==='pitching') ? 'visible' : 'hidden';
+  const oppGroup = document.getElementById('opp-filter-group');
+  oppGroup.style.display = (tab==='attendance') ? 'none' : 'flex';
+
   document.getElementById('player-search').value='';
   if(tab==='hitting' &&hittingDT)  { hittingDT.search('').draw();  hittingDT.columns.adjust(); }
   if(tab==='pitching'&&pitchingDT) { pitchingDT.search('').draw(); pitchingDT.columns.adjust(); }
@@ -951,8 +1318,9 @@ function switchTab(tab) {
 function resetAll() {
   if(hittingDT)  { hittingDT.destroy();  hittingDT=null; }
   if(pitchingDT) { pitchingDT.destroy(); pitchingDT=null; }
-  allHittingRaw=[]; allPitchingRaw=[]; gameList=[];
+  allHittingRaw=[]; allPitchingRaw=[]; gameList=[]; scoreboardData=[];
   availableYears=[]; selectedYear='All'; selectedGameType='all'; selectedOpponent='All';
+  sbSearchTerm='';
   document.getElementById('stats-section').style.display='none';
   document.getElementById('upload-section').style.display='block';
   document.getElementById('game-list-panel').classList.remove('open');

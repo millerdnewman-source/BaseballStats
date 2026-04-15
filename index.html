@@ -376,10 +376,11 @@
           <tr><td>E</td><td>Home team name</td><td class="ex">Yankees</td></tr>
           <tr><td>F</td><td>Game number</td><td class="ex">1</td></tr>
           <tr><td>G</td><td>Attended with (comma-separated)</td><td class="ex">Alice, Bob, Carol</td></tr>
+          <tr><td>H</td><td>Game note (optional)</td><td class="ex">Great catch in the 7th!</td></tr>
         </tbody>
       </table>
       <div style="margin-top:12px; font-family:var(--mono); font-size:0.66rem; color:var(--muted);">
-        Column G is optional. Home team name must match the MLB team name exactly (e.g. "Yankees", "Red Sox", "Cubs")
+        Columns G and H are optional. Home team name must match the MLB team name exactly (e.g. "Yankees", "Red Sox", "Cubs")
       </div>
     </div>
     <div id="status-bar">
@@ -440,7 +441,7 @@
         </div>
         <button class="action-btn accent" onclick="openAddGameModal()">＋ Add Game</button>
         <button class="action-btn" id="toggle-game-list-btn" onclick="toggleGameList()">☰ Game List</button>
-        <button class="action-btn gold"   onclick="shareLink()">⇪ Share Link</button>
+        <button class="action-btn gold"   onclick="downloadHTML()">↓ Download HTML</button>
         <button class="action-btn"        onclick="exportGameList()">↓ Export Game List</button>
         <button class="action-btn danger" onclick="resetAll()">↺ Load New File</button>
       </div>
@@ -644,8 +645,8 @@ let availableOpponents = [], hasPlayoffGames = false;
 let totalGameCount = 0;
 
 // Attendance sort state
-let attSortCol = null; // column index (0 = name, 1..n = stadiums, last = total)
-let attSortDir = 'desc'; // 'asc' | 'desc'
+let attSortCol = null;
+let attSortDir = 'desc';
 
 // ============================================================
 // POPULATE TEAM DROPDOWN IN MODAL
@@ -681,7 +682,8 @@ function processFile(file) {
         .map(r => ({
           month: String(r[1]).trim(), day: parseInt(r[2]), year: parseInt(r[3]),
           homeTeam: String(r[4]).trim(), gameNumber: parseInt(r[5]) || 1,
-          attendedWith: parseAttendeesStr(r[6] || '')
+          attendedWith: parseAttendeesStr(r[6] || ''),
+          note: r[7] ? String(r[7]).trim() : ''
         }));
       if (!games.length) { showError("No valid rows found in spreadsheet."); return; }
       fetchAllGames(games);
@@ -820,7 +822,7 @@ function computePitching(rows) {
 // ============================================================
 async function fetchAllGames(games) {
   showStatus("Fetching games…",0);
-  allHittingRaw=[]; allPitchingRaw=[]; gameList=[]; scoreboardData=[];
+  allHittingRaw=[]; allPitchingRaw=[]; gameList=[]; scoreboardData=[]; gameNotes={};
 
   for (let i=0;i<games.length;i++) {
     const g=games[i];
@@ -837,6 +839,8 @@ async function fetchAllGames(games) {
       allHittingRaw.push(...hittingRows);
       allPitchingRaw.push(...pitchingRows);
       scoreboardData.push(sbEntry);
+      // Load note from column H if provided
+      if (g.note) gameNotes[gamePk] = g.note;
       gameList.push({...g,gamePk,gameType,homeTeamName,awayTeamName});
     } catch(err) { console.warn(`Skipped: ${g.homeTeam} — ${err.message}`); }
   }
@@ -869,7 +873,6 @@ function initFiltersAndRender() {
   const yearSet=new Set([...allHittingRaw.map(r=>r.year),...allPitchingRaw.map(r=>r.year),...scoreboardData.map(r=>r.year)]);
   availableYears=[...yearSet].filter(Boolean).sort();
 
-  // Collect available months from scoreboardData (month numbers)
   const monthSet=new Set(scoreboardData.map(r=>{ const m=new Date(r.date+'T12:00:00').getMonth(); return m; }));
   availableMonths=[...monthSet].sort((a,b)=>a-b);
 
@@ -915,9 +918,7 @@ function getFilteredRows() {
     h=h.filter(r=>r.year===selectedYear); p=p.filter(r=>r.year===selectedYear); sb=sb.filter(r=>r.year===selectedYear);
   }
   if (selectedMonth!=='All') {
-    // Filter sb by month (0-indexed)
     sb=sb.filter(r=>{ const m=new Date(r.date+'T12:00:00').getMonth(); return m===selectedMonth; });
-    // For h/p we match by game_id presence in filtered sb
     const sbPks=new Set(sb.map(r=>r.gamePk));
     h=h.filter(r=>sbPks.has(r.game_id)); p=p.filter(r=>sbPks.has(r.game_id));
   }
@@ -1036,7 +1037,7 @@ function setModalStatus(msg,type) {
 // ============================================================
 function exportGameList() {
   if (!gameList.length) { showToast('No games to export'); return; }
-  const rows=gameList.map((g,i)=>[i+1,g.month,g.day,g.year,g.homeTeam,g.gameNumber,(g.attendedWith||[]).join(', ')]);
+  const rows=gameList.map((g,i)=>[i+1,g.month,g.day,g.year,g.homeTeam,g.gameNumber,(g.attendedWith||[]).join(', '),gameNotes[g.gamePk]||'']);
   const ws=XLSX.utils.aoa_to_sheet(rows);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Games');
@@ -1045,75 +1046,82 @@ function exportGameList() {
 }
 
 // ============================================================
-// SHARE LINK
+// DOWNLOAD AS SELF-CONTAINED HTML
 // ============================================================
-function shareLink() {
+function downloadHTML() {
+  if (!gameList.length) { showToast('No data to download'); return; }
+
+  showToast('Preparing download…');
+
   try {
-    const safePayload = {
+    // Serialise current state as a JSON payload embedded in the page
+    const payload = {
       gameList,
       hRaw: allHittingRaw.map(r=>({...r})),
       pRaw: allPitchingRaw.map(r=>({...r})),
       sbData: scoreboardData,
       notes: gameNotes,
     };
-    const json   = JSON.stringify(safePayload);
-    const compressed = pako.deflate(json);
-    let b64 = btoa(String.fromCharCode(...compressed)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    const url = `${location.origin}${location.pathname}?d=${b64}`;
-    navigator.clipboard.writeText(url).then(()=>showToast('Share link copied to clipboard!')).catch(()=>{
-      prompt('Copy this link:', url);
-    });
-  } catch(e) {
-    showToast('Link too large — try exporting the game list instead');
-  }
-}
+    // Escape </script> sequences so they don't break the embedded block
+    const jsonStr = JSON.stringify(payload).replace(/<\/script>/gi, '<\\/script>');
 
-// ============================================================
-// LOAD FROM URL
-// ============================================================
-function loadFromURL() {
-  const params=new URLSearchParams(location.search);
-  const d=params.get('d');
-  if (!d) return false;
+    // Grab the full page source and inject the preloaded data block just before </body>
+    const currentHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+    const injectedBlock = `<script id="__preloaded_data__">
+(function(){
   try {
-    const bytes=Uint8Array.from(atob(d.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
-    const json=pako.inflate(bytes,{to:'string'});
-    const payload=JSON.parse(json);
-    gameList=payload.gameList||[];
-    allHittingRaw=payload.hRaw||[];
-    allPitchingRaw=payload.pRaw||[];
-    scoreboardData=payload.sbData||[];
-    gameNotes=payload.notes||{};
-    totalGameCount=gameList.length;
-    if (!allHittingRaw.length&&!allPitchingRaw.length&&!scoreboardData.length) return false;
-    initFiltersAndRender();
-    document.getElementById('upload-section').style.display='none';
-    document.getElementById('stats-section').style.display='block';
-    return true;
-  } catch(e) { console.warn('Failed to load from URL',e); return false; }
-}
+    var payload = ${jsonStr};
+    window.__PRELOADED__ = payload;
+  } catch(e) { console.warn('Failed to parse preloaded data', e); }
+})();
+<\/script>`;
 
-// ============================================================
-// TEAM CELL HTML
-// ============================================================
-function teamCellHTML(row,type) {
-  const teams=row._teams||[], bd=row._teamBreakdown||[];
-  const isMulti=teams.length>1, label=isMulti?`${teams.length}TMS`:(teams[0]||'—');
-  let drop='';
-  if (isMulti) {
-    if (type==='hitting') {
-      const cols=['Team','G','AVG','OBP','SLG','OPS','H','AB','2B','3B','HR','TB','R','RBI','SB','SO','BB','LOB'];
-      const w=['52px','34px','58px','58px','58px','58px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px'];
-      const g=w.join(' ');
-      drop=`<div class="team-dropdown"><div class="tdd-scroll"><div class="tdd-grid tdd-header" style="grid-template-columns:${g}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${g}"><span class="tm">${t.abbr}</span><span>${t.g}</span><span>${t.avg}</span><span>${t.obp}</span><span>${t.slg}</span><span>${t.ops}</span><span>${t.h}</span><span>${t.ab}</span><span>${t.doubles}</span><span>${t.triples}</span><span>${t.hr}</span><span>${t.tb}</span><span>${t.r}</span><span>${t.rbi}</span><span>${t.sb}</span><span>${t.so}</span><span>${t.bb}</span><span>${t.lob}</span></div>`).join('')}</div></div>`;
-    } else {
-      const cols=['Team','G','IP','ERA','WHIP','K/9','H','ER','R','BB','K','HR','Pitches'];
-      const w=['52px','34px','50px','58px','58px','58px','36px','36px','36px','36px','36px','36px','58px'];
-      const g=w.join(' ');
-      drop=`<div class="team-dropdown"><div class="tdd-scroll"><div class="tdd-grid tdd-header" style="grid-template-columns:${g}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${g}"><span class="tm">${t.abbr}</span><span>${t.g}</span><span>${t.ip}</span><span>${t.era}</span><span>${t.whip}</span><span>${t.k9}</span><span>${t.h}</span><span>${t.er}</span><span>${t.r}</span><span>${t.bb}</span><span>${t.k}</span><span>${t.hr}</span><span>${t.pitches}</span></div>`).join('')}</div></div>`;
-    }
+    // Insert the data block + autoload script before </body>
+    const autoloadScript = `<script id="__autoload__">
+window.addEventListener('load', function() {
+  if (!window.__PRELOADED__) return;
+  var p = window.__PRELOADED__;
+  gameList = p.gameList || [];
+  allHittingRaw = p.hRaw || [];
+  allPitchingRaw = p.pRaw || [];
+  scoreboardData = p.sbData || [];
+  gameNotes = p.notes || {};
+  totalGameCount = gameList.length;
+  if (allHittingRaw.length || allPitchingRaw.length || scoreboardData.length) {
+    document.getElementById('upload-section').style.display = 'none';
+    document.getElementById('stats-section').style.display = 'block';
+    initFiltersAndRender();
   }
-  return `<div class="team-badge${isMulti?' multi':''}" onclick="toggleTeamDrop(event,this)"><span class="team-label">${label}</span>${isMulti?`<span class="team-chevron">▼</span>${drop}`:''}</div>`;
+});
+<\/script>`;
+
+    // Find the existing loadFromURL call in the page and replace or append after it
+    // We inject right before </body>
+    let outputHTML = currentHTML.replace(/<\/body>/i, injectedBlock + '\n' + autoloadScript + '\n</body>');
+
+    // Remove any previously embedded data blocks to avoid duplicates if re-downloading
+    outputHTML = outputHTML.replace(/<script id="__preloaded_data__">[\s\S]*?<\/script>\s*/g, '');
+    outputHTML = outputHTML.replace(/<script id="__autoload__">[\s\S]*?<\/script>\s*/g, '');
+
+    // Re-inject cleanly
+    outputHTML = outputHTML.replace(/<\/body>/i, injectedBlock + '\n' + autoloadScript + '\n</body>');
+
+    const blob = new Blob([outputHTML], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'baseball-stats.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+    showToast('baseball-stats.html downloaded');
+  } catch(e) {
+    console.error(e);
+    showToast('Download failed — see console');
+  }
 }
 
 // ============================================================
@@ -1147,7 +1155,9 @@ function saveNote(gamePk) {
   // Re-render just the notes row for this card
   const notesRow = document.getElementById(`note-row-${gamePk}`);
   if (notesRow) {
-    notesRow.outerHTML = buildNoteRow(gamePk);
+    const tmp = document.createElement('div');
+    tmp.innerHTML = buildNoteRow(gamePk);
+    notesRow.replaceWith(tmp.firstElementChild);
   }
   showToast('Note saved');
 }
@@ -1338,21 +1348,17 @@ function renderAttendance(sbRows) {
   const stadiumTotals = {};
   for (const s of stadiums) stadiumTotals[s] = stadiumGameMap[s].size;
 
-  // Build data rows for sorting
-  // Each row: { name, values: [count per stadium in stadiums order], total }
   let dataRows = people.map(p => ({
     name: p,
     values: stadiums.map(s => psc[p][s]||0),
     total: personTotals[p]
   }));
 
-  // Apply sort
-  // attSortCol: null = no sort, 0 = name, 1..n = stadium index (0-based), n+1 = total
-  const totalColIdx = stadiums.length; // 0-indexed among [stadiums..., total]
+  const totalColIdx = stadiums.length;
   if (attSortCol !== null) {
     dataRows.sort((a,b) => {
       let va, vb;
-      if (attSortCol === 0) { // name — sort asc/desc as strings
+      if (attSortCol === 0) {
         va = a.name; vb = b.name;
         if (attSortDir === 'asc') return va.localeCompare(vb);
         return vb.localeCompare(va);
@@ -1419,7 +1425,6 @@ function sortAttendance(colIdx) {
     attSortCol = colIdx;
     attSortDir = 'desc';
   }
-  // Re-render only attendance from current filtered data
   const {sb} = getFilteredRows();
   renderAttendance(sb);
 }
@@ -1435,27 +1440,20 @@ function renderPersonalGameStats(sbRows) {
     return;
   }
 
-  // Build stadium × day matrix
   const stadiumSet = new Set();
-  const daySet = new Set();
-
-  // gamePk → day-of-week index
-  const gameDay = {}; // gamePk → { dayIdx, stadium }
+  const gameDay = {};
 
   for (const g of sbRows) {
     const stadium = getStadium(g.homeTeamName);
     const d = new Date(g.date + 'T12:00:00');
-    const dayIdx = d.getDay(); // 0=Sun, 6=Sat
+    const dayIdx = d.getDay();
     stadiumSet.add(stadium);
-    daySet.add(dayIdx);
     gameDay[g.gamePk] = { dayIdx, stadium };
   }
 
   const stadiums = [...stadiumSet].sort();
-  // Always show all 7 days in calendar order
-  const days = [0,1,2,3,4,5,6]; // Sun-Sat
+  const days = [0,1,2,3,4,5,6];
 
-  // matrix[stadium][dayIdx] = count of games
   const matrix = {};
   for (const s of stadiums) {
     matrix[s] = {};
@@ -1469,11 +1467,9 @@ function renderPersonalGameStats(sbRows) {
     }
   }
 
-  // Stadium totals
   const stadiumTotals = {};
   for (const s of stadiums) stadiumTotals[s] = days.reduce((acc,d)=>acc+matrix[s][d],0);
 
-  // Day totals
   const dayTotals = {};
   for (const d of days) dayTotals[d] = stadiums.reduce((acc,s)=>acc+matrix[s][d],0);
 
@@ -1566,6 +1562,29 @@ function renderTables(hitting,pitching,gameCount,sbRows) {
 }
 
 // ============================================================
+// TEAM CELL HTML
+// ============================================================
+function teamCellHTML(row,type) {
+  const teams=row._teams||[], bd=row._teamBreakdown||[];
+  const isMulti=teams.length>1, label=isMulti?`${teams.length}TMS`:(teams[0]||'—');
+  let drop='';
+  if (isMulti) {
+    if (type==='hitting') {
+      const cols=['Team','G','AVG','OBP','SLG','OPS','H','AB','2B','3B','HR','TB','R','RBI','SB','SO','BB','LOB'];
+      const w=['52px','34px','58px','58px','58px','58px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px'];
+      const g=w.join(' ');
+      drop=`<div class="team-dropdown"><div class="tdd-scroll"><div class="tdd-grid tdd-header" style="grid-template-columns:${g}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${g}"><span class="tm">${t.abbr}</span><span>${t.g}</span><span>${t.avg}</span><span>${t.obp}</span><span>${t.slg}</span><span>${t.ops}</span><span>${t.h}</span><span>${t.ab}</span><span>${t.doubles}</span><span>${t.triples}</span><span>${t.hr}</span><span>${t.tb}</span><span>${t.r}</span><span>${t.rbi}</span><span>${t.sb}</span><span>${t.so}</span><span>${t.bb}</span><span>${t.lob}</span></div>`).join('')}</div></div>`;
+    } else {
+      const cols=['Team','G','IP','ERA','WHIP','K/9','H','ER','R','BB','K','HR','Pitches'];
+      const w=['52px','34px','50px','58px','58px','58px','36px','36px','36px','36px','36px','36px','58px'];
+      const g=w.join(' ');
+      drop=`<div class="team-dropdown"><div class="tdd-scroll"><div class="tdd-grid tdd-header" style="grid-template-columns:${g}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${g}"><span class="tm">${t.abbr}</span><span>${t.g}</span><span>${t.ip}</span><span>${t.era}</span><span>${t.whip}</span><span>${t.k9}</span><span>${t.h}</span><span>${t.er}</span><span>${t.r}</span><span>${t.bb}</span><span>${t.k}</span><span>${t.hr}</span><span>${t.pitches}</span></div>`).join('')}</div></div>`;
+    }
+  }
+  return `<div class="team-badge${isMulti?' multi':''}" onclick="toggleTeamDrop(event,this)"><span class="team-label">${label}</span>${isMulti?`<span class="team-chevron">▼</span>${drop}`:''}</div>`;
+}
+
+// ============================================================
 // DROPDOWN TOGGLE
 // ============================================================
 function toggleTeamDrop(e,el) {
@@ -1637,13 +1656,27 @@ function resetAll() {
   document.getElementById('toggle-game-list-btn').textContent='☰ Game List';
   document.getElementById('file-input').value='';
   document.getElementById('status-bar').classList.remove('active');
-  history.replaceState(null,'',location.pathname);
 }
 
 // ============================================================
-// INIT — check for shared URL on load
+// INIT — check for preloaded data on load
 // ============================================================
-window.addEventListener('load',()=>{ loadFromURL(); });
+window.addEventListener('load', function() {
+  if (window.__PRELOADED__) {
+    const p = window.__PRELOADED__;
+    gameList = p.gameList || [];
+    allHittingRaw = p.hRaw || [];
+    allPitchingRaw = p.pRaw || [];
+    scoreboardData = p.sbData || [];
+    gameNotes = p.notes || {};
+    totalGameCount = gameList.length;
+    if (allHittingRaw.length || allPitchingRaw.length || scoreboardData.length) {
+      document.getElementById('upload-section').style.display = 'none';
+      document.getElementById('stats-section').style.display = 'block';
+      initFiltersAndRender();
+    }
+  }
+});
 </script>
 </body>
 </html>

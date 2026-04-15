@@ -71,7 +71,7 @@
   .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.3s ease; }
   #error-msg { color: var(--red); font-family: var(--mono); font-size: 0.75rem; margin-top: 8px; display: none; }
 
-  /* STATS SECTION */
+  /* STATS SECTION — hidden until data is loaded */
   #stats-section { display: none; }
   .filter-bar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
   .filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -1050,11 +1050,8 @@ function exportGameList() {
 // ============================================================
 function downloadHTML() {
   if (!gameList.length) { showToast('No data to download'); return; }
-
   showToast('Preparing download…');
-
   try {
-    // Serialise current state as a JSON payload embedded in the page
     const payload = {
       gameList,
       hRaw: allHittingRaw.map(r=>({...r})),
@@ -1062,61 +1059,36 @@ function downloadHTML() {
       sbData: scoreboardData,
       notes: gameNotes,
     };
-    // Escape </script> sequences so they don't break the embedded block
     const jsonStr = JSON.stringify(payload).replace(/<\/script>/gi, '<\\/script>');
 
-    // Grab the full page source and inject the preloaded data block just before </body>
-    const currentHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    // Temporarily strip inline display styles so outerHTML captures the clean default state.
+    // Without this, the downloaded file bakes in style="display:none" on upload-section,
+    // which prevents the upload zone from appearing when the file is re-opened fresh.
+    const uploadEl = document.getElementById('upload-section');
+    const statsEl  = document.getElementById('stats-section');
+    const savedUpload = uploadEl.style.display;
+    const savedStats  = statsEl.style.display;
+    uploadEl.style.display = '';
+    statsEl.style.display  = '';
 
-    const injectedBlock = `<script id="__preloaded_data__">
-(function(){
-  try {
-    var payload = ${jsonStr};
-    window.__PRELOADED__ = payload;
-  } catch(e) { console.warn('Failed to parse preloaded data', e); }
-})();
-<\/script>`;
+    let html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 
-    // Insert the data block + autoload script before </body>
-    const autoloadScript = `<script id="__autoload__">
-window.addEventListener('load', function() {
-  if (!window.__PRELOADED__) return;
-  var p = window.__PRELOADED__;
-  gameList = p.gameList || [];
-  allHittingRaw = p.hRaw || [];
-  allPitchingRaw = p.pRaw || [];
-  scoreboardData = p.sbData || [];
-  gameNotes = p.notes || {};
-  totalGameCount = gameList.length;
-  if (allHittingRaw.length || allPitchingRaw.length || scoreboardData.length) {
-    document.getElementById('upload-section').style.display = 'none';
-    document.getElementById('stats-section').style.display = 'block';
-    initFiltersAndRender();
-  }
-});
-<\/script>`;
+    // Restore live DOM immediately after capture
+    uploadEl.style.display = savedUpload;
+    statsEl.style.display  = savedStats;
 
-    // Find the existing loadFromURL call in the page and replace or append after it
-    // We inject right before </body>
-    let outputHTML = currentHTML.replace(/<\/body>/i, injectedBlock + '\n' + autoloadScript + '\n</body>');
+    // Strip any previously embedded data block so re-downloads don't duplicate it
+    html = html.replace(/\s*<script id="__preloaded_data__"[^>]*>[\s\S]*?<\/script>/g, '');
 
-    // Remove any previously embedded data blocks to avoid duplicates if re-downloading
-    outputHTML = outputHTML.replace(/<script id="__preloaded_data__">[\s\S]*?<\/script>\s*/g, '');
-    outputHTML = outputHTML.replace(/<script id="__autoload__">[\s\S]*?<\/script>\s*/g, '');
+    const dataBlock = '<script id="__preloaded_data__">(function(){try{window.__PRELOADED__=' + jsonStr + ';}catch(e){}})();<\/script>';
+    const output = html.replace(/<\/body>/i, dataBlock + '\n</body>');
 
-    // Re-inject cleanly
-    outputHTML = outputHTML.replace(/<\/body>/i, injectedBlock + '\n' + autoloadScript + '\n</body>');
-
-    const blob = new Blob([outputHTML], { type: 'text/html;charset=utf-8' });
+    const blob = new Blob([output], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'baseball-stats.html';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.href = url; a.download = 'baseball-stats.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 5000);
-
     showToast('baseball-stats.html downloaded');
   } catch(e) {
     console.error(e);

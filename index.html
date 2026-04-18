@@ -605,6 +605,10 @@
 <div class="toast" id="toast"><span class="tick">✓</span><span id="toast-msg"></span></div>
 
 <script>
+// Capture the pristine source HTML immediately, before any rendering touches the DOM.
+// This is used by downloadHTML() so the downloaded file is always a clean slate.
+const __CLEAN_SOURCE_HTML__ = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
 // ============================================================
 // CONSTANTS
 // ============================================================
@@ -1144,18 +1148,12 @@ function downloadHTML() {
     };
     const jsonStr = JSON.stringify(payload).replace(/<\/script>/gi, '<\\/script>');
 
-    const uploadEl = document.getElementById('upload-section');
-    const statsEl  = document.getElementById('stats-section');
-    const savedUpload = uploadEl.style.display;
-    const savedStats  = statsEl.style.display;
-    uploadEl.style.display = '';
-    statsEl.style.display  = '';
+    // Use the clean source HTML captured at page-load time (before any rendering).
+    // This avoids baking in live DataTables wrappers, rendered table rows, filter
+    // button states, and other DOM mutations that break re-initialisation.
+    let html = __CLEAN_SOURCE_HTML__;
 
-    let html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-
-    uploadEl.style.display = savedUpload;
-    statsEl.style.display  = savedStats;
-
+    // Strip any previously embedded data block (handles re-downloading a downloaded file).
     html = html.replace(/\s*<script id="__preloaded_data__"[^>]*>[\s\S]*?<\/script>/g, '');
 
     const dataBlock = '<script id="__preloaded_data__">(function(){try{window.__PRELOADED__=' + jsonStr + ';}catch(e){}})();<\/script>';

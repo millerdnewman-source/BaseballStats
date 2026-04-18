@@ -161,23 +161,24 @@
   /* ADD GAME MODAL */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
   .modal-overlay.open { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 32px; width: 100%; max-width: 480px; box-shadow: 0 24px 60px rgba(0,0,0,0.6); position: relative; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 32px; width: 100%; max-width: 480px; box-shadow: 0 24px 60px rgba(0,0,0,0.6); position: relative; max-height: 90vh; overflow-y: auto; }
   .modal-title { font-family: var(--display); font-size: 1.6rem; letter-spacing: 0.06em; margin-bottom: 24px; }
   .modal-title span { color: var(--accent); }
   .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.2rem; line-height: 1; transition: color 0.15s; }
   .modal-close:hover { color: var(--text); }
   .form-row { margin-bottom: 16px; }
   .form-label { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
-  .form-input, .form-select {
+  .form-input, .form-select, .form-textarea {
     width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text);
     font-family: var(--mono); font-size: 0.82rem; padding: 10px 12px; border-radius: 4px; outline: none; transition: border-color 0.2s;
   }
+  .form-textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
   .form-select {
     appearance: none; -webkit-appearance: none; cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6578'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
   }
-  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
   .form-select option { background: #181d25; }
   .form-row-half { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
   .modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
@@ -286,7 +287,7 @@
   .sb-count { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); margin-left: auto; }
   .no-games-msg { font-family: var(--mono); font-size: 0.76rem; color: var(--muted); padding: 24px 0; text-align: center; }
 
-  /* ATTENDANCE TABLE — sortable */
+  /* ATTENDANCE TABLE — sortable with vertical headers */
   #attendance-wrap { overflow-x: auto; padding: 4px 0; }
   .attendance-table { border-collapse: collapse; font-family: var(--mono); font-size: 0.76rem; white-space: nowrap; }
   .attendance-table th {
@@ -306,12 +307,82 @@
   .attendance-table td:first-child { text-align: left; font-weight: 500; color: var(--text); position: sticky; left: 0; background: var(--bg); border-right: 1px solid var(--border); }
   .attendance-table tr:hover td { background: rgba(200,240,74,0.03); }
   .attendance-table tr:hover td:first-child { background: #0e1014; }
-  .att-cell-filled { color: var(--accent2); font-weight: 500; }
+  .att-cell-filled { color: var(--accent2); font-weight: 500; cursor: default; position: relative; }
+  .att-cell-filled:hover { color: var(--accent); background: rgba(200,240,74,0.07) !important; }
   .att-cell-empty { color: rgba(90,101,120,0.3); }
   .att-total { color: var(--accent); font-weight: 500; border-left: 1px solid var(--border); }
   .att-section-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
   .att-note { font-family: var(--mono); font-size: 0.66rem; color: var(--muted); margin-top: 16px; }
-  .att-stadium-header { writing-mode: horizontal-tb; font-size: 0.62rem; }
+
+  /* VERTICAL HEADER for attendance stadium columns */
+  .att-stadium-header {
+    height: 130px;
+    vertical-align: bottom;
+    padding: 0 6px 8px 6px !important;
+    min-width: 36px;
+    max-width: 36px;
+    width: 36px;
+  }
+  .att-stadium-header .th-inner {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    display: inline-block;
+    max-height: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+  .att-stadium-header .sort-arrow {
+    display: block;
+    margin-left: 0;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  /* ATTENDANCE HOVER TOOLTIP */
+  .att-tooltip {
+    position: fixed;
+    z-index: 99999;
+    background: #181d25;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.65);
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text);
+    pointer-events: none;
+    min-width: 180px;
+    max-width: 280px;
+    display: none;
+  }
+  .att-tooltip.visible { display: block; }
+  .att-tooltip-title {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 7px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .att-tooltip-title strong { color: var(--accent2); }
+  .att-tooltip-game {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(30,37,48,0.4);
+  }
+  .att-tooltip-game:last-child { border-bottom: none; }
+  .att-tooltip-date { color: var(--muted); font-size: 0.65rem; white-space: nowrap; }
+  .att-tooltip-matchup { color: var(--text); font-size: 0.68rem; }
+  .att-tooltip-result { font-size: 0.65rem; margin-left: auto; white-space: nowrap; }
+  .att-tooltip-result.win { color: var(--accent); }
+  .att-tooltip-result.loss { color: var(--red); }
 
   /* PERSONAL GAME STATS TAB */
   #personal-wrap { overflow-x: auto; padding: 4px 0; }
@@ -513,6 +584,11 @@
       <label class="form-label">Attended With (comma-separated, optional)</label>
       <input type="text" class="form-input" id="ag-attendees" placeholder="Alice, Bob, Carol">
     </div>
+    <!-- CHANGE 1: Notes field added to Add Game modal -->
+    <div class="form-row">
+      <label class="form-label">Game Note (optional)</label>
+      <textarea class="form-textarea" id="ag-note" placeholder="Add a note about this game…"></textarea>
+    </div>
 
     <div class="modal-status" id="ag-status"></div>
     <div class="modal-actions">
@@ -521,6 +597,9 @@
     </div>
   </div>
 </div>
+
+<!-- ATTENDANCE TOOLTIP -->
+<div class="att-tooltip" id="att-tooltip"></div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"><span class="tick">✓</span><span id="toast-msg"></span></div>
@@ -839,7 +918,6 @@ async function fetchAllGames(games) {
       allHittingRaw.push(...hittingRows);
       allPitchingRaw.push(...pitchingRows);
       scoreboardData.push(sbEntry);
-      // Load note from column H if provided
       if (g.note) gameNotes[gamePk] = g.note;
       gameList.push({...g,gamePk,gameType,homeTeamName,awayTeamName});
     } catch(err) { console.warn(`Skipped: ${g.homeTeam} — ${err.message}`); }
@@ -850,7 +928,7 @@ async function fetchAllGames(games) {
   initFiltersAndRender();
 }
 
-async function fetchSingleGame(date, homeTeam, gameNumber, overrideType, attendedWith) {
+async function fetchSingleGame(date, homeTeam, gameNumber, overrideType, attendedWith, note) {
   const {gamePk,gameType:detectedType,homeTeamName,awayTeamName}=await getGameInfo(date,homeTeam,gameNumber);
   const gameType = (overrideType&&overrideType!=='auto') ? overrideType : detectedType;
   const parts=date.split('-');
@@ -862,6 +940,8 @@ async function fetchSingleGame(date, homeTeam, gameNumber, overrideType, attende
   allHittingRaw.push(...hittingRows);
   allPitchingRaw.push(...pitchingRows);
   scoreboardData.push(sbEntry);
+  // CHANGE 1: Save note from modal when adding a game
+  if (note && note.trim()) gameNotes[gamePk] = note.trim();
   gameList.push({month,day,year,homeTeam,gameNumber,gamePk,gameType,homeTeamName,awayTeamName,attendedWith:attendedWith||[]});
   return {gamePk,gameType,homeTeamName,awayTeamName};
 }
@@ -993,6 +1073,7 @@ function openAddGameModal() {
   document.getElementById('ag-status').className='modal-status';
   document.getElementById('ag-submit').disabled=false;
   document.getElementById('ag-attendees').value='';
+  document.getElementById('ag-note').value=''; // CHANGE 1: clear note field on open
   document.getElementById('add-game-modal').classList.add('open');
 }
 function closeAddGameModal() { document.getElementById('add-game-modal').classList.remove('open'); }
@@ -1004,6 +1085,7 @@ async function submitAddGame() {
   const gameNum =parseInt(document.getElementById('ag-gamenum').value)||1;
   const gameType=document.getElementById('ag-gametype').value;
   const attendedWith = parseAttendeesStr(document.getElementById('ag-attendees').value);
+  const note = document.getElementById('ag-note').value.trim(); // CHANGE 1: read note from modal
 
   if (!date)     { setModalStatus('Please select a date.','err'); return; }
   if (!homeTeam) { setModalStatus('Please select a home team.','err'); return; }
@@ -1017,7 +1099,8 @@ async function submitAddGame() {
   setModalStatus('Fetching game data…','');
 
   try {
-    const {homeTeamName,awayTeamName}=await fetchSingleGame(date,homeTeam,gameNum,gameType,attendedWith);
+    // CHANGE 1: pass note to fetchSingleGame
+    const {homeTeamName,awayTeamName}=await fetchSingleGame(date,homeTeam,gameNum,gameType,attendedWith,note);
     initFiltersAndRender();
     closeAddGameModal();
     showToast(`Added: ${homeTeamName} vs ${awayTeamName} (${date})`);
@@ -1061,9 +1144,6 @@ function downloadHTML() {
     };
     const jsonStr = JSON.stringify(payload).replace(/<\/script>/gi, '<\\/script>');
 
-    // Temporarily strip inline display styles so outerHTML captures the clean default state.
-    // Without this, the downloaded file bakes in style="display:none" on upload-section,
-    // which prevents the upload zone from appearing when the file is re-opened fresh.
     const uploadEl = document.getElementById('upload-section');
     const statsEl  = document.getElementById('stats-section');
     const savedUpload = uploadEl.style.display;
@@ -1073,11 +1153,9 @@ function downloadHTML() {
 
     let html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 
-    // Restore live DOM immediately after capture
     uploadEl.style.display = savedUpload;
     statsEl.style.display  = savedStats;
 
-    // Strip any previously embedded data block so re-downloads don't duplicate it
     html = html.replace(/\s*<script id="__preloaded_data__"[^>]*>[\s\S]*?<\/script>/g, '');
 
     const dataBlock = '<script id="__preloaded_data__">(function(){try{window.__PRELOADED__=' + jsonStr + ';}catch(e){}})();<\/script>';
@@ -1124,7 +1202,6 @@ function saveNote(gamePk) {
     delete gameNotes[gamePk];
   }
   editor.classList.remove('open');
-  // Re-render just the notes row for this card
   const notesRow = document.getElementById(`note-row-${gamePk}`);
   if (notesRow) {
     const tmp = document.createElement('div');
@@ -1281,17 +1358,24 @@ function filterScoreboard(val, updateInput) {
 }
 
 // ============================================================
-// RENDER ATTENDANCE TABLE (sortable)
+// RENDER ATTENDANCE TABLE — CHANGE 2 & 3: vertical headers + hover tooltip
 // ============================================================
+// Store game info keyed by stadium for tooltip lookup
+let attStadiumGames = {}; // { stadiumName: [ sbEntry, ... ] }
+
 function renderAttendance(sbRows) {
   const wrap = document.getElementById('attendance-wrap');
   const peopleSet = new Set();
   const stadiumGameMap = {};
+  attStadiumGames = {};
 
   for (const g of sbRows) {
     const stadium = getStadium(g.homeTeamName);
-    if (!stadiumGameMap[stadium]) stadiumGameMap[stadium] = new Set();
-    stadiumGameMap[stadium].add(g.gamePk);
+    if (!stadiumGameMap[stadium]) { stadiumGameMap[stadium] = new Set(); attStadiumGames[stadium] = []; }
+    if (!stadiumGameMap[stadium].has(g.gamePk)) {
+      stadiumGameMap[stadium].add(g.gamePk);
+      attStadiumGames[stadium].push(g);
+    }
     for (const p of (g.attendedWith||[])) peopleSet.add(p);
   }
 
@@ -1306,12 +1390,21 @@ function renderAttendance(sbRows) {
   }
 
   const psc = {};
-  for (const p of people) { psc[p] = {}; for (const s of stadiums) psc[p][s] = 0; }
+  // pscGames[person][stadium] = [ sbEntry, ... ] for tooltip
+  const pscGames = {};
+  for (const p of people) {
+    psc[p] = {}; pscGames[p] = {};
+    for (const s of stadiums) { psc[p][s] = 0; pscGames[p][s] = []; }
+  }
 
   for (const g of sbRows) {
     const stadium = getStadium(g.homeTeamName);
     for (const p of (g.attendedWith||[])) {
-      if (psc[p]) psc[p][stadium] = (psc[p][stadium]||0) + 1;
+      if (psc[p]) {
+        psc[p][stadium] = (psc[p][stadium]||0) + 1;
+        if (!pscGames[p][stadium]) pscGames[p][stadium] = [];
+        pscGames[p][stadium].push(g);
+      }
     }
   }
 
@@ -1323,6 +1416,7 @@ function renderAttendance(sbRows) {
   let dataRows = people.map(p => ({
     name: p,
     values: stadiums.map(s => psc[p][s]||0),
+    games: stadiums.map(s => pscGames[p][s]||[]),
     total: personTotals[p]
   }));
 
@@ -1352,27 +1446,49 @@ function renderAttendance(sbRows) {
     return ` ${attSortDir==='asc'?'sort-asc':'sort-desc'}`;
   }
 
+  // CHANGE 2: Vertical headers using .att-stadium-header with .th-inner wrapper
   const thStadiums = stadiums.map((s,i)=>
-    `<th class="att-stadium-header${thClass(i+1)}" onclick="sortAttendance(${i+1})" title="${escAttr(s)}">${escHtml(s.length>14?s.slice(0,13)+'…':s)}${sortArrow(i+1)}</th>`
+    `<th class="att-stadium-header${thClass(i+1)}" onclick="sortAttendance(${i+1})" title="${escAttr(s)}">
+      <div class="th-inner">${escHtml(s)}${sortArrow(i+1)}</div>
+    </th>`
   ).join('');
   const totalThIdx = stadiums.length+1;
   const thTotal = `<th class="total-col${thClass(totalThIdx)}" onclick="sortAttendance(${totalThIdx})">Total${sortArrow(totalThIdx)}</th>`;
 
+  // CHANGE 3: Hover tooltip — encode game info as data attributes
   const rows = dataRows.map(row => {
-    const cells = row.values.map(v =>
-      `<td class="${v>0?'att-cell-filled':'att-cell-empty'}">${v>0?v:'·'}</td>`
-    ).join('');
+    const cells = row.values.map((v, si) => {
+      if (v > 0) {
+        // Encode game list as JSON for tooltip
+        const gamesJson = JSON.stringify(row.games[si].map(g => ({
+          date: g.date,
+          away: getAbbr(g.awayTeamName),
+          home: getAbbr(g.homeTeamName),
+          awayR: g.awayR,
+          homeR: g.homeR,
+          gameType: g.gameType
+        })));
+        return `<td class="att-cell-filled" 
+          data-person="${escAttr(row.name)}" 
+          data-stadium="${escAttr(stadiums[si])}" 
+          data-games="${escAttr(gamesJson)}"
+          onmouseenter="showAttTooltip(event,this)" 
+          onmouseleave="hideAttTooltip()"
+          onmousemove="moveAttTooltip(event)">${v}</td>`;
+      }
+      return `<td class="att-cell-empty">·</td>`;
+    }).join('');
     return `<tr><td>${escHtml(row.name)}</td>${cells}<td class="att-total">${row.total}</td></tr>`;
   }).join('');
 
   const totalCells = stadiums.map(s => `<td style="color:var(--muted);font-size:0.7rem;">${stadiumTotals[s]}</td>`).join('');
 
   wrap.innerHTML = `
-    <div class="att-section-label">Games attended with each person, by stadium · Click column headers to sort</div>
+    <div class="att-section-label">Games attended with each person, by stadium · Click column headers to sort · Hover cells to see games</div>
     <table class="attendance-table" id="att-table">
       <thead>
         <tr>
-          <th style="cursor:default">Person</th>
+          <th style="cursor:default;vertical-align:bottom;">Person</th>
           ${thStadiums}
           ${thTotal}
         </tr>
@@ -1388,6 +1504,57 @@ function renderAttendance(sbRows) {
     </table>
     <div class="att-note">Numbers show how many games at each stadium you attended with that person. Bottom row shows total games at each stadium in the filtered set.</div>
   `;
+}
+
+// CHANGE 3: Tooltip show/hide/move
+function showAttTooltip(event, cell) {
+  const tooltip = document.getElementById('att-tooltip');
+  const person = cell.dataset.person;
+  const stadium = cell.dataset.stadium;
+  let games = [];
+  try { games = JSON.parse(cell.dataset.games); } catch(e) {}
+
+  const gameRows = games
+    .sort((a,b) => b.date.localeCompare(a.date))
+    .map(g => {
+      const homeWin = g.homeR > g.awayR;
+      const resultClass = homeWin ? 'win' : 'loss';
+      const resultText = `${g.awayR}–${g.homeR}`;
+      const playoff = isPlayoff(g.gameType) ? ` <span style="color:var(--gold);font-size:0.58rem">${gameTypeName(g.gameType).slice(0,2).toUpperCase()}</span>` : '';
+      return `<div class="att-tooltip-game">
+        <span class="att-tooltip-date">${g.date}</span>
+        <span class="att-tooltip-matchup">${g.away} @ ${g.home}${playoff}</span>
+        <span class="att-tooltip-result ${resultClass}">${resultText}</span>
+      </div>`;
+    }).join('');
+
+  tooltip.innerHTML = `
+    <div class="att-tooltip-title"><strong>${escHtml(person)}</strong> at ${escHtml(stadium)}</div>
+    ${gameRows}
+  `;
+  tooltip.classList.add('visible');
+  positionAttTooltip(event);
+}
+
+function hideAttTooltip() {
+  document.getElementById('att-tooltip').classList.remove('visible');
+}
+
+function moveAttTooltip(event) {
+  positionAttTooltip(event);
+}
+
+function positionAttTooltip(event) {
+  const tooltip = document.getElementById('att-tooltip');
+  const margin = 14;
+  const tw = tooltip.offsetWidth || 220;
+  const th = tooltip.offsetHeight || 100;
+  let x = event.clientX + margin;
+  let y = event.clientY + margin;
+  if (x + tw > window.innerWidth - 8) x = event.clientX - tw - margin;
+  if (y + th > window.innerHeight - 8) y = event.clientY - th - margin;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top  = y + 'px';
 }
 
 function sortAttendance(colIdx) {

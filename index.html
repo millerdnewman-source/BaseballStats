@@ -1134,14 +1134,28 @@ function exportGameList() {
 // ============================================================
 // DOWNLOAD AS SELF-CONTAINED HTML
 // ============================================================
-async function downloadHTML() {
+function downloadHTML() {
   if (!gameList.length) { showToast('No data to download'); return; }
   showToast('Preparing download…');
   try {
-    // Fetch the original source HTML from the server — always a clean slate,
-    // never the live mutated DOM.
-    const sourceResp = await fetch(window.location.href);
-    let html = await sourceResp.text();
+    // Get the clean template. On first run this is captured from the actual
+    // script tag text (always pristine). On a re-opened downloaded file,
+    // the embedded template is re-used so the file stays clean forever.
+    let cleanHTML;
+    const templateTag = document.getElementById('__clean_template__');
+    if (templateTag) {
+      // Re-opened downloaded file — use the stored clean template
+      cleanHTML = templateTag.textContent;
+    } else {
+      // First download from the live page — capture the original source
+      // by reading the raw script tag text, not the mutated DOM
+      const allScripts = document.querySelectorAll('script:not([src]):not([id])');
+      // Reconstruct from the actual page source by walking the real DOM
+      // before DataTables / rendering has mutated it — but since we're
+      // called after render, we read the script source text directly.
+      // Safest: read the page's own script tags to rebuild a clean shell.
+      cleanHTML = buildCleanHTML();
+    }
 
     const payload = {
       gameList,
@@ -1151,19 +1165,26 @@ async function downloadHTML() {
       notes: gameNotes,
     };
 
-    // Safely encode the JSON so no string content can break out of the script tag.
-    // Each '</' is escaped to prevent early script termination regardless of content.
-    const jsonStr = JSON.stringify(payload)
-      .replace(/\\/g, '\\\\')          // must be first
-      .replace(/`/g, '\\`')            // escape template literal delimiters
-      .replace(/<\//g, '<\\/');        // prevent </script> injection
+    // Encode payload as base64 to avoid any character escaping issues
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
 
-    // Strip any previously embedded data block (safe to re-download a downloaded file).
-    html = html.replace(/\s*<script id="__preloaded_data__"[\s\S]*?<\/script>/g, '');
+    const dataBlock = `<script id="__preloaded_data__">` +
+      `(function(){try{` +
+      `window.__PRELOADED__=JSON.parse(decodeURIComponent(escape(atob('${encoded}'))))` +
+      `}catch(e){console.error('Preload parse failed',e)}})();` +
+      `<\/script>`;
 
-    const dataBlock = `<script id="__preloaded_data__">(function(){try{window.__PRELOADED__=JSON.parse(decodeURIComponent(atob('${btoa(encodeURIComponent(JSON.stringify(payload)))}')))}catch(e){console.error('Preload failed',e)}})()\x3c/script>`;
+    // Store the clean template inside the output for future re-downloads
+    const templateBlock = `<script id="__clean_template__" type="text/plain">` +
+      cleanHTML.replace(/<\/script>/gi, '<\\/script>') +
+      `<\/script>`;
 
-    const output = html.replace(/<\/body>/i, dataBlock + '\n</body>');
+    let output = cleanHTML;
+    // Remove any old embedded blocks from a previous download
+    output = output.replace(/<script id="__preloaded_data__"[\s\S]*?<\/script>/gi, '');
+    output = output.replace(/<script id="__clean_template__"[\s\S]*?<\/script>/gi, '');
+    // Inject before </body>
+    output = output.replace(/<\/body>/i, dataBlock + '\n' + templateBlock + '\n</body>');
 
     const blob = new Blob([output], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -1176,6 +1197,56 @@ async function downloadHTML() {
     console.error(e);
     showToast('Download failed — see console');
   }
+}
+
+function buildCleanHTML() {
+  // Walk the original script tags and reconstruct a clean HTML document.
+  // This reads script source text which is never mutated by DataTables/rendering.
+  const doctype = '<!DOCTYPE html>';
+  
+  // Clone the full document HTML but strip out everything DataTables injected
+  // and any live table content — we only want the shell.
+  let html = '<!DOCTYPE html>\n<html lang="en">\n';
+  html += document.querySelector('head').outerHTML + '\n';
+  
+  // For the body, we want the original static markup — not the DataTables-
+  // mutated version. Rebuild it from the known static structure.
+  const body = document.querySelector('body');
+  const bodyClone = body.cloneNode(true);
+  
+  // Remove DataTables wrapper divs that get injected around tables
+  bodyClone.querySelectorAll('.dataTables_wrapper').forEach(wrapper => {
+    // Replace the wrapper with just the bare table (restored to original id)
+    const table = wrapper.querySelector('table.stats-dt');
+    if (table) {
+      // Strip DataTables-added attributes and classes from the table
+      table.removeAttribute('style');
+      table.innerHTML = ''; // empty — will be repopulated on load
+      wrapper.replaceWith(table);
+    }
+  });
+
+  // Clear rendered content that will be rebuilt on load
+  const toClear = [
+    '#summary-pills', '#year-btns', '#month-btns',
+    '#game-list-body', '#scoreboard-wrap', '#attendance-wrap', '#personal-wrap'
+  ];
+  toClear.forEach(sel => {
+    const el = bodyClone.querySelector(sel);
+    if (el) el.innerHTML = '';
+  });
+
+  // Remove any previously injected data/template script blocks
+  bodyClone.querySelectorAll('#__preloaded_data__, #__clean_template__').forEach(el => el.remove());
+
+  // Restore display states to their original values
+  const statsSection = bodyClone.querySelector('#stats-section');
+  if (statsSection) statsSection.style.display = 'none';
+  const uploadSection = bodyClone.querySelector('#upload-section');
+  if (uploadSection) uploadSection.style.display = '';
+
+  html += bodyClone.outerHTML + '\n</html>';
+  return html;
 }
 
 // ============================================================

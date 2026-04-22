@@ -43,25 +43,11 @@
   main { padding: 36px 40px; max-width: 1600px; margin: 0 auto; }
   .section-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
 
-  /* UPLOAD */
-  #upload-section { margin-bottom: 40px; }
-  .upload-zone {
-    border: 1px dashed var(--border); border-radius: 4px; padding: 40px; text-align: center;
-    cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; background: var(--surface);
-  }
-  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: rgba(200,240,74,0.03); }
-  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-  .upload-icon { font-size: 2rem; margin-bottom: 12px; color: var(--muted); }
-  .upload-title { font-family: var(--display); font-size: 1.4rem; letter-spacing: 0.06em; color: var(--text); margin-bottom: 6px; }
-  .upload-hint { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.08em; }
-  .upload-hint code { background: var(--border); padding: 2px 6px; border-radius: 3px; color: var(--accent2); }
-
-  .format-box { margin-top: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px 24px; }
-  .format-box table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 0.72rem; }
-  .format-box th { color: var(--muted); text-align: left; padding: 4px 12px 8px 0; letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.62rem; border-bottom: 1px solid var(--border); }
-  .format-box td { padding: 6px 12px 6px 0; color: var(--text); }
-  .format-box td:first-child { color: var(--muted); }
-  .ex { color: var(--accent2) !important; }
+  /* LOADING SCREEN */
+  #loading-section { margin-bottom: 40px; text-align: center; padding: 60px 20px; }
+  .loading-icon { font-size: 2.5rem; margin-bottom: 16px; }
+  .loading-title { font-family: var(--display); font-size: 1.8rem; letter-spacing: 0.06em; color: var(--text); margin-bottom: 8px; }
+  .loading-sub { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); letter-spacing: 0.08em; }
 
   /* STATUS */
   #status-bar { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin-bottom: 24px; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
@@ -287,7 +273,7 @@
   .sb-count { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); margin-left: auto; }
   .no-games-msg { font-family: var(--mono); font-size: 0.76rem; color: var(--muted); padding: 24px 0; text-align: center; }
 
-  /* ATTENDANCE TABLE — sortable with vertical headers */
+  /* ATTENDANCE TABLE */
   #attendance-wrap { overflow-x: auto; padding: 4px 0; }
   .attendance-table { border-collapse: collapse; font-family: var(--mono); font-size: 0.76rem; white-space: nowrap; }
   .attendance-table th {
@@ -314,69 +300,30 @@
   .att-section-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
   .att-note { font-family: var(--mono); font-size: 0.66rem; color: var(--muted); margin-top: 16px; }
 
-  /* VERTICAL HEADER for attendance stadium columns */
   .att-stadium-header {
-    height: 130px;
-    vertical-align: bottom;
+    height: 130px; vertical-align: bottom;
     padding: 0 6px 8px 6px !important;
-    min-width: 36px;
-    max-width: 36px;
-    width: 36px;
+    min-width: 36px; max-width: 36px; width: 36px;
   }
   .att-stadium-header .th-inner {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    white-space: nowrap;
-    display: inline-block;
-    max-height: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.6rem;
-    letter-spacing: 0.08em;
-    line-height: 1;
+    writing-mode: vertical-rl; transform: rotate(180deg);
+    white-space: nowrap; display: inline-block;
+    max-height: 120px; overflow: hidden; text-overflow: ellipsis;
+    font-size: 0.6rem; letter-spacing: 0.08em; line-height: 1;
   }
-  .att-stadium-header .sort-arrow {
-    display: block;
-    margin-left: 0;
-    margin-top: 4px;
-    text-align: center;
-  }
+  .att-stadium-header .sort-arrow { display: block; margin-left: 0; margin-top: 4px; text-align: center; }
 
-  /* ATTENDANCE HOVER TOOLTIP */
   .att-tooltip {
-    position: fixed;
-    z-index: 99999;
-    background: #181d25;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.65);
-    padding: 10px 14px;
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    color: var(--text);
-    pointer-events: none;
-    min-width: 180px;
-    max-width: 280px;
-    display: none;
+    position: fixed; z-index: 99999; background: #181d25;
+    border: 1px solid var(--border); border-radius: 5px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.65); padding: 10px 14px;
+    font-family: var(--mono); font-size: 0.7rem; color: var(--text);
+    pointer-events: none; min-width: 180px; max-width: 280px; display: none;
   }
   .att-tooltip.visible { display: block; }
-  .att-tooltip-title {
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 7px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
-  }
+  .att-tooltip-title { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
   .att-tooltip-title strong { color: var(--accent2); }
-  .att-tooltip-game {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 3px 0;
-    border-bottom: 1px solid rgba(30,37,48,0.4);
-  }
+  .att-tooltip-game { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid rgba(30,37,48,0.4); }
   .att-tooltip-game:last-child { border-bottom: none; }
   .att-tooltip-date { color: var(--muted); font-size: 0.65rem; white-space: nowrap; }
   .att-tooltip-matchup { color: var(--text); font-size: 0.68rem; }
@@ -390,11 +337,7 @@
   .personal-section-title { font-family: var(--display); font-size: 1.2rem; letter-spacing: 0.06em; color: var(--text); margin-bottom: 4px; }
   .personal-section-sub { font-family: var(--mono); font-size: 0.64rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
   .personal-table { border-collapse: collapse; font-family: var(--mono); font-size: 0.76rem; white-space: nowrap; }
-  .personal-table th {
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    color: var(--muted); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
-    padding: 10px 14px; text-align: center; white-space: nowrap;
-  }
+  .personal-table th { background: var(--surface); border-bottom: 1px solid var(--border); color: var(--muted); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 14px; text-align: center; white-space: nowrap; }
   .personal-table th:first-child { text-align: left; min-width: 160px; position: sticky; left: 0; z-index: 2; background: var(--surface); }
   .personal-table td { padding: 9px 14px; text-align: center; border-bottom: 1px solid rgba(30,37,48,0.5); }
   .personal-table td:first-child { text-align: left; font-weight: 500; color: var(--text); position: sticky; left: 0; background: var(--bg); border-right: 1px solid var(--border); }
@@ -413,7 +356,6 @@
 
   @media (max-width: 600px) {
     header, main, footer { padding-left: 20px; padding-right: 20px; }
-    .upload-zone { padding: 24px; }
     .modal { margin: 16px; }
   }
 </style>
@@ -426,36 +368,13 @@
 </header>
 
 <main>
-  <!-- UPLOAD -->
-  <div id="upload-section">
-    <div class="section-label">01 — Upload Game List</div>
-    <div class="upload-zone" id="drop-zone">
-      <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
-      <div class="upload-icon">📋</div>
-      <div class="upload-title">Drop your spreadsheet here</div>
-      <div class="upload-hint">Accepts <code>.xlsx</code> · <code>.xls</code> · <code>.csv</code></div>
-    </div>
-    <div class="format-box">
-      <div class="section-label" style="margin-bottom:10px;">Expected column order (no header row needed)</div>
-      <table>
-        <thead><tr><th>Col</th><th>Field</th><th>Example</th></tr></thead>
-        <tbody>
-          <tr><td>A (ignored)</td><td>—</td><td class="ex">any label</td></tr>
-          <tr><td>B</td><td>Month name</td><td class="ex">June</td></tr>
-          <tr><td>C</td><td>Day</td><td class="ex">14</td></tr>
-          <tr><td>D</td><td>Year</td><td class="ex">2024</td></tr>
-          <tr><td>E</td><td>Home team name</td><td class="ex">Yankees</td></tr>
-          <tr><td>F</td><td>Game number</td><td class="ex">1</td></tr>
-          <tr><td>G</td><td>Attended with (comma-separated)</td><td class="ex">Alice, Bob, Carol</td></tr>
-          <tr><td>H</td><td>Game note (optional)</td><td class="ex">Great catch in the 7th!</td></tr>
-        </tbody>
-      </table>
-      <div style="margin-top:12px; font-family:var(--mono); font-size:0.66rem; color:var(--muted);">
-        Columns G and H are optional. Home team name must match the MLB team name exactly (e.g. "Yankees", "Red Sox", "Cubs")
-      </div>
-    </div>
-    <div id="status-bar">
-      <div id="status-text">Loading…</div>
+  <!-- LOADING SCREEN (shown while fetching Google Sheet) -->
+  <div id="loading-section">
+    <div class="loading-icon">⚾</div>
+    <div class="loading-title">Loading Game Data</div>
+    <div class="loading-sub">Fetching from Google Sheets…</div>
+    <div id="status-bar" style="max-width:480px;margin:24px auto 0;">
+      <div id="status-text">Connecting…</div>
       <div id="error-msg"></div>
       <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
     </div>
@@ -514,7 +433,7 @@
         <button class="action-btn" id="toggle-game-list-btn" onclick="toggleGameList()">☰ Game List</button>
         <button class="action-btn gold"   onclick="downloadHTML()">↓ Download HTML</button>
         <button class="action-btn"        onclick="exportGameList()">↓ Export Game List</button>
-        <button class="action-btn danger" onclick="resetAll()">↺ Load New File</button>
+        <button class="action-btn danger" onclick="reloadFromSheet()">↺ Reload Sheet</button>
       </div>
     </div>
 
@@ -549,7 +468,6 @@
   <div class="modal">
     <button class="modal-close" onclick="closeAddGameModal()">✕</button>
     <div class="modal-title">Add <span>Game</span></div>
-
     <div class="form-row">
       <label class="form-label">Date</label>
       <input type="date" class="form-input" id="ag-date">
@@ -584,12 +502,10 @@
       <label class="form-label">Attended With (comma-separated, optional)</label>
       <input type="text" class="form-input" id="ag-attendees" placeholder="Alice, Bob, Carol">
     </div>
-    <!-- CHANGE 1: Notes field added to Add Game modal -->
     <div class="form-row">
       <label class="form-label">Game Note (optional)</label>
       <textarea class="form-textarea" id="ag-note" placeholder="Add a note about this game…"></textarea>
     </div>
-
     <div class="modal-status" id="ag-status"></div>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeAddGameModal()">Cancel</button>
@@ -605,9 +521,17 @@
 <div class="toast" id="toast"><span class="tick">✓</span><span id="toast-msg"></span></div>
 
 <script>
-// Capture the pristine source HTML immediately, before any rendering touches the DOM.
-// This is used by downloadHTML() so the downloaded file is always a clean slate.
+// Capture pristine source HTML before any DOM mutations (used by downloadHTML).
 const __CLEAN_SOURCE_HTML__ = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+// ============================================================
+// GOOGLE SHEET CONFIG
+// Extract the spreadsheet ID from the share URL and build a
+// CSV export link for the first sheet (gid=0).
+// ============================================================
+const SHEET_ID  = '1lGWg3RWY1iaEWcGAxO77HDPOPEOqsX4lfI6v8QrPIn4';
+const SHEET_GID = '0';
+const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
 
 // ============================================================
 // CONSTANTS
@@ -699,7 +623,7 @@ function getStadium(teamName) {
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DAY_NAMES   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const PLAYOFF_TYPES = new Set(['F','D','L','W','C','P']);
 function isPlayoff(t) { return PLAYOFF_TYPES.has(t); }
 
@@ -720,16 +644,12 @@ const MLB_API = "https://statsapi.mlb.com/api/v1";
 let hittingDT = null, pitchingDT = null, currentTab = 'hitting';
 let allHittingRaw = [], allPitchingRaw = [];
 let gameList = [], scoreboardData = [];
-// gameNotes: { [gamePk]: string }
 let gameNotes = {};
 let availableYears = [], availableMonths = [], selectedYear = 'All', selectedMonth = 'All';
 let selectedGameType = 'all', selectedOpponent = 'All';
 let availableOpponents = [], hasPlayoffGames = false;
 let totalGameCount = 0;
-
-// Attendance sort state
-let attSortCol = null;
-let attSortDir = 'desc';
+let attSortCol = null, attSortDir = 'desc';
 
 // ============================================================
 // POPULATE TEAM DROPDOWN IN MODAL
@@ -740,39 +660,84 @@ let attSortDir = 'desc';
 })();
 
 // ============================================================
-// FILE UPLOAD
+// GOOGLE SHEET LOADER
+// Fetches the sheet as CSV, parses it, then hands off to
+// fetchAllGames() — exactly the same pipeline as file upload.
 // ============================================================
-const dropZone = document.getElementById('drop-zone');
-const fileInput = document.getElementById('file-input');
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
-fileInput.addEventListener('change', () => { if (fileInput.files[0]) processFile(fileInput.files[0]); });
-
 function parseAttendeesStr(str) {
   if (!str || String(str).trim() === '') return [];
   return String(str).split(',').map(s => s.trim()).filter(Boolean);
 }
 
-function processFile(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
-      const games = rows
-        .filter(r => r.length >= 6 && r[1] && r[2] && r[3] && r[4])
-        .map(r => ({
-          month: String(r[1]).trim(), day: parseInt(r[2]), year: parseInt(r[3]),
-          homeTeam: String(r[4]).trim(), gameNumber: parseInt(r[5]) || 1,
-          attendedWith: parseAttendeesStr(r[6] || ''),
-          note: r[7] ? String(r[7]).trim() : ''
-        }));
-      if (!games.length) { showError("No valid rows found in spreadsheet."); return; }
-      fetchAllGames(games);
-    } catch(err) { showError("Could not parse file: " + err.message); }
-  };
-  reader.readAsArrayBuffer(file);
+// Simple CSV parser that handles quoted fields (including commas inside quotes)
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split(/\r?\n/);
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const cols = [];
+    let cur = '', inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuote && line[i+1] === '"') { cur += '"'; i++; }
+        else inQuote = !inQuote;
+      } else if (ch === ',' && !inQuote) {
+        cols.push(cur); cur = '';
+      } else {
+        cur += ch;
+      }
+    }
+    cols.push(cur);
+    rows.push(cols);
+  }
+  return rows;
+}
+
+async function loadFromGoogleSheet() {
+  showStatus('Connecting to Google Sheets…', 0);
+  try {
+    // Google Sheets CSV export — requires the sheet to be shared as "Anyone with the link can view"
+    const resp = await fetch(SHEET_CSV_URL);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status} — make sure the sheet is shared publicly (view only).`);
+    const text = await resp.text();
+    const rows = parseCSV(text);
+
+    // Same column layout as the original file upload:
+    // Col A (ignored) | B: month | C: day | D: year | E: homeTeam | F: gameNumber | G: attendedWith | H: note
+    const games = rows
+      .filter(r => r.length >= 5 && r[1] && r[2] && r[3] && r[4])
+      .map(r => ({
+        month:       String(r[1]).trim(),
+        day:         parseInt(r[2]),
+        year:        parseInt(r[3]),
+        homeTeam:    String(r[4]).trim(),
+        gameNumber:  parseInt(r[5]) || 1,
+        attendedWith: parseAttendeesStr(r[6] || ''),
+        note:        r[7] ? String(r[7]).trim() : ''
+      }))
+      .filter(g => g.month && !isNaN(g.day) && !isNaN(g.year) && g.homeTeam);
+
+    if (!games.length) throw new Error('No valid rows found in the Google Sheet. Check the column layout.');
+    await fetchAllGames(games);
+  } catch (err) {
+    showError('Could not load Google Sheet: ' + err.message);
+  }
+}
+
+function reloadFromSheet() {
+  // Reset all state then re-fetch
+  if (hittingDT)  { hittingDT.destroy();  hittingDT  = null; }
+  if (pitchingDT) { pitchingDT.destroy(); pitchingDT = null; }
+  allHittingRaw=[]; allPitchingRaw=[]; gameList=[]; scoreboardData=[]; gameNotes={};
+  availableYears=[]; availableMonths=[]; selectedYear='All'; selectedMonth='All';
+  selectedGameType='all'; selectedOpponent='All';
+  attSortCol=null; attSortDir='desc'; sbSearchTerm='';
+  document.getElementById('stats-section').style.display='none';
+  document.getElementById('loading-section').style.display='block';
+  document.getElementById('game-list-panel').classList.remove('open');
+  document.getElementById('toggle-game-list-btn').textContent='☰ Game List';
+  loadFromGoogleSheet();
 }
 
 // ============================================================
@@ -844,16 +809,13 @@ function parseLinescoreForScoreboard(ls, gamePk, gameType, homeTeamName, awayTea
 // ============================================================
 function ipToOuts(s) { const p=String(s).split('.'); return (parseInt(p[0])||0)*3+(parseInt(p[1])||0); }
 function outsToIp(o) { return `${Math.floor(o/3)}.${o%3}`; }
-
 function emptyHit()  { return { games:new Set(), atBats:0,hits:0,doubles:0,triples:0,homeRuns:0,runs:0,rbi:0,stolenBases:0,strikeOuts:0,baseOnBalls:0,leftOnBase:0 }; }
 function addHit(m,r) { m.games.add(r.game_id); m.atBats+=r.atBats;m.hits+=r.hits;m.doubles+=r.doubles;m.triples+=r.triples;m.homeRuns+=r.homeRuns;m.runs+=r.runs;m.rbi+=r.rbi;m.stolenBases+=r.stolenBases;m.strikeOuts+=r.strikeOuts;m.baseOnBalls+=r.baseOnBalls;m.leftOnBase+=r.leftOnBase; }
-
 function hitStats(m) {
   const singles=m.hits-m.doubles-m.triples-m.homeRuns, tb=singles+2*m.doubles+3*m.triples+4*m.homeRuns;
   const avg=m.atBats?m.hits/m.atBats:0, obp=(m.atBats+m.baseOnBalls)?(m.hits+m.baseOnBalls)/(m.atBats+m.baseOnBalls):0, slg=m.atBats?tb/m.atBats:0;
   return {avg,obp,slg,tb};
 }
-
 function computeHitting(rows) {
   const map={};
   for (const r of rows) {
@@ -872,15 +834,12 @@ function computeHitting(rows) {
       H:m.hits,AB:m.atBats,HR:m.homeRuns,RBI:m.rbi,'2B':m.doubles,'3B':m.triples,TB:tb,R:m.runs,SB:m.stolenBases,SO:m.strikeOuts,BB:m.baseOnBalls,LOB:m.leftOnBase};
   }).sort((a,b)=>parseFloat(b.OPS)-parseFloat(a.OPS));
 }
-
 function emptyPitch()  { return { games:new Set(),outs:0,hits:0,runs:0,earnedRuns:0,baseOnBalls:0,strikeOuts:0,homeRuns:0,numberOfPitches:0 }; }
 function addPitch(m,r) { m.games.add(r.game_id);const o=ipToOuts(r.ip_str);m.outs+=o;m.hits+=r.hits;m.runs+=r.runs;m.earnedRuns+=r.earnedRuns;m.baseOnBalls+=r.baseOnBalls;m.strikeOuts+=r.strikeOuts;m.homeRuns+=r.homeRuns;m.numberOfPitches+=r.numberOfPitches; }
-
 function pitchStats(m) {
   const ip=m.outs/3;
   return {era:ip?(m.earnedRuns*9/ip):0, whip:ip?(m.baseOnBalls+m.hits)/ip:0, k9:ip?(m.strikeOuts*9/ip):0};
 }
-
 function computePitching(rows) {
   const map={};
   for (const r of rows) {
@@ -904,47 +863,48 @@ function computePitching(rows) {
 // FETCH LOOP
 // ============================================================
 async function fetchAllGames(games) {
-  showStatus("Fetching games…",0);
+  showStatus("Fetching games…", 0);
   allHittingRaw=[]; allPitchingRaw=[]; gameList=[]; scoreboardData=[]; gameNotes={};
 
-  for (let i=0;i<games.length;i++) {
-    const g=games[i];
+  for (let i=0; i<games.length; i++) {
+    const g = games[i];
     setProgress(Math.round((i/games.length)*100));
     try {
-      const monthNum=new Date(`${g.month} 1 ${g.year}`).getMonth()+1;
-      const date=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
+      const monthNum = new Date(`${g.month} 1 ${g.year}`).getMonth()+1;
+      const date = `${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
       setStatus(`[${i+1}/${games.length}] ${date} — ${g.homeTeam}`);
-      const {gamePk,gameType,homeTeamName,awayTeamName}=await getGameInfo(date,g.homeTeam,g.gameNumber);
+      const {gamePk,gameType,homeTeamName,awayTeamName} = await getGameInfo(date, g.homeTeam, g.gameNumber);
       const [box, ls] = await Promise.all([getBoxscoreData(gamePk), getLinescoreData(gamePk)]);
-      const {hittingRows,pitchingRows}=parseBoxscore(box,gamePk,g.year,gameType,homeTeamName,awayTeamName);
+      const {hittingRows,pitchingRows} = parseBoxscore(box,gamePk,g.year,gameType,homeTeamName,awayTeamName);
       const sbEntry = parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,g.attendedWith||[]);
       sbEntry.date = date; sbEntry.year = g.year;
       allHittingRaw.push(...hittingRows);
       allPitchingRaw.push(...pitchingRows);
       scoreboardData.push(sbEntry);
       if (g.note) gameNotes[gamePk] = g.note;
-      gameList.push({...g,gamePk,gameType,homeTeamName,awayTeamName});
+      gameList.push({...g, gamePk, gameType, homeTeamName, awayTeamName});
     } catch(err) { console.warn(`Skipped: ${g.homeTeam} — ${err.message}`); }
   }
 
-  setProgress(100); totalGameCount=games.length;
-  if (!allHittingRaw.length&&!allPitchingRaw.length&&!scoreboardData.length) { showError("No data could be retrieved."); return; }
+  setProgress(100); totalGameCount = games.length;
+  if (!allHittingRaw.length && !allPitchingRaw.length && !scoreboardData.length) {
+    showError("No data could be retrieved."); return;
+  }
   initFiltersAndRender();
 }
 
 async function fetchSingleGame(date, homeTeam, gameNumber, overrideType, attendedWith, note) {
-  const {gamePk,gameType:detectedType,homeTeamName,awayTeamName}=await getGameInfo(date,homeTeam,gameNumber);
+  const {gamePk,gameType:detectedType,homeTeamName,awayTeamName} = await getGameInfo(date,homeTeam,gameNumber);
   const gameType = (overrideType&&overrideType!=='auto') ? overrideType : detectedType;
-  const parts=date.split('-');
+  const parts = date.split('-');
   const year=parseInt(parts[0]), month=MONTH_NAMES[parseInt(parts[1])-1], day=parseInt(parts[2]);
   const [box, ls] = await Promise.all([getBoxscoreData(gamePk), getLinescoreData(gamePk)]);
-  const {hittingRows,pitchingRows}=parseBoxscore(box,gamePk,year,gameType,homeTeamName,awayTeamName);
+  const {hittingRows,pitchingRows} = parseBoxscore(box,gamePk,year,gameType,homeTeamName,awayTeamName);
   const sbEntry = parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,attendedWith||[]);
   sbEntry.date = date; sbEntry.year = year;
   allHittingRaw.push(...hittingRows);
   allPitchingRaw.push(...pitchingRows);
   scoreboardData.push(sbEntry);
-  // CHANGE 1: Save note from modal when adding a game
   if (note && note.trim()) gameNotes[gamePk] = note.trim();
   gameList.push({month,day,year,homeTeam,gameNumber,gamePk,gameType,homeTeamName,awayTeamName,attendedWith:attendedWith||[]});
   return {gamePk,gameType,homeTeamName,awayTeamName};
@@ -954,41 +914,41 @@ async function fetchSingleGame(date, homeTeam, gameNumber, overrideType, attende
 // FILTERS
 // ============================================================
 function initFiltersAndRender() {
-  const yearSet=new Set([...allHittingRaw.map(r=>r.year),...allPitchingRaw.map(r=>r.year),...scoreboardData.map(r=>r.year)]);
-  availableYears=[...yearSet].filter(Boolean).sort();
-
-  const monthSet=new Set(scoreboardData.map(r=>{ const m=new Date(r.date+'T12:00:00').getMonth(); return m; }));
-  availableMonths=[...monthSet].sort((a,b)=>a-b);
-
+  const yearSet = new Set([...allHittingRaw.map(r=>r.year),...allPitchingRaw.map(r=>r.year),...scoreboardData.map(r=>r.year)]);
+  availableYears = [...yearSet].filter(Boolean).sort();
+  const monthSet = new Set(scoreboardData.map(r=>{ const m=new Date(r.date+'T12:00:00').getMonth(); return m; }));
+  availableMonths = [...monthSet].sort((a,b)=>a-b);
   selectedYear='All'; selectedMonth='All'; selectedGameType='all'; selectedOpponent='All';
-  hasPlayoffGames=allHittingRaw.some(r=>isPlayoff(r.gameType))||allPitchingRaw.some(r=>isPlayoff(r.gameType));
+  hasPlayoffGames = allHittingRaw.some(r=>isPlayoff(r.gameType))||allPitchingRaw.some(r=>isPlayoff(r.gameType));
   buildOpponentList(); buildYearButtons(); buildMonthButtons(); updateGameTypeButtons();
-  document.getElementById('gametype-filter-group').style.display=hasPlayoffGames?'flex':'none';
+  document.getElementById('gametype-filter-group').style.display = hasPlayoffGames?'flex':'none';
   applyFilters();
 }
 
 function buildOpponentList() {
-  const s=new Set(); for(const r of allHittingRaw) if(r.opponent) s.add(r.opponent); for(const r of allPitchingRaw) if(r.opponent) s.add(r.opponent);
-  availableOpponents=[...s].sort();
-  const sel=document.getElementById('opp-select');
-  sel.innerHTML='<option value="All">All Teams</option>'+availableOpponents.map(o=>`<option value="${o}">${getAbbr(o)} — ${o}</option>`).join('');
-  sel.value=selectedOpponent==='All'?'All':(availableOpponents.includes(selectedOpponent)?selectedOpponent:'All');
+  const s=new Set();
+  for(const r of allHittingRaw)  if(r.opponent) s.add(r.opponent);
+  for(const r of allPitchingRaw) if(r.opponent) s.add(r.opponent);
+  availableOpponents = [...s].sort();
+  const sel = document.getElementById('opp-select');
+  sel.innerHTML = '<option value="All">All Teams</option>'+availableOpponents.map(o=>`<option value="${o}">${getAbbr(o)} — ${o}</option>`).join('');
+  sel.value = selectedOpponent==='All'?'All':(availableOpponents.includes(selectedOpponent)?selectedOpponent:'All');
 }
 
 function buildYearButtons() {
-  document.getElementById('year-btns').innerHTML=['All',...availableYears].map(y=>
+  document.getElementById('year-btns').innerHTML = ['All',...availableYears].map(y=>
     `<button class="pill-btn${y===selectedYear?' active':''}" onclick="selectYear(${y==='All'?"'All'":y})">${y}</button>`).join('');
-  document.getElementById('year-filter-group').style.display=availableYears.length<=1?'none':'flex';
+  document.getElementById('year-filter-group').style.display = availableYears.length<=1?'none':'flex';
 }
 
 function buildMonthButtons() {
   if (!availableMonths.length) { document.getElementById('month-filter-group').style.display='none'; return; }
-  document.getElementById('month-btns').innerHTML=
+  document.getElementById('month-btns').innerHTML =
     `<button class="pill-btn${selectedMonth==='All'?' active':''}" onclick="selectMonth('All')">All</button>` +
     availableMonths.map(m=>
       `<button class="pill-btn${selectedMonth===m?' active':''}" onclick="selectMonth(${m})">${MONTH_SHORT[m]}</button>`
     ).join('');
-  document.getElementById('month-filter-group').style.display='flex';
+  document.getElementById('month-filter-group').style.display = 'flex';
 }
 
 function updateGameTypeButtons() {
@@ -997,43 +957,42 @@ function updateGameTypeButtons() {
 
 function getFilteredRows() {
   let h=allHittingRaw, p=allPitchingRaw, sb=scoreboardData;
-
-  if (selectedYear!=='All') {
-    h=h.filter(r=>r.year===selectedYear); p=p.filter(r=>r.year===selectedYear); sb=sb.filter(r=>r.year===selectedYear);
-  }
+  if (selectedYear!=='All') { h=h.filter(r=>r.year===selectedYear); p=p.filter(r=>r.year===selectedYear); sb=sb.filter(r=>r.year===selectedYear); }
   if (selectedMonth!=='All') {
     sb=sb.filter(r=>{ const m=new Date(r.date+'T12:00:00').getMonth(); return m===selectedMonth; });
     const sbPks=new Set(sb.map(r=>r.gamePk));
     h=h.filter(r=>sbPks.has(r.game_id)); p=p.filter(r=>sbPks.has(r.game_id));
   }
-  if (selectedGameType==='regular'){ h=h.filter(r=>!isPlayoff(r.gameType)); p=p.filter(r=>!isPlayoff(r.gameType)); sb=sb.filter(r=>!isPlayoff(r.gameType)); }
-  if (selectedGameType==='playoffs'){ h=h.filter(r=>isPlayoff(r.gameType)); p=p.filter(r=>isPlayoff(r.gameType)); sb=sb.filter(r=>isPlayoff(r.gameType)); }
-  if (selectedOpponent!=='All')    { h=h.filter(r=>r.opponent===selectedOpponent); p=p.filter(r=>r.opponent===selectedOpponent);
-    sb=sb.filter(r=>r.awayTeamName===selectedOpponent||r.homeTeamName===selectedOpponent); }
+  if (selectedGameType==='regular')  { h=h.filter(r=>!isPlayoff(r.gameType)); p=p.filter(r=>!isPlayoff(r.gameType)); sb=sb.filter(r=>!isPlayoff(r.gameType)); }
+  if (selectedGameType==='playoffs') { h=h.filter(r=>isPlayoff(r.gameType));  p=p.filter(r=>isPlayoff(r.gameType));  sb=sb.filter(r=>isPlayoff(r.gameType)); }
+  if (selectedOpponent!=='All') {
+    h=h.filter(r=>r.opponent===selectedOpponent); p=p.filter(r=>r.opponent===selectedOpponent);
+    sb=sb.filter(r=>r.awayTeamName===selectedOpponent||r.homeTeamName===selectedOpponent);
+  }
   return {h,p,sb};
 }
 
 function applyFilters() {
-  const {h,p,sb}=getFilteredRows();
-  const ids=new Set([...h.map(r=>r.game_id),...p.map(r=>r.game_id)]);
-  renderTables(computeHitting(h),computePitching(p),ids.size,sb);
+  const {h,p,sb} = getFilteredRows();
+  const ids = new Set([...h.map(r=>r.game_id),...p.map(r=>r.game_id)]);
+  renderTables(computeHitting(h), computePitching(p), ids.size, sb);
   renderGameList();
 }
 
-function selectYear(y)     { selectedYear=y;         buildYearButtons(); buildMonthButtons(); applyFilters(); }
-function selectMonth(m)    { selectedMonth=m;         buildMonthButtons();                    applyFilters(); }
-function selectGameType(t) { selectedGameType=t;     updateGameTypeButtons();               applyFilters(); }
-function selectOpponent(v) { selectedOpponent=v;                                            applyFilters(); }
+function selectYear(y)     { selectedYear=y;     buildYearButtons(); buildMonthButtons(); applyFilters(); }
+function selectMonth(m)    { selectedMonth=m;    buildMonthButtons();                    applyFilters(); }
+function selectGameType(t) { selectedGameType=t; updateGameTypeButtons();               applyFilters(); }
+function selectOpponent(v) { selectedOpponent=v;                                        applyFilters(); }
 
 // ============================================================
 // GAME LIST PANEL
 // ============================================================
 function renderGameList() {
-  const tbody=document.getElementById('game-list-body');
-  tbody.innerHTML=gameList.map((g,i)=>{
-    const monthNum=MONTH_NAMES.indexOf(g.month)+1;
-    const dateStr=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
-    const playoff=isPlayoff(g.gameType);
+  const tbody = document.getElementById('game-list-body');
+  tbody.innerHTML = gameList.map((g,i) => {
+    const monthNum = MONTH_NAMES.indexOf(g.month)+1;
+    const dateStr  = `${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
+    const playoff  = isPlayoff(g.gameType);
     const attendStr = (g.attendedWith||[]).join(', ') || '—';
     return `<tr>
       <td style="color:var(--muted)">${i+1}</td>
@@ -1048,21 +1007,21 @@ function renderGameList() {
 }
 
 function toggleGameList() {
-  const panel=document.getElementById('game-list-panel');
+  const panel = document.getElementById('game-list-panel');
   panel.classList.toggle('open');
-  document.getElementById('toggle-game-list-btn').textContent=panel.classList.contains('open')?'✕ Close List':'☰ Game List';
+  document.getElementById('toggle-game-list-btn').textContent = panel.classList.contains('open')?'✕ Close List':'☰ Game List';
 }
 
 function removeGame(idx) {
-  const g=gameList[idx];
+  const g = gameList[idx];
   gameList.splice(idx,1);
-  allHittingRaw =allHittingRaw.filter(r=>r.game_id!==g.gamePk);
-  allPitchingRaw=allPitchingRaw.filter(r=>r.game_id!==g.gamePk);
-  scoreboardData=scoreboardData.filter(r=>r.gamePk!==g.gamePk);
+  allHittingRaw  = allHittingRaw.filter(r=>r.game_id!==g.gamePk);
+  allPitchingRaw = allPitchingRaw.filter(r=>r.game_id!==g.gamePk);
+  scoreboardData = scoreboardData.filter(r=>r.gamePk!==g.gamePk);
   delete gameNotes[g.gamePk];
   buildOpponentList(); buildYearButtons(); buildMonthButtons();
-  hasPlayoffGames=allHittingRaw.some(r=>isPlayoff(r.gameType))||allPitchingRaw.some(r=>isPlayoff(r.gameType));
-  document.getElementById('gametype-filter-group').style.display=hasPlayoffGames?'flex':'none';
+  hasPlayoffGames = allHittingRaw.some(r=>isPlayoff(r.gameType))||allPitchingRaw.some(r=>isPlayoff(r.gameType));
+  document.getElementById('gametype-filter-group').style.display = hasPlayoffGames?'flex':'none';
   applyFilters();
   showToast('Game removed');
 }
@@ -1077,19 +1036,19 @@ function openAddGameModal() {
   document.getElementById('ag-status').className='modal-status';
   document.getElementById('ag-submit').disabled=false;
   document.getElementById('ag-attendees').value='';
-  document.getElementById('ag-note').value=''; // CHANGE 1: clear note field on open
+  document.getElementById('ag-note').value='';
   document.getElementById('add-game-modal').classList.add('open');
 }
 function closeAddGameModal() { document.getElementById('add-game-modal').classList.remove('open'); }
 document.getElementById('add-game-modal').addEventListener('click', e=>{ if(e.target===document.getElementById('add-game-modal')) closeAddGameModal(); });
 
 async function submitAddGame() {
-  const date    =document.getElementById('ag-date').value;
-  const homeTeam=document.getElementById('ag-team').value;
-  const gameNum =parseInt(document.getElementById('ag-gamenum').value)||1;
-  const gameType=document.getElementById('ag-gametype').value;
+  const date     = document.getElementById('ag-date').value;
+  const homeTeam = document.getElementById('ag-team').value;
+  const gameNum  = parseInt(document.getElementById('ag-gamenum').value)||1;
+  const gameType = document.getElementById('ag-gametype').value;
   const attendedWith = parseAttendeesStr(document.getElementById('ag-attendees').value);
-  const note = document.getElementById('ag-note').value.trim(); // CHANGE 1: read note from modal
+  const note = document.getElementById('ag-note').value.trim();
 
   if (!date)     { setModalStatus('Please select a date.','err'); return; }
   if (!homeTeam) { setModalStatus('Please select a home team.','err'); return; }
@@ -1103,8 +1062,7 @@ async function submitAddGame() {
   setModalStatus('Fetching game data…','');
 
   try {
-    // CHANGE 1: pass note to fetchSingleGame
-    const {homeTeamName,awayTeamName}=await fetchSingleGame(date,homeTeam,gameNum,gameType,attendedWith,note);
+    const {homeTeamName,awayTeamName} = await fetchSingleGame(date,homeTeam,gameNum,gameType,attendedWith,note);
     initFiltersAndRender();
     closeAddGameModal();
     showToast(`Added: ${homeTeamName} vs ${awayTeamName} (${date})`);
@@ -1124,7 +1082,7 @@ function setModalStatus(msg,type) {
 // ============================================================
 function exportGameList() {
   if (!gameList.length) { showToast('No games to export'); return; }
-  const rows=gameList.map((g,i)=>[i+1,g.month,g.day,g.year,g.homeTeam,g.gameNumber,(g.attendedWith||[]).join(', '),gameNotes[g.gamePk]||'']);
+  const rows = gameList.map((g,i)=>[i+1,g.month,g.day,g.year,g.homeTeam,g.gameNumber,(g.attendedWith||[]).join(', '),gameNotes[g.gamePk]||'']);
   const ws=XLSX.utils.aoa_to_sheet(rows);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Games');
@@ -1141,35 +1099,24 @@ function downloadHTML() {
   try {
     const payload = {
       gameList,
-      hRaw: allHittingRaw.map(r=>({...r})),
-      pRaw: allPitchingRaw.map(r=>({...r})),
+      hRaw:   allHittingRaw.map(r=>({...r})),
+      pRaw:   allPitchingRaw.map(r=>({...r})),
       sbData: scoreboardData,
-      notes: gameNotes,
+      notes:  gameNotes,
     };
     const jsonStr = JSON.stringify(payload).replace(/<\/script>/gi, '<\\/script>');
-
-    // Use the clean source HTML captured at page-load time (before any rendering).
-    // This avoids baking in live DataTables wrappers, rendered table rows, filter
-    // button states, and other DOM mutations that break re-initialisation.
     let html = __CLEAN_SOURCE_HTML__;
-
-    // Strip any previously embedded data block (handles re-downloading a downloaded file).
     html = html.replace(/\s*<script id="__preloaded_data__"[^>]*>[\s\S]*?<\/script>/g, '');
-
     const dataBlock = '<script id="__preloaded_data__">(function(){try{window.__PRELOADED__=' + jsonStr + ';}catch(e){}})();<\/script>';
     const output = html.replace(/<\/body>/i, dataBlock + '\n</body>');
-
     const blob = new Blob([output], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
     a.href = url; a.download = 'baseball-stats.html';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
     showToast('baseball-stats.html downloaded');
-  } catch(e) {
-    console.error(e);
-    showToast('Download failed — see console');
-  }
+  } catch(e) { console.error(e); showToast('Download failed — see console'); }
 }
 
 // ============================================================
@@ -1179,33 +1126,19 @@ function toggleNoteEditor(gamePk) {
   const editor = document.getElementById(`note-editor-${gamePk}`);
   if (!editor) return;
   const isOpen = editor.classList.contains('open');
-  if (isOpen) {
-    editor.classList.remove('open');
-  } else {
-    const ta = editor.querySelector('textarea');
-    ta.value = gameNotes[gamePk] || '';
-    editor.classList.add('open');
-    ta.focus();
-  }
+  if (isOpen) { editor.classList.remove('open'); }
+  else { const ta=editor.querySelector('textarea'); ta.value=gameNotes[gamePk]||''; editor.classList.add('open'); ta.focus(); }
 }
 
 function saveNote(gamePk) {
   const editor = document.getElementById(`note-editor-${gamePk}`);
   if (!editor) return;
-  const ta = editor.querySelector('textarea');
+  const ta  = editor.querySelector('textarea');
   const val = ta.value.trim();
-  if (val) {
-    gameNotes[gamePk] = val;
-  } else {
-    delete gameNotes[gamePk];
-  }
+  if (val) { gameNotes[gamePk]=val; } else { delete gameNotes[gamePk]; }
   editor.classList.remove('open');
   const notesRow = document.getElementById(`note-row-${gamePk}`);
-  if (notesRow) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = buildNoteRow(gamePk);
-    notesRow.replaceWith(tmp.firstElementChild);
-  }
+  if (notesRow) { const tmp=document.createElement('div'); tmp.innerHTML=buildNoteRow(gamePk); notesRow.replaceWith(tmp.firstElementChild); }
   showToast('Note saved');
 }
 
@@ -1215,448 +1148,144 @@ function cancelNote(gamePk) {
 }
 
 function buildNoteRow(gamePk) {
-  const note = gameNotes[gamePk] || '';
+  const note = gameNotes[gamePk]||'';
   if (note) {
-    return `<div class="scoreboard-notes" id="note-row-${gamePk}">
-      <strong>Note:</strong>
-      <span class="note-text">${escHtml(note)}</span>
-      <button class="note-edit-btn" onclick="toggleNoteEditor(${gamePk})">Edit</button>
-    </div>`;
-  } else {
-    return `<div class="scoreboard-notes" id="note-row-${gamePk}" style="color:rgba(90,101,120,0.5);">
-      <strong style="color:var(--muted)">Note:</strong>
-      <span style="font-style:italic;">No note — </span>
-      <button class="note-edit-btn" onclick="toggleNoteEditor(${gamePk})">Add note</button>
-    </div>`;
+    return `<div class="scoreboard-notes" id="note-row-${gamePk}"><strong>Note:</strong><span class="note-text">${escHtml(note)}</span><button class="note-edit-btn" onclick="toggleNoteEditor(${gamePk})">Edit</button></div>`;
   }
+  return `<div class="scoreboard-notes" id="note-row-${gamePk}" style="color:rgba(90,101,120,0.5);"><strong style="color:var(--muted)">Note:</strong><span style="font-style:italic;">No note — </span><button class="note-edit-btn" onclick="toggleNoteEditor(${gamePk})">Add note</button></div>`;
 }
 
 // ============================================================
 // RENDER SCOREBOARD
 // ============================================================
-let sbSearchTerm = '';
-let filteredSbData = [];
+let sbSearchTerm = '', filteredSbData = [];
 
 function renderScoreboard(sbRows) {
   filteredSbData = sbRows;
   const wrap = document.getElementById('scoreboard-wrap');
-  if (!sbRows.length) { wrap.innerHTML = '<div class="no-games-msg">No games match the current filters.</div>'; return; }
-
-  const sorted = [...sbRows].sort((a,b) => b.date.localeCompare(a.date));
-
-  const filterBar = `<div class="sb-filter-bar">
-    <div class="sb-search"><input type="text" id="sb-search-input" placeholder="Search team or date…" oninput="filterScoreboard(this.value)" value="${sbSearchTerm}"></div>
-    <span class="sb-count" id="sb-count">${sorted.length} game${sorted.length!==1?'s':''}</span>
-  </div>`;
-
-  const cards = sorted.map(g => renderScoreboardCard(g)).join('');
-  wrap.innerHTML = filterBar + `<div id="sb-cards">${cards}</div>`;
+  if (!sbRows.length) { wrap.innerHTML='<div class="no-games-msg">No games match the current filters.</div>'; return; }
+  const sorted = [...sbRows].sort((a,b)=>b.date.localeCompare(a.date));
+  const filterBar = `<div class="sb-filter-bar"><div class="sb-search"><input type="text" id="sb-search-input" placeholder="Search team or date…" oninput="filterScoreboard(this.value)" value="${sbSearchTerm}"></div><span class="sb-count" id="sb-count">${sorted.length} game${sorted.length!==1?'s':''}</span></div>`;
+  wrap.innerHTML = filterBar + `<div id="sb-cards">${sorted.map(g=>renderScoreboardCard(g)).join('')}</div>`;
   filterScoreboard(sbSearchTerm, false);
 }
 
 function renderScoreboardCard(g) {
-  const homeWin = g.homeR > g.awayR;
-  const maxInn = Math.max(g.innings, 9);
-  const innNums = Array.from({length: maxInn}, (_,i) => i+1);
-
-  const thInn = innNums.map(n => `<th>${n}</th>`).join('');
-  const awayRow = innNums.map(n => {
-    const v = g.awayScores[n-1];
-    return `<td class="inning-score">${v !== undefined && v !== '' ? v : (n <= g.innings ? '0' : '-')}</td>`;
-  }).join('');
-  const homeRow = innNums.map(n => {
-    const v = g.homeScores[n-1];
-    return `<td class="inning-score">${v !== undefined && v !== '' ? v : (n <= g.innings ? '0' : '-')}</td>`;
-  }).join('');
-
-  const playoffBadge = isPlayoff(g.gameType) ? `<span class="playoff-badge">${gameTypeName(g.gameType)}</span>` : '';
-  const awayAbbr = getAbbr(g.awayTeamName);
-  const homeAbbr = getAbbr(g.homeTeamName);
-
-  const attendeeTags = (g.attendedWith||[]).length
-    ? (g.attendedWith.map(p=>`<span class="attendee-tag">${escHtml(p)}</span>`).join(''))
-    : '';
-  const attendeeRow = (g.attendedWith||[]).length
-    ? `<div class="scoreboard-attendees"><strong>Attended with:</strong> ${attendeeTags}</div>`
-    : '';
-
-  const noteRow = buildNoteRow(g.gamePk);
-  const noteEditor = `<div class="scoreboard-note-editor" id="note-editor-${g.gamePk}">
-    <textarea placeholder="Add a note about this game…"></textarea>
-    <div class="scoreboard-note-editor-actions">
-      <button class="note-cancel-btn" onclick="cancelNote(${g.gamePk})">Cancel</button>
-      <button class="note-save-btn" onclick="saveNote(${g.gamePk})">Save Note</button>
-    </div>
-  </div>`;
-
+  const homeWin=g.homeR>g.awayR, maxInn=Math.max(g.innings,9), innNums=Array.from({length:maxInn},(_,i)=>i+1);
+  const thInn    = innNums.map(n=>`<th>${n}</th>`).join('');
+  const awayRow  = innNums.map(n=>{ const v=g.awayScores[n-1]; return `<td class="inning-score">${v!==undefined&&v!==''?v:(n<=g.innings?'0':'-')}</td>`; }).join('');
+  const homeRow  = innNums.map(n=>{ const v=g.homeScores[n-1]; return `<td class="inning-score">${v!==undefined&&v!==''?v:(n<=g.innings?'0':'-')}</td>`; }).join('');
+  const playoffBadge = isPlayoff(g.gameType)?`<span class="playoff-badge">${gameTypeName(g.gameType)}</span>`:'';
+  const awayAbbr=getAbbr(g.awayTeamName), homeAbbr=getAbbr(g.homeTeamName);
+  const attendeeRow = (g.attendedWith||[]).length?`<div class="scoreboard-attendees"><strong>Attended with:</strong> ${g.attendedWith.map(p=>`<span class="attendee-tag">${escHtml(p)}</span>`).join('')}</div>`:'';
+  const noteRow   = buildNoteRow(g.gamePk);
+  const noteEditor= `<div class="scoreboard-note-editor" id="note-editor-${g.gamePk}"><textarea placeholder="Add a note about this game…"></textarea><div class="scoreboard-note-editor-actions"><button class="note-cancel-btn" onclick="cancelNote(${g.gamePk})">Cancel</button><button class="note-save-btn" onclick="saveNote(${g.gamePk})">Save Note</button></div></div>`;
   const searchKey = `${g.date} ${g.awayTeamName} ${g.homeTeamName} ${awayAbbr} ${homeAbbr}`.toLowerCase();
-
-  return `<div class="scoreboard-game" data-search="${escAttr(searchKey)}">
-    <div class="scoreboard-header">
-      <div class="date-info">
-        <span>${g.date}</span>
-        ${playoffBadge}
-      </div>
-      <span style="color:var(--text)">${escHtml(g.awayTeamName)} @ ${escHtml(g.homeTeamName)}</span>
-    </div>
-    <div class="scoreboard-table-wrap">
-      <table class="scoreboard-table">
-        <thead>
-          <tr>
-            <th></th>
-            ${thInn}
-            <th class="divider-col" style="color:var(--accent)">R</th>
-            <th style="color:var(--accent2)">H</th>
-            <th style="color:var(--red)">E</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="${!homeWin?'winner-row':''}">
-            <td>${awayAbbr}${!homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>
-            ${awayRow}
-            <td class="divider-col total-r">${g.awayR}</td>
-            <td class="total-h">${g.awayH}</td>
-            <td class="total-e">${g.awayE}</td>
-          </tr>
-          <tr class="${homeWin?'winner-row':''}">
-            <td>${homeAbbr}${homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>
-            ${homeRow}
-            <td class="divider-col total-r">${g.homeR}</td>
-            <td class="total-h">${g.homeH}</td>
-            <td class="total-e">${g.homeE}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    ${attendeeRow}
-    ${noteRow}
-    ${noteEditor}
-  </div>`;
+  return `<div class="scoreboard-game" data-search="${escAttr(searchKey)}"><div class="scoreboard-header"><div class="date-info"><span>${g.date}</span>${playoffBadge}</div><span style="color:var(--text)">${escHtml(g.awayTeamName)} @ ${escHtml(g.homeTeamName)}</span></div><div class="scoreboard-table-wrap"><table class="scoreboard-table"><thead><tr><th></th>${thInn}<th class="divider-col" style="color:var(--accent)">R</th><th style="color:var(--accent2)">H</th><th style="color:var(--red)">E</th></tr></thead><tbody><tr class="${!homeWin?'winner-row':''}"><td>${awayAbbr}${!homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>${awayRow}<td class="divider-col total-r">${g.awayR}</td><td class="total-h">${g.awayH}</td><td class="total-e">${g.awayE}</td></tr><tr class="${homeWin?'winner-row':''}"><td>${homeAbbr}${homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>${homeRow}<td class="divider-col total-r">${g.homeR}</td><td class="total-h">${g.homeH}</td><td class="total-e">${g.homeE}</td></tr></tbody></table></div>${attendeeRow}${noteRow}${noteEditor}</div>`;
 }
 
-function gameTypeName(t) {
-  return {F:'Wild Card',D:'Division Series',L:'LCS',W:'World Series',C:'Championship',P:'Playoffs'}[t]||'Playoffs';
-}
+function gameTypeName(t) { return {F:'Wild Card',D:'Division Series',L:'LCS',W:'World Series',C:'Championship',P:'Playoffs'}[t]||'Playoffs'; }
 
 function filterScoreboard(val, updateInput) {
   sbSearchTerm = val.toLowerCase();
-  if (updateInput !== false) {
-    const inp = document.getElementById('sb-search-input');
-    if (inp) inp.value = val;
-  }
-  const cards = document.querySelectorAll('#sb-cards .scoreboard-game');
-  let visible = 0;
-  cards.forEach(card => {
-    const match = !sbSearchTerm || card.dataset.search.includes(sbSearchTerm);
-    card.style.display = match ? '' : 'none';
-    if (match) visible++;
-  });
-  const cnt = document.getElementById('sb-count');
-  if (cnt) cnt.textContent = `${visible} game${visible!==1?'s':''}`;
+  if (updateInput!==false) { const inp=document.getElementById('sb-search-input'); if(inp) inp.value=val; }
+  const cards=document.querySelectorAll('#sb-cards .scoreboard-game'); let visible=0;
+  cards.forEach(card=>{ const match=!sbSearchTerm||card.dataset.search.includes(sbSearchTerm); card.style.display=match?'':'none'; if(match) visible++; });
+  const cnt=document.getElementById('sb-count'); if(cnt) cnt.textContent=`${visible} game${visible!==1?'s':''}`;
 }
 
 // ============================================================
-// RENDER ATTENDANCE TABLE — CHANGE 2 & 3: vertical headers + hover tooltip
+// RENDER ATTENDANCE
 // ============================================================
-// Store game info keyed by stadium for tooltip lookup
-let attStadiumGames = {}; // { stadiumName: [ sbEntry, ... ] }
+let attStadiumGames = {};
 
 function renderAttendance(sbRows) {
-  const wrap = document.getElementById('attendance-wrap');
-  const peopleSet = new Set();
-  const stadiumGameMap = {};
-  attStadiumGames = {};
-
+  const wrap=document.getElementById('attendance-wrap');
+  const peopleSet=new Set(), stadiumGameMap={};
+  attStadiumGames={};
   for (const g of sbRows) {
-    const stadium = getStadium(g.homeTeamName);
-    if (!stadiumGameMap[stadium]) { stadiumGameMap[stadium] = new Set(); attStadiumGames[stadium] = []; }
-    if (!stadiumGameMap[stadium].has(g.gamePk)) {
-      stadiumGameMap[stadium].add(g.gamePk);
-      attStadiumGames[stadium].push(g);
-    }
+    const stadium=getStadium(g.homeTeamName);
+    if (!stadiumGameMap[stadium]) { stadiumGameMap[stadium]=new Set(); attStadiumGames[stadium]=[]; }
+    if (!stadiumGameMap[stadium].has(g.gamePk)) { stadiumGameMap[stadium].add(g.gamePk); attStadiumGames[stadium].push(g); }
     for (const p of (g.attendedWith||[])) peopleSet.add(p);
   }
-
-  const people = [...peopleSet].sort();
-  const stadiums = Object.keys(stadiumGameMap).sort();
-
-  if (!people.length) {
-    wrap.innerHTML = `<div style="font-family:var(--mono);font-size:0.8rem;color:var(--muted);padding:32px 0;text-align:center;">
-      No attendance data found. Add names in column G of your spreadsheet to track who you attended games with.
-    </div>`;
-    return;
-  }
-
-  const psc = {};
-  // pscGames[person][stadium] = [ sbEntry, ... ] for tooltip
-  const pscGames = {};
-  for (const p of people) {
-    psc[p] = {}; pscGames[p] = {};
-    for (const s of stadiums) { psc[p][s] = 0; pscGames[p][s] = []; }
-  }
-
+  const people=[...peopleSet].sort(), stadiums=Object.keys(stadiumGameMap).sort();
+  if (!people.length) { wrap.innerHTML=`<div style="font-family:var(--mono);font-size:0.8rem;color:var(--muted);padding:32px 0;text-align:center;">No attendance data found. Add names in column G of your spreadsheet to track who you attended games with.</div>`; return; }
+  const psc={}, pscGames={};
+  for (const p of people) { psc[p]={}; pscGames[p]={}; for (const s of stadiums) { psc[p][s]=0; pscGames[p][s]=[]; } }
   for (const g of sbRows) {
-    const stadium = getStadium(g.homeTeamName);
-    for (const p of (g.attendedWith||[])) {
-      if (psc[p]) {
-        psc[p][stadium] = (psc[p][stadium]||0) + 1;
-        if (!pscGames[p][stadium]) pscGames[p][stadium] = [];
-        pscGames[p][stadium].push(g);
-      }
-    }
+    const stadium=getStadium(g.homeTeamName);
+    for (const p of (g.attendedWith||[])) { if(psc[p]) { psc[p][stadium]=(psc[p][stadium]||0)+1; if(!pscGames[p][stadium]) pscGames[p][stadium]=[]; pscGames[p][stadium].push(g); } }
   }
-
-  const personTotals = {};
-  for (const p of people) personTotals[p] = stadiums.reduce((s,st)=>s+(psc[p][st]||0),0);
-  const stadiumTotals = {};
-  for (const s of stadiums) stadiumTotals[s] = stadiumGameMap[s].size;
-
-  let dataRows = people.map(p => ({
-    name: p,
-    values: stadiums.map(s => psc[p][s]||0),
-    games: stadiums.map(s => pscGames[p][s]||[]),
-    total: personTotals[p]
-  }));
-
-  const totalColIdx = stadiums.length;
-  if (attSortCol !== null) {
-    dataRows.sort((a,b) => {
-      let va, vb;
-      if (attSortCol === 0) {
-        va = a.name; vb = b.name;
-        if (attSortDir === 'asc') return va.localeCompare(vb);
-        return vb.localeCompare(va);
-      } else if (attSortCol <= stadiums.length) {
-        va = a.values[attSortCol-1]; vb = b.values[attSortCol-1];
-      } else {
-        va = a.total; vb = b.total;
-      }
-      return attSortDir === 'asc' ? va-vb : vb-va;
+  const personTotals={}, stadiumTotals={};
+  for (const p of people) personTotals[p]=stadiums.reduce((s,st)=>s+(psc[p][st]||0),0);
+  for (const s of stadiums) stadiumTotals[s]=stadiumGameMap[s].size;
+  let dataRows=people.map(p=>({ name:p, values:stadiums.map(s=>psc[p][s]||0), games:stadiums.map(s=>pscGames[p][s]||[]), total:personTotals[p] }));
+  if (attSortCol!==null) {
+    dataRows.sort((a,b)=>{
+      let va,vb;
+      if (attSortCol===0) { va=a.name; vb=b.name; return attSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va); }
+      else if (attSortCol<=stadiums.length) { va=a.values[attSortCol-1]; vb=b.values[attSortCol-1]; }
+      else { va=a.total; vb=b.total; }
+      return attSortDir==='asc'?va-vb:vb-va;
     });
   }
-
-  function sortArrow(colIdx) {
-    if (attSortCol !== colIdx) return '<span class="sort-arrow">↕</span>';
-    return `<span class="sort-arrow">${attSortDir==='asc'?'↑':'↓'}</span>`;
-  }
-  function thClass(colIdx) {
-    if (attSortCol !== colIdx) return '';
-    return ` ${attSortDir==='asc'?'sort-asc':'sort-desc'}`;
-  }
-
-  // CHANGE 2: Vertical headers using .att-stadium-header with .th-inner wrapper
-  const thStadiums = stadiums.map((s,i)=>
-    `<th class="att-stadium-header${thClass(i+1)}" onclick="sortAttendance(${i+1})" title="${escAttr(s)}">
-      <div class="th-inner">${escHtml(s)}${sortArrow(i+1)}</div>
-    </th>`
-  ).join('');
-  const totalThIdx = stadiums.length+1;
-  const thTotal = `<th class="total-col${thClass(totalThIdx)}" onclick="sortAttendance(${totalThIdx})">Total${sortArrow(totalThIdx)}</th>`;
-
-  // CHANGE 3: Hover tooltip — encode game info as data attributes
-  const rows = dataRows.map(row => {
-    const cells = row.values.map((v, si) => {
-      if (v > 0) {
-        // Encode game list as JSON for tooltip
-        const gamesJson = JSON.stringify(row.games[si].map(g => ({
-          date: g.date,
-          away: getAbbr(g.awayTeamName),
-          home: getAbbr(g.homeTeamName),
-          awayR: g.awayR,
-          homeR: g.homeR,
-          gameType: g.gameType
-        })));
-        return `<td class="att-cell-filled" 
-          data-person="${escAttr(row.name)}" 
-          data-stadium="${escAttr(stadiums[si])}" 
-          data-games="${escAttr(gamesJson)}"
-          onmouseenter="showAttTooltip(event,this)" 
-          onmouseleave="hideAttTooltip()"
-          onmousemove="moveAttTooltip(event)">${v}</td>`;
-      }
+  function sortArrow(ci){ if(attSortCol!==ci) return '<span class="sort-arrow">↕</span>'; return `<span class="sort-arrow">${attSortDir==='asc'?'↑':'↓'}</span>`; }
+  function thCls(ci){ if(attSortCol!==ci) return ''; return ` ${attSortDir==='asc'?'sort-asc':'sort-desc'}`; }
+  const thStadiums=stadiums.map((s,i)=>`<th class="att-stadium-header${thCls(i+1)}" onclick="sortAttendance(${i+1})" title="${escAttr(s)}"><div class="th-inner">${escHtml(s)}${sortArrow(i+1)}</div></th>`).join('');
+  const totalThIdx=stadiums.length+1;
+  const thTotal=`<th class="total-col${thCls(totalThIdx)}" onclick="sortAttendance(${totalThIdx})">Total${sortArrow(totalThIdx)}</th>`;
+  const rows=dataRows.map(row=>{
+    const cells=row.values.map((v,si)=>{
+      if(v>0){ const gj=JSON.stringify(row.games[si].map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType}))); return `<td class="att-cell-filled" data-person="${escAttr(row.name)}" data-stadium="${escAttr(stadiums[si])}" data-games="${escAttr(gj)}" onmouseenter="showAttTooltip(event,this)" onmouseleave="hideAttTooltip()" onmousemove="moveAttTooltip(event)">${v}</td>`; }
       return `<td class="att-cell-empty">·</td>`;
     }).join('');
     return `<tr><td>${escHtml(row.name)}</td>${cells}<td class="att-total">${row.total}</td></tr>`;
   }).join('');
-
-  const totalCells = stadiums.map(s => `<td style="color:var(--muted);font-size:0.7rem;">${stadiumTotals[s]}</td>`).join('');
-
-  wrap.innerHTML = `
-    <div class="att-section-label">Games attended with each person, by stadium · Click column headers to sort · Hover cells to see games</div>
-    <table class="attendance-table" id="att-table">
-      <thead>
-        <tr>
-          <th style="cursor:default;vertical-align:bottom;">Person</th>
-          ${thStadiums}
-          ${thTotal}
-        </tr>
-      </thead>
-      <tbody>
-        ${rows}
-        <tr style="border-top:1px solid var(--border)">
-          <td style="color:var(--muted);font-size:0.7rem;">Games at stadium</td>
-          ${totalCells}
-          <td class="att-total">${sbRows.length}</td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="att-note">Numbers show how many games at each stadium you attended with that person. Bottom row shows total games at each stadium in the filtered set.</div>
-  `;
+  const totalCells=stadiums.map(s=>`<td style="color:var(--muted);font-size:0.7rem;">${stadiumTotals[s]}</td>`).join('');
+  wrap.innerHTML=`<div class="att-section-label">Games attended with each person, by stadium · Click column headers to sort · Hover cells to see games</div><table class="attendance-table" id="att-table"><thead><tr><th style="cursor:default;vertical-align:bottom;">Person</th>${thStadiums}${thTotal}</tr></thead><tbody>${rows}<tr style="border-top:1px solid var(--border)"><td style="color:var(--muted);font-size:0.7rem;">Games at stadium</td>${totalCells}<td class="att-total">${sbRows.length}</td></tr></tbody></table><div class="att-note">Numbers show how many games at each stadium you attended with that person.</div>`;
 }
 
-// CHANGE 3: Tooltip show/hide/move
-function showAttTooltip(event, cell) {
-  const tooltip = document.getElementById('att-tooltip');
-  const person = cell.dataset.person;
-  const stadium = cell.dataset.stadium;
-  let games = [];
-  try { games = JSON.parse(cell.dataset.games); } catch(e) {}
-
-  const gameRows = games
-    .sort((a,b) => b.date.localeCompare(a.date))
-    .map(g => {
-      const homeWin = g.homeR > g.awayR;
-      const resultClass = homeWin ? 'win' : 'loss';
-      const resultText = `${g.awayR}–${g.homeR}`;
-      const playoff = isPlayoff(g.gameType) ? ` <span style="color:var(--gold);font-size:0.58rem">${gameTypeName(g.gameType).slice(0,2).toUpperCase()}</span>` : '';
-      return `<div class="att-tooltip-game">
-        <span class="att-tooltip-date">${g.date}</span>
-        <span class="att-tooltip-matchup">${g.away} @ ${g.home}${playoff}</span>
-        <span class="att-tooltip-result ${resultClass}">${resultText}</span>
-      </div>`;
-    }).join('');
-
-  tooltip.innerHTML = `
-    <div class="att-tooltip-title"><strong>${escHtml(person)}</strong> at ${escHtml(stadium)}</div>
-    ${gameRows}
-  `;
-  tooltip.classList.add('visible');
-  positionAttTooltip(event);
+function showAttTooltip(event,cell) {
+  const tooltip=document.getElementById('att-tooltip'), person=cell.dataset.person, stadium=cell.dataset.stadium;
+  let games=[]; try{ games=JSON.parse(cell.dataset.games); }catch(e){}
+  const gameRows=games.sort((a,b)=>b.date.localeCompare(a.date)).map(g=>{ const hw=g.homeR>g.awayR; const playoff=isPlayoff(g.gameType)?` <span style="color:var(--gold);font-size:0.58rem">${gameTypeName(g.gameType).slice(0,2).toUpperCase()}</span>`:''; return `<div class="att-tooltip-game"><span class="att-tooltip-date">${g.date}</span><span class="att-tooltip-matchup">${g.away} @ ${g.home}${playoff}</span><span class="att-tooltip-result ${hw?'win':'loss'}">${g.awayR}–${g.homeR}</span></div>`; }).join('');
+  tooltip.innerHTML=`<div class="att-tooltip-title"><strong>${escHtml(person)}</strong> at ${escHtml(stadium)}</div>${gameRows}`;
+  tooltip.classList.add('visible'); positionAttTooltip(event);
 }
-
-function hideAttTooltip() {
-  document.getElementById('att-tooltip').classList.remove('visible');
-}
-
-function moveAttTooltip(event) {
-  positionAttTooltip(event);
-}
-
+function hideAttTooltip() { document.getElementById('att-tooltip').classList.remove('visible'); }
+function moveAttTooltip(event) { positionAttTooltip(event); }
 function positionAttTooltip(event) {
-  const tooltip = document.getElementById('att-tooltip');
-  const margin = 14;
-  const tw = tooltip.offsetWidth || 220;
-  const th = tooltip.offsetHeight || 100;
-  let x = event.clientX + margin;
-  let y = event.clientY + margin;
-  if (x + tw > window.innerWidth - 8) x = event.clientX - tw - margin;
-  if (y + th > window.innerHeight - 8) y = event.clientY - th - margin;
-  tooltip.style.left = x + 'px';
-  tooltip.style.top  = y + 'px';
+  const tooltip=document.getElementById('att-tooltip'), margin=14, tw=tooltip.offsetWidth||220, th=tooltip.offsetHeight||100;
+  let x=event.clientX+margin, y=event.clientY+margin;
+  if(x+tw>window.innerWidth-8) x=event.clientX-tw-margin;
+  if(y+th>window.innerHeight-8) y=event.clientY-th-margin;
+  tooltip.style.left=x+'px'; tooltip.style.top=y+'px';
 }
-
 function sortAttendance(colIdx) {
-  if (attSortCol === colIdx) {
-    attSortDir = attSortDir === 'desc' ? 'asc' : 'desc';
-  } else {
-    attSortCol = colIdx;
-    attSortDir = 'desc';
-  }
-  const {sb} = getFilteredRows();
-  renderAttendance(sb);
+  if(attSortCol===colIdx) { attSortDir=attSortDir==='desc'?'asc':'desc'; } else { attSortCol=colIdx; attSortDir='desc'; }
+  const {sb}=getFilteredRows(); renderAttendance(sb);
 }
 
 // ============================================================
-// RENDER PERSONAL GAME STATS (stadium × day-of-week)
+// RENDER PERSONAL GAME STATS
 // ============================================================
 function renderPersonalGameStats(sbRows) {
-  const wrap = document.getElementById('personal-wrap');
-
-  if (!sbRows.length) {
-    wrap.innerHTML = '<div class="personal-empty-msg">No games match the current filters.</div>';
-    return;
-  }
-
-  const stadiumSet = new Set();
-  const gameDay = {};
-
-  for (const g of sbRows) {
-    const stadium = getStadium(g.homeTeamName);
-    const d = new Date(g.date + 'T12:00:00');
-    const dayIdx = d.getDay();
-    stadiumSet.add(stadium);
-    gameDay[g.gamePk] = { dayIdx, stadium };
-  }
-
-  const stadiums = [...stadiumSet].sort();
-  const days = [0,1,2,3,4,5,6];
-
-  const matrix = {};
-  for (const s of stadiums) {
-    matrix[s] = {};
-    for (const d of days) matrix[s][d] = 0;
-  }
-
-  for (const g of sbRows) {
-    const info = gameDay[g.gamePk];
-    if (info && matrix[info.stadium]) {
-      matrix[info.stadium][info.dayIdx]++;
-    }
-  }
-
-  const stadiumTotals = {};
-  for (const s of stadiums) stadiumTotals[s] = days.reduce((acc,d)=>acc+matrix[s][d],0);
-
-  const dayTotals = {};
-  for (const d of days) dayTotals[d] = stadiums.reduce((acc,s)=>acc+matrix[s][d],0);
-
-  const grandTotal = sbRows.length;
-
-  const thDays = days.map(d =>
-    `<th>${DAY_NAMES[d].slice(0,3)}<span style="display:block;font-size:0.55rem;font-weight:400;color:rgba(90,101,120,0.7)">${DAY_NAMES[d].slice(3)}</span></th>`
-  ).join('');
-
-  const dataRows = stadiums.map(s => {
-    const cells = days.map(d => {
-      const v = matrix[s][d];
-      return `<td class="${v>0?'personal-cell-filled':'personal-cell-empty'}">${v>0?v:'·'}</td>`;
-    }).join('');
-    return `<tr>
-      <td title="${escAttr(s)}">${escHtml(s.length>22?s.slice(0,21)+'…':s)}</td>
-      ${cells}
-      <td class="personal-total-col">${stadiumTotals[s]}</td>
-    </tr>`;
-  }).join('');
-
-  const totalCells = days.map(d => {
-    const v = dayTotals[d];
-    return `<td class="${v>0?'personal-cell-filled':'personal-cell-empty'}" style="font-size:0.7rem;">${v>0?v:'·'}</td>`;
-  }).join('');
-
-  wrap.innerHTML = `
-    <div class="personal-section">
-      <div class="personal-section-title">Games by Stadium & Day of Week</div>
-      <div class="personal-section-sub">Each cell shows how many games you attended at that stadium on that day</div>
-      <table class="personal-table">
-        <thead>
-          <tr>
-            <th>Stadium</th>
-            ${thDays}
-            <th class="personal-total-col">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${dataRows}
-          <tr class="personal-total-row">
-            <td>Total</td>
-            ${totalCells}
-            <td class="personal-total-col">${grandTotal}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="personal-note">Rows = stadiums visited · Columns = day of week · Values = games attended</div>
-    </div>
-  `;
+  const wrap=document.getElementById('personal-wrap');
+  if (!sbRows.length) { wrap.innerHTML='<div class="personal-empty-msg">No games match the current filters.</div>'; return; }
+  const stadiumSet=new Set(), gameDay={};
+  for (const g of sbRows) { const stadium=getStadium(g.homeTeamName); const d=new Date(g.date+'T12:00:00'); stadiumSet.add(stadium); gameDay[g.gamePk]={dayIdx:d.getDay(),stadium}; }
+  const stadiums=[...stadiumSet].sort(), days=[0,1,2,3,4,5,6];
+  const matrix={};
+  for (const s of stadiums) { matrix[s]={}; for(const d of days) matrix[s][d]=0; }
+  for (const g of sbRows) { const info=gameDay[g.gamePk]; if(info&&matrix[info.stadium]) matrix[info.stadium][info.dayIdx]++; }
+  const stadiumTotals={}, dayTotals={};
+  for (const s of stadiums) stadiumTotals[s]=days.reduce((acc,d)=>acc+matrix[s][d],0);
+  for (const d of days) dayTotals[d]=stadiums.reduce((acc,s)=>acc+matrix[s][d],0);
+  const thDays=days.map(d=>`<th>${DAY_NAMES[d].slice(0,3)}<span style="display:block;font-size:0.55rem;font-weight:400;color:rgba(90,101,120,0.7)">${DAY_NAMES[d].slice(3)}</span></th>`).join('');
+  const dataRows=stadiums.map(s=>{ const cells=days.map(d=>{ const v=matrix[s][d]; return `<td class="${v>0?'personal-cell-filled':'personal-cell-empty'}">${v>0?v:'·'}</td>`; }).join(''); return `<tr><td title="${escAttr(s)}">${escHtml(s.length>22?s.slice(0,21)+'…':s)}</td>${cells}<td class="personal-total-col">${stadiumTotals[s]}</td></tr>`; }).join('');
+  const totalCells=days.map(d=>{ const v=dayTotals[d]; return `<td class="${v>0?'personal-cell-filled':'personal-cell-empty'}" style="font-size:0.7rem;">${v>0?v:'·'}</td>`; }).join('');
+  wrap.innerHTML=`<div class="personal-section"><div class="personal-section-title">Games by Stadium & Day of Week</div><div class="personal-section-sub">Each cell shows how many games you attended at that stadium on that day</div><table class="personal-table"><thead><tr><th>Stadium</th>${thDays}<th class="personal-total-col">Total</th></tr></thead><tbody>${dataRows}<tr class="personal-total-row"><td>Total</td>${totalCells}<td class="personal-total-col">${sbRows.length}</td></tr></tbody></table><div class="personal-note">Rows = stadiums visited · Columns = day of week · Values = games attended</div></div>`;
 }
 
 // ============================================================
@@ -1675,25 +1304,17 @@ function buildTableHTML(rows,cols,hiCols,type) {
 function renderTables(hitting,pitching,gameCount,sbRows) {
   document.getElementById('summary-pills').innerHTML=[{label:'Games',value:gameCount},{label:'Batters',value:hitting.length},{label:'Pitchers',value:pitching.length}]
     .map(p=>`<div class="stat-pill"><div class="stat-pill-value">${p.value}</div><div class="stat-pill-label">${p.label}</div></div>`).join('');
-
-  if (hittingDT)  { hittingDT.destroy();  hittingDT=null; }
-  if (pitchingDT) { pitchingDT.destroy(); pitchingDT=null; }
-
-  document.getElementById('hittingTable').innerHTML =buildTableHTML(hitting, HITTING_COLS, HI_HIT, 'hitting');
-  document.getElementById('pitchingTable').innerHTML=buildTableHTML(pitching,PITCHING_COLS,HI_PIT,'pitching');
-
-  hittingDT =$('#hittingTable').DataTable({ paging:true,info:true,searching:true,pageLength:25,order:[[5,'desc']],columnDefs:[{targets:2,orderable:false}] });
-  pitchingDT=$('#pitchingTable').DataTable({ paging:true,info:true,searching:true,pageLength:25,order:[[4,'asc']], columnDefs:[{targets:2,orderable:false}] });
-
+  if(hittingDT)  { hittingDT.destroy();  hittingDT=null; }
+  if(pitchingDT) { pitchingDT.destroy(); pitchingDT=null; }
+  document.getElementById('hittingTable').innerHTML  = buildTableHTML(hitting, HITTING_COLS, HI_HIT,'hitting');
+  document.getElementById('pitchingTable').innerHTML = buildTableHTML(pitching,PITCHING_COLS,HI_PIT,'pitching');
+  hittingDT  = $('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[5,'desc']],columnDefs:[{targets:2,orderable:false}]});
+  pitchingDT = $('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[4,'asc']], columnDefs:[{targets:2,orderable:false}]});
   const old=document.getElementById('player-search'), nw=old.cloneNode(true);
   old.parentNode.replaceChild(nw,old);
   nw.addEventListener('keyup',function(){ if(currentTab==='hitting') hittingDT.search(this.value).draw(); else pitchingDT.search(this.value).draw(); });
-
-  renderScoreboard(sbRows);
-  renderAttendance(sbRows);
-  renderPersonalGameStats(sbRows);
-
-  document.getElementById('upload-section').style.display='none';
+  renderScoreboard(sbRows); renderAttendance(sbRows); renderPersonalGameStats(sbRows);
+  document.getElementById('loading-section').style.display='none';
   document.getElementById('stats-section').style.display='block';
   document.getElementById('status-bar').classList.remove('active');
 }
@@ -1721,15 +1342,12 @@ function teamCellHTML(row,type) {
   return `<div class="team-badge${isMulti?' multi':''}" onclick="toggleTeamDrop(event,this)"><span class="team-label">${label}</span>${isMulti?`<span class="team-chevron">▼</span>${drop}`:''}</div>`;
 }
 
-// ============================================================
-// DROPDOWN TOGGLE
-// ============================================================
 function toggleTeamDrop(e,el) {
-  if (!el.classList.contains('multi')) return;
+  if(!el.classList.contains('multi')) return;
   e.stopPropagation();
   const was=el.classList.contains('open');
   document.querySelectorAll('.team-badge.open').forEach(b=>b.classList.remove('open'));
-  if (!was) el.classList.add('open');
+  if(!was) el.classList.add('open');
 }
 document.addEventListener('click',()=>document.querySelectorAll('.team-badge.open').forEach(b=>b.classList.remove('open')));
 
@@ -1740,8 +1358,7 @@ let toastTimer=null;
 function showToast(msg) {
   const t=document.getElementById('toast');
   document.getElementById('toast-msg').textContent=msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
+  t.classList.add('show'); clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
@@ -1749,10 +1366,9 @@ function showToast(msg) {
 // UI HELPERS
 // ============================================================
 function showStatus(msg,pct) { document.getElementById('status-bar').classList.add('active'); document.getElementById('error-msg').style.display='none'; setStatus(msg); setProgress(pct??0); }
-function setStatus(msg) { document.getElementById('status-text').textContent=msg; }
-function setProgress(pct) { document.getElementById('progress-fill').style.width=pct+'%'; }
-function showError(msg) { document.getElementById('status-bar').classList.add('active'); const el=document.getElementById('error-msg'); el.style.display='block'; el.textContent='⚠ '+msg; setStatus(''); setProgress(0); }
-
+function setStatus(msg)      { document.getElementById('status-text').textContent=msg; }
+function setProgress(pct)    { document.getElementById('progress-fill').style.width=pct+'%'; }
+function showError(msg)      { document.getElementById('status-bar').classList.add('active'); const el=document.getElementById('error-msg'); el.style.display='block'; el.textContent='⚠ '+msg; setStatus(''); setProgress(0); }
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
 
@@ -1763,56 +1379,34 @@ function switchTab(tab) {
   document.getElementById('scoreboard-wrap').style.display=(tab==='scoreboard') ?'block':'none';
   document.getElementById('attendance-wrap').style.display=(tab==='attendance') ?'block':'none';
   document.getElementById('personal-wrap').style.display  =(tab==='personal')   ?'block':'none';
-
-  ['hitting','pitching','scoreboard','attendance','personal'].forEach(t=>{
-    document.getElementById(`tab-${t}`).classList.toggle('active',tab===t);
-  });
-
-  const searchWrap = document.querySelector('.search-wrap');
-  searchWrap.style.visibility = (tab==='hitting'||tab==='pitching') ? 'visible' : 'hidden';
-  const oppGroup = document.getElementById('opp-filter-group');
-  oppGroup.style.display = (tab==='attendance'||tab==='personal') ? 'none' : 'flex';
-
+  ['hitting','pitching','scoreboard','attendance','personal'].forEach(t=>{ document.getElementById(`tab-${t}`).classList.toggle('active',tab===t); });
+  const searchWrap=document.querySelector('.search-wrap');
+  searchWrap.style.visibility=(tab==='hitting'||tab==='pitching')?'visible':'hidden';
+  document.getElementById('opp-filter-group').style.display=(tab==='attendance'||tab==='personal')?'none':'flex';
   document.getElementById('player-search').value='';
   if(tab==='hitting' &&hittingDT)  { hittingDT.search('').draw();  hittingDT.columns.adjust(); }
   if(tab==='pitching'&&pitchingDT) { pitchingDT.search('').draw(); pitchingDT.columns.adjust(); }
   document.querySelectorAll('.team-badge.open').forEach(b=>b.classList.remove('open'));
 }
 
-function resetAll() {
-  if(hittingDT)  { hittingDT.destroy();  hittingDT=null; }
-  if(pitchingDT) { pitchingDT.destroy(); pitchingDT=null; }
-  allHittingRaw=[]; allPitchingRaw=[]; gameList=[]; scoreboardData=[]; gameNotes={};
-  availableYears=[]; availableMonths=[]; selectedYear='All'; selectedMonth='All';
-  selectedGameType='all'; selectedOpponent='All';
-  attSortCol=null; attSortDir='desc';
-  sbSearchTerm='';
-  document.getElementById('stats-section').style.display='none';
-  document.getElementById('upload-section').style.display='block';
-  document.getElementById('game-list-panel').classList.remove('open');
-  document.getElementById('toggle-game-list-btn').textContent='☰ Game List';
-  document.getElementById('file-input').value='';
-  document.getElementById('status-bar').classList.remove('active');
-}
-
 // ============================================================
-// INIT — check for preloaded data on load
+// INIT — preloaded data (from downloadHTML) takes priority,
+// otherwise auto-fetch from Google Sheets on every page load.
 // ============================================================
 window.addEventListener('load', function() {
   if (window.__PRELOADED__) {
-    const p = window.__PRELOADED__;
-    gameList = p.gameList || [];
-    allHittingRaw = p.hRaw || [];
-    allPitchingRaw = p.pRaw || [];
-    scoreboardData = p.sbData || [];
-    gameNotes = p.notes || {};
-    totalGameCount = gameList.length;
-    if (allHittingRaw.length || allPitchingRaw.length || scoreboardData.length) {
-      document.getElementById('upload-section').style.display = 'none';
-      document.getElementById('stats-section').style.display = 'block';
+    const p=window.__PRELOADED__;
+    gameList=p.gameList||[]; allHittingRaw=p.hRaw||[]; allPitchingRaw=p.pRaw||[];
+    scoreboardData=p.sbData||[]; gameNotes=p.notes||{}; totalGameCount=gameList.length;
+    if (allHittingRaw.length||allPitchingRaw.length||scoreboardData.length) {
+      document.getElementById('loading-section').style.display='none';
+      document.getElementById('stats-section').style.display='block';
       initFiltersAndRender();
+      return;
     }
   }
+  // No preloaded data — fetch live from Google Sheets
+  loadFromGoogleSheet();
 });
 </script>
 </body>

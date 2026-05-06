@@ -711,8 +711,8 @@ function emptyHit(){return{games:new Set(),atBats:0,hits:0,doubles:0,triples:0,h
 function addHit(m,r){m.games.add(r.game_id);m.atBats+=r.atBats;m.hits+=r.hits;m.doubles+=r.doubles;m.triples+=r.triples;m.homeRuns+=r.homeRuns;m.runs+=r.runs;m.rbi+=r.rbi;m.stolenBases+=r.stolenBases;m.strikeOuts+=r.strikeOuts;m.baseOnBalls+=r.baseOnBalls;m.leftOnBase+=r.leftOnBase;}
 function hitStats(m){
   const singles=m.hits-m.doubles-m.triples-m.homeRuns,tb=singles+2*m.doubles+3*m.triples+4*m.homeRuns;
-  const avg=m.atBats?m.hits/m.atBats:0,obp=(m.atBats+m.baseOnBalls)?(m.hits+m.baseOnBalls)/(m.atBats+m.baseOnBalls):0,slg=m.atBats?tb/m.atBats:0;
-  return{avg,obp,slg,tb};
+  const avg=m.atBats?m.hits/m.atBats:0,obp=(m.atBats+m.baseOnBalls)?(m.hits+m.baseOnBalls)/(m.atBats+m.baseOnBalls):0,=m.atBats?tb/m.atBats:0;
+  return{avg,obp,,tb};
 }
 function computeHitting(rows){
   const map={};
@@ -724,9 +724,9 @@ function computeHitting(rows){
       atBats:r.atBats,hits:r.hits,doubles:r.doubles,triples:r.triples,homeRuns:r.homeRuns,runs:r.runs,rbi:r.rbi,stolenBases:r.stolenBases,strikeOuts:r.strikeOuts,baseOnBalls:r.baseOnBalls,leftOnBase:r.leftOnBase});
   }
   return Object.values(map).map(m=>{
-    const{avg,obp,slg,tb}=hitStats(m);
+    const{avg,obp,,tb}=hitStats(m);
     const teamBreakdown=Object.keys(m.teamGames).map(abbr=>{
-      const t=m.teamGames[abbr];const{avg:ta,obp:to,slg:ts,tb:ttb}=hitStats(t);
+      const t=m.teamGames[abbr];const{avg:ta,obp:to,:ts,tb:ttb}=hitStats(t);
       return{abbr,g:t.games.size,avg:ta.toFixed(3),obp:to.toFixed(3),slg:ts.toFixed(3),ops:(to+ts).toFixed(3),h:t.hits,ab:t.atBats,doubles:t.doubles,triples:t.triples,hr:t.homeRuns,tb:ttb,r:t.runs,rbi:t.rbi,sb:t.stolenBases,so:t.strikeOuts,bb:t.baseOnBalls,lob:t.leftOnBase};
     });
     return{Name:m.player_name,G:m.games.size,_teams:Object.keys(m.teamGames),_teamBreakdown:teamBreakdown,_gameLog:m.gameLog,_type:'hitting',
@@ -1390,8 +1390,8 @@ function renderTables(hitting,pitching,gameCount,sbRows){
   if(pitchingDT){pitchingDT.destroy();pitchingDT=null;}
   document.getElementById('hittingTable').innerHTML=buildTableHTML(hitting,HITTING_COLS,HI_HIT,'hitting');
   document.getElementById('pitchingTable').innerHTML=buildTableHTML(pitching,PITCHING_COLS,HI_PIT,'pitching');
-  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[5,'desc']],columnDefs:[{targets:2,orderable:false}]});
-  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[4,'asc']],columnDefs:[{targets:2,orderable:false}]});
+  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[1,'desc']],columnDefs:[{targets:2,orderable:false}]});
+  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'asc']],columnDefs:[{targets:2,orderable:false}]});
   const old=document.getElementById('player-search'),nw=old.cloneNode(true);
   old.parentNode.replaceChild(nw,old);
   nw.addEventListener('keyup',function(){if(currentTab==='hitting')hittingDT.search(this.value).draw();else pitchingDT.search(this.value).draw();});

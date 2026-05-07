@@ -678,7 +678,9 @@ function parseBoxscore(box,gamePk,year,gameType,homeTeamName,awayTeamName,sportI
       hittingRows.push({game_id:gamePk,player_id:pid,year,gameType,sportId,player_name:player.person?.fullName||'',team:teamName,opponent:oppName,
         atBats:batting.atBats||0,hits:batting.hits||0,doubles:batting.doubles||0,triples:batting.triples||0,
         homeRuns:batting.homeRuns||0,runs:batting.runs||0,rbi:batting.rbi||0,stolenBases:batting.stolenBases||0,
-        strikeOuts:batting.strikeOuts||0,baseOnBalls:batting.baseOnBalls||0,leftOnBase:batting.leftOnBase||0});
+        strikeOuts:batting.strikeOuts||0,baseOnBalls:batting.baseOnBalls||0,
+        intentionalWalks:batting.intentionalWalks||0,hitByPitch:batting.hitByPitch||0,
+        sacFlies:batting.sacFlies||0,sacBunts:batting.sacBunts||0,leftOnBase:batting.leftOnBase||0});
     }
     for(const pid of(teamData.pitchers||[])){
       const player=players[`ID${pid}`]||players[pid];if(!player)continue;
@@ -707,12 +709,15 @@ function parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamNam
 // ============================================================
 function ipToOuts(s){const p=String(s).split('.');return(parseInt(p[0])||0)*3+(parseInt(p[1])||0);}
 function outsToIp(o){return`${Math.floor(o/3)}.${o%3}`;}
-function emptyHit(){return{games:new Set(),atBats:0,hits:0,doubles:0,triples:0,homeRuns:0,runs:0,rbi:0,stolenBases:0,strikeOuts:0,baseOnBalls:0,leftOnBase:0};}
-function addHit(m,r){m.games.add(r.game_id);m.atBats+=r.atBats;m.hits+=r.hits;m.doubles+=r.doubles;m.triples+=r.triples;m.homeRuns+=r.homeRuns;m.runs+=r.runs;m.rbi+=r.rbi;m.stolenBases+=r.stolenBases;m.strikeOuts+=r.strikeOuts;m.baseOnBalls+=r.baseOnBalls;m.leftOnBase+=r.leftOnBase;}
+function emptyHit(){return{games:new Set(),atBats:0,hits:0,doubles:0,triples:0,homeRuns:0,runs:0,rbi:0,stolenBases:0,strikeOuts:0,baseOnBalls:0,intentionalWalks:0,hitByPitch:0,sacFlies:0,sacBunts:0,leftOnBase:0};}
+function addHit(m,r){m.games.add(r.game_id);m.atBats+=r.atBats;m.hits+=r.hits;m.doubles+=r.doubles;m.triples+=r.triples;m.homeRuns+=r.homeRuns;m.runs+=r.runs;m.rbi+=r.rbi;m.stolenBases+=r.stolenBases;m.strikeOuts+=r.strikeOuts;m.baseOnBalls+=r.baseOnBalls;m.intentionalWalks+=r.intentionalWalks||0;m.hitByPitch+=r.hitByPitch||0;m.sacFlies+=r.sacFlies||0;m.sacBunts+=r.sacBunts||0;m.leftOnBase+=r.leftOnBase;}
 function hitStats(m){
   const singles=m.hits-m.doubles-m.triples-m.homeRuns,tb=singles+2*m.doubles+3*m.triples+4*m.homeRuns;
-  const avg=m.atBats?m.hits/m.atBats:0,obp=(m.atBats+m.baseOnBalls)?(m.hits+m.baseOnBalls)/(m.atBats+m.baseOnBalls):0,slg=m.atBats?tb/m.atBats:0;
-  return{avg,obp,slg,tb};
+  const pa=m.atBats+m.baseOnBalls+(m.hitByPitch||0)+(m.sacFlies||0)+(m.sacBunts||0);
+  const avg=m.atBats?m.hits/m.atBats:0;
+  const obp=pa?(m.hits+m.baseOnBalls+(m.hitByPitch||0))/pa:0;
+  const slg=m.atBats?tb/m.atBats:0;
+  return{avg,obp,slg,tb,pa};
 }
 function computeHitting(rows){
   const map={};
@@ -721,19 +726,28 @@ function computeHitting(rows){
     const m=map[r.player_id];addHit(m,r);
     const abbr=getAbbr(r.team);if(!m.teamGames[abbr])m.teamGames[abbr]=emptyHit();addHit(m.teamGames[abbr],r);
     m.gameLog.push({game_id:r.game_id,year:r.year,gameType:r.gameType,team:r.team,opponent:r.opponent,
-      atBats:r.atBats,hits:r.hits,doubles:r.doubles,triples:r.triples,homeRuns:r.homeRuns,runs:r.runs,rbi:r.rbi,stolenBases:r.stolenBases,strikeOuts:r.strikeOuts,baseOnBalls:r.baseOnBalls,leftOnBase:r.leftOnBase});
+      atBats:r.atBats,hits:r.hits,doubles:r.doubles,triples:r.triples,homeRuns:r.homeRuns,runs:r.runs,
+      rbi:r.rbi,stolenBases:r.stolenBases,strikeOuts:r.strikeOuts,baseOnBalls:r.baseOnBalls,
+      intentionalWalks:r.intentionalWalks||0,hitByPitch:r.hitByPitch||0,
+      sacFlies:r.sacFlies||0,sacBunts:r.sacBunts||0,leftOnBase:r.leftOnBase});
   }
   return Object.values(map).map(m=>{
-    const{avg,obp,slg,tb}=hitStats(m);
+    const{avg,obp,slg,tb,pa}=hitStats(m);
     const teamBreakdown=Object.keys(m.teamGames).map(abbr=>{
-      const t=m.teamGames[abbr];const{avg:ta,obp:to,slg:ts,tb:ttb}=hitStats(t);
-      return{abbr,g:t.games.size,avg:ta.toFixed(3),obp:to.toFixed(3),slg:ts.toFixed(3),ops:(to+ts).toFixed(3),h:t.hits,ab:t.atBats,doubles:t.doubles,triples:t.triples,hr:t.homeRuns,tb:ttb,r:t.runs,rbi:t.rbi,sb:t.stolenBases,so:t.strikeOuts,bb:t.baseOnBalls,lob:t.leftOnBase};
+      const t=m.teamGames[abbr];const{avg:ta,obp:to,slg:ts,tb:ttb,pa:tpa}=hitStats(t);
+      return{abbr,g:t.games.size,pa:tpa,avg:ta.toFixed(3),obp:to.toFixed(3),slg:ts.toFixed(3),ops:(to+ts).toFixed(3),
+        h:t.hits,ab:t.atBats,doubles:t.doubles,triples:t.triples,hr:t.homeRuns,tb:ttb,r:t.runs,rbi:t.rbi,
+        sb:t.stolenBases,so:t.strikeOuts,bb:t.baseOnBalls,ibb:t.intentionalWalks,hbp:t.hitByPitch,
+        sf:t.sacFlies,sac:t.sacBunts,lob:t.leftOnBase};
     });
     return{Name:m.player_name,G:m.games.size,_teams:Object.keys(m.teamGames),_teamBreakdown:teamBreakdown,_gameLog:m.gameLog,_type:'hitting',
-      AVG:avg.toFixed(3),OBP:obp.toFixed(3),SLG:slg.toFixed(3),OPS:(obp+slg).toFixed(3),
-      H:m.hits,AB:m.atBats,HR:m.homeRuns,RBI:m.rbi,'2B':m.doubles,'3B':m.triples,TB:tb,R:m.runs,SB:m.stolenBases,SO:m.strikeOuts,BB:m.baseOnBalls,LOB:m.leftOnBase};
+      PA:pa,AVG:avg.toFixed(3),OBP:obp.toFixed(3),SLG:slg.toFixed(3),OPS:(obp+slg).toFixed(3),
+      H:m.hits,AB:m.atBats,HR:m.homeRuns,RBI:m.rbi,'2B':m.doubles,'3B':m.triples,TB:tb,R:m.runs,
+      SB:m.stolenBases,SO:m.strikeOuts,BB:m.baseOnBalls,IBB:m.intentionalWalks,HBP:m.hitByPitch,
+      SF:m.sacFlies,SAC:m.sacBunts,LOB:m.leftOnBase};
   }).sort((a,b)=>parseFloat(b.OPS)-parseFloat(a.OPS));
 }
+
 function emptyPitch(){return{games:new Set(),outs:0,hits:0,runs:0,earnedRuns:0,baseOnBalls:0,strikeOuts:0,homeRuns:0,numberOfPitches:0};}
 function addPitch(m,r){m.games.add(r.game_id);const o=ipToOuts(r.ip_str);m.outs+=o;m.hits+=r.hits;m.runs+=r.runs;m.earnedRuns+=r.earnedRuns;m.baseOnBalls+=r.baseOnBalls;m.strikeOuts+=r.strikeOuts;m.homeRuns+=r.homeRuns;m.numberOfPitches+=r.numberOfPitches;}
 function pitchStats(m){const ip=m.outs/3;return{era:ip?(m.earnedRuns*9/ip):0,whip:ip?(m.baseOnBalls+m.hits)/ip:0,k9:ip?(m.strikeOuts*9/ip):0};}
@@ -954,32 +968,42 @@ function openGameLog(playerName,gameLog,type){
   document.getElementById('gamelog-player-name').innerHTML=`${escHtml(playerName)} <span>Game Log</span>`;
   document.getElementById('gamelog-player-sub').textContent=`${enriched.length} game${enriched.length!==1?'s':''} · ${type==='hitting'?'Batting':'Pitching'}`;
   const content=document.getElementById('gamelog-content');
-  if(type==='hitting'){
-    const totals=enriched.reduce((acc,g)=>({ab:acc.ab+g.atBats,h:acc.h+g.hits,doubles:acc.doubles+g.doubles,triples:acc.triples+g.triples,hr:acc.hr+g.homeRuns,r:acc.r+g.runs,rbi:acc.rbi+g.rbi,sb:acc.sb+g.stolenBases,so:acc.so+g.strikeOuts,bb:acc.bb+g.baseOnBalls}),{ab:0,h:0,doubles:0,triples:0,hr:0,r:0,rbi:0,sb:0,so:0,bb:0});
-    const rows=enriched.map(g=>{
-      const res=g.result;let resultStr='',resultCls='';
-      if(res){const teamIsHome=res.homeTeam===g.team;const myR=teamIsHome?res.homeR:res.awayR;const oppR=teamIsHome?res.awayR:res.homeR;resultStr=`${myR>oppR?'W':'L'} ${myR}-${oppR}`;resultCls=myR>oppR?'result-w':'result-l';}
-      const avg=g.atBats?((g.hits/g.atBats)).toFixed(3):'—';
-      return`<tr>
-        <td>${g.date||'—'}</td>
-        <td>${escHtml(getAbbr(g.team))}</td>
-        <td>${escHtml(getAbbr(g.opponent))}</td>
-        <td class="${resultCls}">${resultStr}</td>
-        <td>${g.atBats}</td><td class="hi">${g.hits}</td>
-        <td>${g.doubles}</td><td>${g.triples}</td>
-        <td class="hi">${g.homeRuns}</td>
-        <td>${g.runs}</td><td class="hi">${g.rbi}</td>
-        <td>${g.stolenBases}</td><td>${g.strikeOuts}</td><td>${g.baseOnBalls}</td>
-        <td>${avg}</td>
-      </tr>`;
-    }).join('');
-    const totalAvg=totals.ab?(totals.h/totals.ab).toFixed(3):'—';
-    content.innerHTML=`<table class="gamelog-table">
-      <thead><tr><th>Date</th><th>Team</th><th>Opp</th><th>Result</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>R</th><th>RBI</th><th>SB</th><th>SO</th><th>BB</th><th>AVG</th></tr></thead>
-      <tbody>${rows}</tbody>
-      <tfoot><tr class="gamelog-totals"><td colspan="4">Totals</td><td>${totals.ab}</td><td class="hi">${totals.h}</td><td>${totals.doubles}</td><td>${totals.triples}</td><td class="hi">${totals.hr}</td><td>${totals.r}</td><td class="hi">${totals.rbi}</td><td>${totals.sb}</td><td>${totals.so}</td><td>${totals.bb}</td><td class="hi">${totalAvg}</td></tr></tfoot>
-    </table>`;
-  }else{
+if(type==='hitting'){
+  const totals=enriched.reduce((acc,g)=>({
+    ab:acc.ab+g.atBats,h:acc.h+g.hits,doubles:acc.doubles+g.doubles,triples:acc.triples+g.triples,
+    hr:acc.hr+g.homeRuns,r:acc.r+g.runs,rbi:acc.rbi+g.rbi,sb:acc.sb+g.stolenBases,
+    so:acc.so+g.strikeOuts,bb:acc.bb+g.baseOnBalls,ibb:acc.ibb+(g.intentionalWalks||0),
+    hbp:acc.hbp+(g.hitByPitch||0),sf:acc.sf+(g.sacFlies||0),sac:acc.sac+(g.sacBunts||0)
+  }),{ab:0,h:0,doubles:0,triples:0,hr:0,r:0,rbi:0,sb:0,so:0,bb:0,ibb:0,hbp:0,sf:0,sac:0});
+  const totalPA=totals.ab+totals.bb+totals.hbp+totals.sf+totals.sac;
+  const rows=enriched.map(g=>{
+    const res=g.result;let resultStr='',resultCls='';
+    if(res){const teamIsHome=res.homeTeam===g.team;const myR=teamIsHome?res.homeR:res.awayR;const oppR=teamIsHome?res.awayR:res.homeR;resultStr=`${myR>oppR?'W':'L'} ${myR}-${oppR}`;resultCls=myR>oppR?'result-w':'result-l';}
+    const pa=g.atBats+g.baseOnBalls+(g.hitByPitch||0)+(g.sacFlies||0)+(g.sacBunts||0);
+    const avg=g.atBats?((g.hits/g.atBats)).toFixed(3):'—';
+    return`<tr>
+      <td>${g.date||'—'}</td>
+      <td>${escHtml(getAbbr(g.team))}</td>
+      <td>${escHtml(getAbbr(g.opponent))}</td>
+      <td class="${resultCls}">${resultStr}</td>
+      <td>${pa}</td>
+      <td>${g.atBats}</td><td class="hi">${g.hits}</td>
+      <td>${g.doubles}</td><td>${g.triples}</td>
+      <td class="hi">${g.homeRuns}</td>
+      <td>${g.runs}</td><td class="hi">${g.rbi}</td>
+      <td>${g.stolenBases}</td><td>${g.strikeOuts}</td><td>${g.baseOnBalls}</td>
+      <td>${g.intentionalWalks||0}</td><td>${g.hitByPitch||0}</td>
+      <td>${g.sacFlies||0}</td><td>${g.sacBunts||0}</td>
+      <td>${avg}</td>
+    </tr>`;
+  }).join('');
+  const totalAvg=totals.ab?(totals.h/totals.ab).toFixed(3):'—';
+  content.innerHTML=`<table class="gamelog-table">
+    <thead><tr><th>Date</th><th>Team</th><th>Opp</th><th>Result</th><th>PA</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>R</th><th>RBI</th><th>SB</th><th>SO</th><th>BB</th><th>IBB</th><th>HBP</th><th>SF</th><th>SAC</th><th>AVG</th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr class="gamelog-totals"><td colspan="4">Totals</td><td>${totalPA}</td><td>${totals.ab}</td><td class="hi">${totals.h}</td><td>${totals.doubles}</td><td>${totals.triples}</td><td class="hi">${totals.hr}</td><td>${totals.r}</td><td class="hi">${totals.rbi}</td><td>${totals.sb}</td><td>${totals.so}</td><td>${totals.bb}</td><td>${totals.ibb}</td><td>${totals.hbp}</td><td>${totals.sf}</td><td>${totals.sac}</td><td class="hi">${totalAvg}</td></tr></tfoot>
+  </table>`;
+} else {
     const totals=enriched.reduce((acc,g)=>({outs:acc.outs+ipToOuts(g.ip_str),h:acc.h+g.hits,er:acc.er+g.earnedRuns,r:acc.r+g.runs,bb:acc.bb+g.baseOnBalls,k:acc.k+g.strikeOuts,hr:acc.hr+g.homeRuns,pitches:acc.pitches+g.numberOfPitches}),{outs:0,h:0,er:0,r:0,bb:0,k:0,hr:0,pitches:0});
     const rows=enriched.map(g=>{
       const res=g.result;let resultStr='',resultCls='';
@@ -1368,7 +1392,7 @@ function setH2HSort(col){
 // ============================================================
 // RENDER TABLES
 // ============================================================
-const HITTING_COLS=['Name','G','Team','AVG','OBP','SLG','OPS','H','AB','HR','RBI','2B','3B','TB','R','SB','SO','BB','LOB'];
+const HITTING_COLS=['Name','G','Team','PA','AVG','OBP','SLG','OPS','H','AB','HR','RBI','2B','3B','TB','R','SB','SO','BB','IBB','HBP','SF','SAC','LOB'];
 const PITCHING_COLS=['Name','G','Team','IP','ERA','WHIP','K/9','H','ER','R','BB','K','HR','Pitches'];
 const HI_HIT=['AVG','OBP','SLG','OPS'],HI_PIT=['ERA','WHIP','K/9'];
 
@@ -1410,11 +1434,10 @@ function teamCellHTML(row,type){
   let drop='';
   if(isMulti){
     if(type==='hitting'){
-      const cols=['Team','G','AVG','OBP','SLG','OPS','H','AB','2B','3B','HR','TB','R','RBI','SB','SO','BB','LOB'];
-      const w=['52px','34px','58px','58px','58px','58px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px'];
+      const cols=['Team','G','PA','AVG','OBP','SLG','OPS','H','AB','2B','3B','HR','TB','R','RBI','SB','SO','BB','IBB','HBP','SF','SAC','LOB'];
+      const w=['52px','34px','40px','58px','58px','58px','58px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','40px','40px','36px','40px','36px'];
       const g=w.join(' ');
-      drop=`<div class="team-dropdown"><div class="tdd-scroll"><div class="tdd-grid tdd-header" style="grid-template-columns:${g}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${g}"><span class="tm">${t.abbr}</span><span>${t.g}</span><span>${t.avg}</span><span>${t.obp}</span><span>${t.slg}</span><span>${t.ops}</span><span>${t.h}</span><span>${t.ab}</span><span>${t.doubles}</span><span>${t.triples}</span><span>${t.hr}</span><span>${t.tb}</span><span>${t.r}</span><span>${t.rbi}</span><span>${t.sb}</span><span>${t.so}</span><span>${t.bb}</span><span>${t.lob}</span></div>`).join('')}</div></div>`;
-    }else{
+drop=`<div class="team-dropdown"><div class="tdd-scroll"><div class="tdd-grid tdd-header" style="grid-template-columns:${g}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${g}"><span class="tm">${t.abbr}</span><span>${t.g}</span><span>${t.pa}</span><span>${t.avg}</span><span>${t.obp}</span><span>${t.slg}</span><span>${t.ops}</span><span>${t.h}</span><span>${t.ab}</span><span>${t.doubles}</span><span>${t.triples}</span><span>${t.hr}</span><span>${t.tb}</span><span>${t.r}</span><span>${t.rbi}</span><span>${t.sb}</span><span>${t.so}</span><span>${t.bb}</span><span>${t.ibb}</span><span>${t.hbp}</span><span>${t.sf}</span><span>${t.sac}</span><span>${t.lob}</span></div>`).join('')}</div></div>`;    }else{
       const cols=['Team','G','IP','ERA','WHIP','K/9','H','ER','R','BB','K','HR','Pitches'];
       const w=['52px','34px','50px','58px','58px','58px','36px','36px','36px','36px','36px','36px','58px'];
       const g=w.join(' ');

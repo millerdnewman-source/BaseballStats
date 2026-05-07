@@ -724,9 +724,9 @@ function computeHitting(rows){
       atBats:r.atBats,hits:r.hits,doubles:r.doubles,triples:r.triples,homeRuns:r.homeRuns,runs:r.runs,rbi:r.rbi,stolenBases:r.stolenBases,strikeOuts:r.strikeOuts,baseOnBalls:r.baseOnBalls,leftOnBase:r.leftOnBase});
   }
   return Object.values(map).map(m=>{
-    const{avg,obp,,tb}=hitStats(m);
+    const{avg,obp,slg,tb}=hitStats(m);
     const teamBreakdown=Object.keys(m.teamGames).map(abbr=>{
-      const t=m.teamGames[abbr];const{avg:ta,obp:to,:ts,tb:ttb}=hitStats(t);
+      const t=m.teamGames[abbr];const{avg:ta,obp:to,slg:ts,tb:ttb}=hitStats(t);
       return{abbr,g:t.games.size,avg:ta.toFixed(3),obp:to.toFixed(3),slg:ts.toFixed(3),ops:(to+ts).toFixed(3),h:t.hits,ab:t.atBats,doubles:t.doubles,triples:t.triples,hr:t.homeRuns,tb:ttb,r:t.runs,rbi:t.rbi,sb:t.stolenBases,so:t.strikeOuts,bb:t.baseOnBalls,lob:t.leftOnBase};
     });
     return{Name:m.player_name,G:m.games.size,_teams:Object.keys(m.teamGames),_teamBreakdown:teamBreakdown,_gameLog:m.gameLog,_type:'hitting',

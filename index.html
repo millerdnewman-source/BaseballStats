@@ -1396,7 +1396,7 @@ function buildTableHTML(rows,cols,hiCols,type){
   let html=`<thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
   for(const row of rows){
     html+='<tr>'+cols.map(c=>{
-      if(c==='Name')return`<td><button class="player-name-btn" onclick="openGameLog(${JSON.stringify(row.Name)},${JSON.stringify(row._gameLog)},${JSON.stringify(row._type)})">${escHtml(row.Name)}</button></td>`;
+      if(c==='Name')return`<td><button class="player-name-btn" onclick="openGameLog(${escAttr(JSON.stringify(row.Name))},${escAttr(JSON.stringify(row._gameLog))},${escAttr(JSON.stringify(row._type))})">${escHtml(row.Name)}</button></td>`;
       if(c==='Team')return`<td class="team-cell">${teamCellHTML(row,type)}</td>`;
       return`<td${hiCols.includes(c)?' class="hi-stat"':''}>${row[c]??''}</td>`;
     }).join('')+'</tr>';

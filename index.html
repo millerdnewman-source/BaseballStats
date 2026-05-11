@@ -362,6 +362,12 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
             <button class="pill-btn"        id="gt-wbc"      onclick="selectGameType('wbc')" style="display:none;">WBC</button>
           </div>
         </div>
+        <div class="filter-group" id="player-team-filter-group">
+          <span class="filter-label">Player Team</span>
+          <select class="opp-select" id="player-team-select" onchange="selectPlayerTeam(this.value)">
+            <option value="All">All Teams</option>
+          </select>
+        </div>
         <div class="filter-group" id="opp-filter-group">
           <span class="filter-label">Opponent</span>
           <select class="opp-select" id="opp-select" onchange="selectOpponent(this.value)">
@@ -376,7 +382,6 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
         </div>
         <button class="action-btn accent" onclick="openAddGameModal()">＋ Add Game</button>
         <button class="action-btn" id="toggle-game-list-btn" onclick="toggleGameList()">☰ Game List</button>
-        <button class="action-btn gold"   onclick="downloadHTML()">↓ Download HTML</button>
         <button class="action-btn"        onclick="exportGameList()">↓ Export Game List</button>
         <button class="action-btn danger" onclick="reloadFromSheet()">↺ Reload Sheet</button>
       </div>
@@ -440,7 +445,6 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
 <div class="toast" id="toast"><span class="tick">✓</span><span id="toast-msg"></span></div>
 
 <script>
-const __CLEAN_SOURCE_HTML__ = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 
 // ============================================================
 // CONFIG
@@ -569,6 +573,7 @@ let selectedGameType='all',selectedOpponent='All';
 let availableOpponents=[],hasPlayoffGames=false,hasWBCGames=false;
 let totalGameCount=0;
 let attSortCol=null,attSortDir='desc';
+let selectedPlayerTeam='All';
 let sbSearchTerm='';
 let h2hSortCol='totalGames',h2hSortDir='desc';
 let attTeamFilter='All',personalTeamFilter='All';
@@ -624,6 +629,7 @@ function reloadFromSheet(){
   allHittingRaw=[];allPitchingRaw=[];gameList=[];scoreboardData=[];gameNotes={};
   availableYears=[];availableMonths=[];selectedYear='All';selectedMonth='All';
   selectedGameType='all';selectedOpponent='All';
+  selectedPlayerTeam='All';
   attSortCol=null;attSortDir='desc';sbSearchTerm='';
   attTeamFilter='All';personalTeamFilter='All';
   document.getElementById('stats-section').style.display='none';
@@ -838,6 +844,11 @@ function buildOpponentList(){
   const sel=document.getElementById('opp-select');
   sel.innerHTML='<option value="All">All Teams</option>'+availableOpponents.map(o=>`<option value="${o}">${getAbbr(o)} — ${o}</option>`).join('');
   sel.value=selectedOpponent==='All'?'All':(availableOpponents.includes(selectedOpponent)?selectedOpponent:'All');
+  const ptSel = document.getElementById('player-team-select');
+  const teamSet = new Set([...allHittingRaw.map(r=>r.team), ...allPitchingRaw.map(r=>r.team)]);
+  const playerTeams = [...teamSet].filter(Boolean).sort();
+  ptSel.innerHTML = '<option value="All">All Teams</option>' + playerTeams.map(t=>`<option value="${t}">${getAbbr(t)} — ${t}</option>`).join('');
+  ptSel.value = (selectedPlayerTeam !== 'All' && playerTeams.includes(selectedPlayerTeam)) ? selectedPlayerTeam : 'All';
 }
 function buildYearButtons(){
   document.getElementById('year-btns').innerHTML=['All',...availableYears].map(y=>
@@ -869,6 +880,7 @@ function getFilteredRows(){
     h=h.filter(r=>r.opponent===selectedOpponent);p=p.filter(r=>r.opponent===selectedOpponent);
     sb=sb.filter(r=>r.awayTeamName===selectedOpponent||r.homeTeamName===selectedOpponent);
   }
+  if(selectedPlayerTeam!=='All'){h=h.filter(r=>r.team===selectedPlayerTeam);p=p.filter(r=>r.team===selectedPlayerTeam);}
   return{h,p,sb};
 }
 function applyFilters(){
@@ -881,7 +893,7 @@ function selectYear(y){selectedYear=y;buildYearButtons();buildMonthButtons();app
 function selectMonth(m){selectedMonth=m;buildMonthButtons();applyFilters();}
 function selectGameType(t){selectedGameType=t;updateGameTypeButtons();applyFilters();}
 function selectOpponent(v){selectedOpponent=v;applyFilters();}
-
+function selectPlayerTeam(v){selectedPlayerTeam=v;applyFilters();}
 // ============================================================
 // GAME LIST PANEL
 // ============================================================
@@ -1043,22 +1055,6 @@ function exportGameList(){
   const rows=gameList.map((g,i)=>[i+1,g.month,g.day,g.year,g.homeTeam,g.gameNumber,(g.attendedWith||[]).join(', '),gameNotes[g.gamePk]||'']);
   const ws=XLSX.utils.aoa_to_sheet(rows);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Games');
   XLSX.writeFile(wb,'Games.xlsx');showToast('Games.xlsx downloaded');
-}
-function downloadHTML(){
-  if(!gameList.length){showToast('No data to download');return;}
-  showToast('Preparing download…');
-  try{
-    const payload={gameList,hRaw:allHittingRaw.map(r=>({...r})),pRaw:allPitchingRaw.map(r=>({...r})),sbData:scoreboardData,notes:gameNotes};
-    const jsonStr=JSON.stringify(payload).replace(/<\/script>/gi,'<\\/script>');
-    let html=__CLEAN_SOURCE_HTML__;
-    html=html.replace(/\s*<script id="__preloaded_data__"[^>]*>[\s\S]*?<\/script>/g,'');
-    const dataBlock='<script id="__preloaded_data__">(function(){try{window.__PRELOADED__='+jsonStr+';}catch(e){}})();<\/script>';
-    const output=html.replace(/<\/body>/i,dataBlock+'\n</body>');
-    const blob=new Blob([output],{type:'text/html;charset=utf-8'});
-    const url=URL.createObjectURL(blob);const a=document.createElement('a');
-    a.href=url;a.download='baseball-stats.html';document.body.appendChild(a);a.click();document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url),5000);showToast('baseball-stats.html downloaded');
-  }catch(e){console.error(e);showToast('Download failed — see console');}
 }
 
 // ============================================================
@@ -1476,6 +1472,7 @@ function switchTab(tab){
   const searchWrap=document.querySelector('.search-wrap');
   searchWrap.style.visibility=(tab==='hitting'||tab==='pitching')?'visible':'hidden';
   document.getElementById('opp-filter-group').style.display=(tab==='attendance'||tab==='personal'||tab==='h2h')?'none':'flex';
+  document.getElementById('player-team-filter-group').style.display=(tab==='attendance'||tab==='personal'||tab==='h2h'||tab==='scoreboard')?'none':'flex';
   document.getElementById('player-search').value='';
   if(tab==='hitting'&&hittingDT){hittingDT.search('').draw();hittingDT.columns.adjust();}
   if(tab==='pitching'&&pitchingDT){pitchingDT.search('').draw();pitchingDT.columns.adjust();}

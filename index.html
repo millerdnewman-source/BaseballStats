@@ -894,10 +894,16 @@ function getFilteredRows(){
   if(selectedGameType==='playoffs'){h=h.filter(r=>isPlayoff(r.gameType));p=p.filter(r=>isPlayoff(r.gameType));sb=sb.filter(r=>isPlayoff(r.gameType));}
   if(selectedGameType==='wbc'){h=h.filter(r=>r.sportId===WBC_SPORT_ID);p=p.filter(r=>r.sportId===WBC_SPORT_ID);sb=sb.filter(r=>r.sportId===WBC_SPORT_ID);}
   if(selectedOpponent!=='All'){
-    h=h.filter(r=>r.opponent===selectedOpponent);p=p.filter(r=>r.opponent===selectedOpponent);
+    h=h.filter(r=>r.opponent===selectedOpponent);
+    p=p.filter(r=>r.opponent===selectedOpponent);
     sb=sb.filter(r=>r.awayTeamName===selectedOpponent||r.homeTeamName===selectedOpponent);
   }
-  if(selectedPlayerTeam!=='All'){h=h.filter(r=>r.team===selectedPlayerTeam);p=p.filter(r=>r.team===selectedPlayerTeam);}
+  if(selectedPlayerTeam!=='All'){
+    h=h.filter(r=>r.team===selectedPlayerTeam);
+    p=p.filter(r=>r.team===selectedPlayerTeam);
+    const playerTeamPks=new Set(sb.filter(g=>g.homeTeamName===selectedPlayerTeam||g.awayTeamName===selectedPlayerTeam).map(g=>g.gamePk));
+    sb=sb.filter(r=>playerTeamPks.has(r.gamePk));
+  }
   if(selectedAttendee!=='All'){
     const attendedPks=new Set(
       scoreboardData
@@ -1500,9 +1506,6 @@ function switchTab(tab){
   });
   const searchWrap=document.querySelector('.search-wrap');
   searchWrap.style.visibility=(tab==='hitting'||tab==='pitching')?'visible':'hidden';
-  document.getElementById('opp-filter-group').style.display=(tab==='attendance'||tab==='personal'||tab==='h2h')?'none':'flex';
-  document.getElementById('player-team-filter-group').style.display=(tab==='attendance'||tab==='personal'||tab==='h2h'||tab==='scoreboard')?'none':'flex';
-  document.getElementById('attendee-filter-group').style.display=(tab==='attendance'||tab==='personal'||tab==='h2h'||tab==='scoreboard')?'none':'flex';
   document.getElementById('player-search').value='';
   if(tab==='hitting'&&hittingDT){hittingDT.search('').draw();hittingDT.columns.adjust();}
   if(tab==='pitching'&&pitchingDT){pitchingDT.search('').draw();pitchingDT.columns.adjust();}

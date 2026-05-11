@@ -362,6 +362,12 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
             <button class="pill-btn"        id="gt-wbc"      onclick="selectGameType('wbc')" style="display:none;">WBC</button>
           </div>
         </div>
+        <div class="filter-group" id="attendee-filter-group">
+          <span class="filter-label">Attended With</span>
+          <select class="opp-select" id="attendee-select" onchange="selectAttendee(this.value)">
+            <option value="All">Anyone</option>
+          </select>
+        </div>
         <div class="filter-group" id="player-team-filter-group">
           <span class="filter-label">Player Team</span>
           <select class="opp-select" id="player-team-select" onchange="selectPlayerTeam(this.value)">
@@ -574,6 +580,7 @@ let availableOpponents=[],hasPlayoffGames=false,hasWBCGames=false;
 let totalGameCount=0;
 let attSortCol=null,attSortDir='desc';
 let selectedPlayerTeam='All';
+let selectedAttendee='All';
 let sbSearchTerm='';
 let h2hSortCol='totalGames',h2hSortDir='desc';
 let attTeamFilter='All',personalTeamFilter='All';
@@ -630,6 +637,7 @@ function reloadFromSheet(){
   availableYears=[];availableMonths=[];selectedYear='All';selectedMonth='All';
   selectedGameType='all';selectedOpponent='All';
   selectedPlayerTeam='All';
+  selectedAttendee='All'; 
   attSortCol=null;attSortDir='desc';sbSearchTerm='';
   attTeamFilter='All';personalTeamFilter='All';
   document.getElementById('stats-section').style.display='none';
@@ -849,6 +857,15 @@ function buildOpponentList(){
   const playerTeams = [...teamSet].filter(Boolean).sort();
   ptSel.innerHTML = '<option value="All">All Teams</option>' + playerTeams.map(t=>`<option value="${t}">${getAbbr(t)} — ${t}</option>`).join('');
   ptSel.value = (selectedPlayerTeam !== 'All' && playerTeams.includes(selectedPlayerTeam)) ? selectedPlayerTeam : 'All';
+  // Build attendee dropdown
+  const attendeeSel = document.getElementById('attendee-select');
+  const attendeeSet = new Set();
+  for (const g of scoreboardData) {
+    for (const p of (g.attendedWith || [])) attendeeSet.add(p);
+  }
+  const attendees = [...attendeeSet].sort();
+  attendeeSel.innerHTML = '<option value="All">Anyone</option>' +
+    attendees.map(p => `<option value="${p}"${selectedAttendee===p?' selected':''}>${p}</option>`).join('');
 }
 function buildYearButtons(){
   document.getElementById('year-btns').innerHTML=['All',...availableYears].map(y=>
@@ -881,6 +898,17 @@ function getFilteredRows(){
     sb=sb.filter(r=>r.awayTeamName===selectedOpponent||r.homeTeamName===selectedOpponent);
   }
   if(selectedPlayerTeam!=='All'){h=h.filter(r=>r.team===selectedPlayerTeam);p=p.filter(r=>r.team===selectedPlayerTeam);}
+  if(selectedAttendee!=='All'){
+    const attendedPks=new Set(
+      scoreboardData
+        .filter(g=>(g.attendedWith||[]).includes(selectedAttendee))
+        .map(g=>g.gamePk)
+    );
+    h=h.filter(r=>attendedPks.has(r.game_id));
+    p=p.filter(r=>attendedPks.has(r.game_id));
+    // also filter sb so game count / scoreboard stay consistent
+    sb=sb.filter(r=>attendedPks.has(r.gamePk));
+  }
   return{h,p,sb};
 }
 function applyFilters(){
@@ -894,6 +922,7 @@ function selectMonth(m){selectedMonth=m;buildMonthButtons();applyFilters();}
 function selectGameType(t){selectedGameType=t;updateGameTypeButtons();applyFilters();}
 function selectOpponent(v){selectedOpponent=v;applyFilters();}
 function selectPlayerTeam(v){selectedPlayerTeam=v;applyFilters();}
+function selectAttendee(v){selectedAttendee=v;applyFilters();}
 // ============================================================
 // GAME LIST PANEL
 // ============================================================
@@ -1473,6 +1502,7 @@ function switchTab(tab){
   searchWrap.style.visibility=(tab==='hitting'||tab==='pitching')?'visible':'hidden';
   document.getElementById('opp-filter-group').style.display=(tab==='attendance'||tab==='personal'||tab==='h2h')?'none':'flex';
   document.getElementById('player-team-filter-group').style.display=(tab==='attendance'||tab==='personal'||tab==='h2h'||tab==='scoreboard')?'none':'flex';
+  document.getElementById('attendee-filter-group').style.display=(tab==='attendance'||tab==='personal'||tab==='h2h'||tab==='scoreboard')?'none':'flex';
   document.getElementById('player-search').value='';
   if(tab==='hitting'&&hittingDT){hittingDT.search('').draw();hittingDT.columns.adjust();}
   if(tab==='pitching'&&pitchingDT){pitchingDT.search('').draw();pitchingDT.columns.adjust();}

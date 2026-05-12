@@ -514,45 +514,7 @@ const TEAM_ABBR = {
   'Yankees':'NYY','New York Yankees':'NYY',
   'United States':'USA','Brazil':'BRA','Great Britain':'GB',
 };
-const TEAM_MLB_ID = {
-  'Angels':108,'Los Angeles Angels':108,
-  'Astros':117,'Houston Astros':117,
-  'Athletics':133,'Oakland Athletics':133,'Sacramento Athletics':133,
-  'Blue Jays':141,'Toronto Blue Jays':141,
-  'Braves':144,'Atlanta Braves':144,
-  'Brewers':158,'Milwaukee Brewers':158,
-  'Cardinals':138,'St. Louis Cardinals':138,
-  'Cubs':112,'Chicago Cubs':112,
-  'Diamondbacks':109,'Arizona Diamondbacks':109,
-  'Dodgers':119,'Los Angeles Dodgers':119,
-  'Giants':137,'San Francisco Giants':137,
-  'Guardians':114,'Cleveland Guardians':114,
-  'Indians':114,'Cleveland Indians':114,
-  'Mariners':136,'Seattle Mariners':136,
-  'Marlins':146,'Miami Marlins':146,
-  'Mets':121,'New York Mets':121,
-  'Nationals':120,'Washington Nationals':120,
-  'Orioles':110,'Baltimore Orioles':110,
-  'Padres':135,'San Diego Padres':135,
-  'Phillies':143,'Philadelphia Phillies':143,
-  'Pirates':134,'Pittsburgh Pirates':134,
-  'Rangers':140,'Texas Rangers':140,
-  'Rays':139,'Tampa Bay Rays':139,
-  'Red Sox':111,'Boston Red Sox':111,
-  'Reds':113,'Cincinnati Reds':113,
-  'Rockies':115,'Colorado Rockies':115,
-  'Royals':118,'Kansas City Royals':118,
-  'Tigers':116,'Detroit Tigers':116,
-  'Twins':142,'Minnesota Twins':142,
-  'White Sox':145,'Chicago White Sox':145,
-  'Yankees':147,'New York Yankees':147,
-};
-  const WBC_FLAG = {
-  'USA':'🇺🇸',
-  'United States':'🇺🇸',
-  'Japan':'🇯🇵',
-  'Brazil':'🇧🇷',
-};
+
 const TEAM_STADIUM = {
   'Angels':'Angel Stadium','Los Angeles Angels':'Angel Stadium',
   'Astros':'Minute Maid','Houston Astros':'Minute Maid',
@@ -604,26 +566,7 @@ function getAbbr(teamName){
   if(parts.length>=2){const l2=parts.slice(-2).join(' ');if(TEAM_ABBR[l2])return TEAM_ABBR[l2];}
   return teamName.slice(0,3).toUpperCase();
 }
-function getTeamLogoHTML(teamName, size=24) {
-  // WBC: flag emoji
-  if (WBC_FLAG[teamName]) {
-    return `<span style="font-size:${size}px;line-height:1;" title="${escHtml(teamName)}">${WBC_FLAG[teamName]}</span>`;
-  }
-  // Try full name, then last word
-  let id = TEAM_MLB_ID[teamName];
-  if (!id) {
-    const parts = teamName.trim().split(' ');
-    id = TEAM_MLB_ID[parts[parts.length - 1]];
-  }
-  if (!id) {
-    // fallback to abbreviation text if no ID found
-    return `<span style="font-family:var(--mono);font-size:0.7rem;">${escHtml(getAbbr(teamName))}</span>`;
-  }
-  return `<img src="https://www.mlb.com/assets/images/teams/logos/light/${id}/team-${id}-primary-logo.png"
-    style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;"
-    title="${escHtml(teamName)}"
-    onerror="this.outerHTML='<span style=\\'font-family:var(--mono);font-size:0.7rem;\\'>${escHtml(getAbbr(teamName))}</span>'">`;
-}
+
 function getStadium(teamName){
   if(!teamName)return 'Unknown';
   if(TEAM_STADIUM[teamName])return TEAM_STADIUM[teamName];
@@ -1202,12 +1145,11 @@ function renderScoreboardCard(g){
   const playoffBadge=isPlayoff(g.gameType)?`<span class="playoff-badge">${gameTypeName(g.gameType)}</span>`:'';
   const wbcBadge=wbc?`<span class="wbc-badge">WBC</span>`:'';
   const awayAbbr=getAbbr(g.awayTeamName),homeAbbr=getAbbr(g.homeTeamName);
-  const awayLogo=getTeamLogoHTML(g.awayTeamName,22),homeLogo=getTeamLogoHTML(g.homeTeamName,22);
   const attendeeRow=(g.attendedWith||[]).length?`<div class="scoreboard-attendees"><strong>Attended with:</strong>${g.attendedWith.map(p=>`<span class="attendee-tag">${escHtml(p)}</span>`).join('')}</div>`:'';
   const noteRow=buildNoteRow(g.gamePk);
   const noteEditor=`<div class="scoreboard-note-editor" id="note-editor-${g.gamePk}"><textarea placeholder="Add a note about this game…"></textarea><div class="scoreboard-note-editor-actions"><button class="note-cancel-btn" onclick="cancelNote(${g.gamePk})">Cancel</button><button class="note-save-btn" onclick="saveNote(${g.gamePk})">Save Note</button></div></div>`;
   const searchKey=`${g.date} ${g.awayTeamName} ${g.homeTeamName} ${awayAbbr} ${homeAbbr}`.toLowerCase();
-  return`<div class="scoreboard-game" data-search="${escAttr(searchKey)}"><div class="scoreboard-header"><div class="date-info"><span>${g.date}</span>${playoffBadge}${wbcBadge}</div><span style="color:var(--text)">${escHtml(g.awayTeamName)} @ ${escHtml(g.homeTeamName)}</span></div><div class="scoreboard-table-wrap"><table class="scoreboard-table"><thead><tr><th></th>${thInn}<th class="divider-col" style="color:var(--accent)">R</th><th style="color:var(--accent2)">H</th><th style="color:var(--red)">E</th></tr></thead><tbody><tr class="${!homeWin?'winner-row':''}"><td>${awayLogo}${!homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>${awayRow}<td class="divider-col total-r">${g.awayR}</td><td class="total-h">${g.awayH}</td><td class="total-e">${g.awayE}</td></tr><tr class="${homeWin?'winner-row':''}"><td>${homeLogo}${homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>${homeRow}<td class="divider-col total-r">${g.homeR}</td><td class="total-h">${g.homeH}</td><td class="total-e">${g.homeE}</td></tr></tbody></table></div>${attendeeRow}${noteRow}${noteEditor}</div>`;
+  return`<div class="scoreboard-game" data-search="${escAttr(searchKey)}"><div class="scoreboard-header"><div class="date-info"><span>${g.date}</span>${playoffBadge}${wbcBadge}</div><span style="color:var(--text)">${escHtml(g.awayTeamName)} @ ${escHtml(g.homeTeamName)}</span></div><div class="scoreboard-table-wrap"><table class="scoreboard-table"><thead><tr><th></th>${thInn}<th class="divider-col" style="color:var(--accent)">R</th><th style="color:var(--accent2)">H</th><th style="color:var(--red)">E</th></tr></thead><tbody><tr class="${!homeWin?'winner-row':''}"><td>${awayAbbr}${!homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>${awayRow}<td class="divider-col total-r">${g.awayR}</td><td class="total-h">${g.awayH}</td><td class="total-e">${g.awayE}</td></tr><tr class="${homeWin?'winner-row':''}"><td>${homeAbbr}${homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>${homeRow}<td class="divider-col total-r">${g.homeR}</td><td class="total-h">${g.homeH}</td><td class="total-e">${g.homeE}</td></tr></tbody></table></div>${attendeeRow}${noteRow}${noteEditor}</div>`;
 }
 function gameTypeName(t){return{F:'Wild Card',D:'Division Series',L:'LCS',W:'World Series',C:'Championship',P:'Playoffs'}[t]||'Playoffs';}
 function filterScoreboard(val,updateInput){
@@ -1443,7 +1385,7 @@ function renderH2H(sbRows){
   function sortArrow(col){if(h2hSortCol!==col)return' ↕';return h2hSortDir==='desc'?' ↓':' ↑';}
   function thCls(col){return h2hSortCol===col?' sort-active':'';}
   // Column headers (rotated abbreviations)
-  const thCols=colTeams.map(t=>`<th class="h2h-team-header" title="${escAttr(t.team)}"><div class="th-inner">${getTeamLogoHTML(t.team,20)}</div></th>`).join('');
+  const thCols=colTeams.map(t=>`<th class="h2h-team-header" title="${escAttr(t.team)}"><div class="th-inner">${escHtml(t.abbr)}</div></th>`).join('');
   const rows=teamStats.map(rowTeam=>{
     const cells=colTeams.map(colTeam=>{
       if(rowTeam.team===colTeam.team)return`<td class="self-cell">—</td>`;
@@ -1457,7 +1399,7 @@ function renderH2H(sbRows){
     const wpStr=rowTeam.totalG>0?(rowTeam.winPct*100).toFixed(1)+'%':'—';
     const recStr=rowTeam.totalG>0?`${rowTeam.totalW}-${rowTeam.totalL}`:'—';
     let recCls='even-cell';if(rowTeam.totalW>rowTeam.totalL)recCls='win-cell';else if(rowTeam.totalL>rowTeam.totalW)recCls='loss-cell';
-    return`<tr><td title="${escAttr(rowTeam.team)}" style="display:flex;align-items:center;gap:6px;">${getTeamLogoHTML(rowTeam.team,20)} ${escHtml(rowTeam.abbr)}</td>${cells}<td class="summary-col-cell ${recCls}">${recStr}</td><td class="summary-col-cell">${rowTeam.totalG}</td><td class="summary-col-cell ${recCls}">${wpStr}</td></tr>`;
+    return`<tr><td title="${escAttr(rowTeam.team)}">${escHtml(rowTeam.abbr)}</td>${cells}<td class="summary-col-cell ${recCls}">${recStr}</td><td class="summary-col-cell">${rowTeam.totalG}</td><td class="summary-col-cell ${recCls}">${wpStr}</td></tr>`;
   }).join('');
   wrap.innerHTML=`<div class="h2h-filter-bar">
     <span style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);">${teamsInData.length} teams · ${sbRows.length} games · Sort by:</span>
@@ -1525,27 +1467,21 @@ function renderTables(hitting,pitching,gameCount,sbRows){
 // ============================================================
 function teamCellHTML(row,type){
   const teams=row._teams||[],bd=row._teamBreakdown||[];
-  const isMulti=teams.length>1;
-  // CHANGED: build logoHTML instead of plain label
-  const logoHTML=isMulti
-    ?`<span style="font-family:var(--mono);font-size:0.72rem;">${teams.length} TMS</span>`
-    :getTeamLogoHTML(teams[0]||'',20);
+  const isMulti=teams.length>1,label=isMulti?`${teams.length}TMS`:(teams[0]||'—');
   let drop='';
   if(isMulti){
     if(type==='hitting'){
       const cols=['Team','G','PA','AVG','OBP','SLG','OPS','H','AB','2B','3B','HR','TB','R','RBI','SB','SO','BB','IBB','HBP','SF','SAC','LOB'];
       const w=['52px','34px','40px','58px','58px','58px','58px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','40px','40px','36px','40px','36px'];
       const g=w.join(' ');
-      drop=`<div class="team-dropdown"><div class="tdd-scroll"><div class="tdd-grid tdd-header" style="grid-template-columns:${g}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${g}"><span class="tm">${t.abbr}</span><span>${t.g}</span><span>${t.pa}</span><span>${t.avg}</span><span>${t.obp}</span><span>${t.slg}</span><span>${t.ops}</span><span>${t.h}</span><span>${t.ab}</span><span>${t.doubles}</span><span>${t.triples}</span><span>${t.hr}</span><span>${t.tb}</span><span>${t.r}</span><span>${t.rbi}</span><span>${t.sb}</span><span>${t.so}</span><span>${t.bb}</span><span>${t.ibb}</span><span>${t.hbp}</span><span>${t.sf}</span><span>${t.sac}</span><span>${t.lob}</span></div>`).join('')}</div></div>`;
-    }else{
+drop=`<div class="team-dropdown"><div class="tdd-scroll"><div class="tdd-grid tdd-header" style="grid-template-columns:${g}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${g}"><span class="tm">${t.abbr}</span><span>${t.g}</span><span>${t.pa}</span><span>${t.avg}</span><span>${t.obp}</span><span>${t.slg}</span><span>${t.ops}</span><span>${t.h}</span><span>${t.ab}</span><span>${t.doubles}</span><span>${t.triples}</span><span>${t.hr}</span><span>${t.tb}</span><span>${t.r}</span><span>${t.rbi}</span><span>${t.sb}</span><span>${t.so}</span><span>${t.bb}</span><span>${t.ibb}</span><span>${t.hbp}</span><span>${t.sf}</span><span>${t.sac}</span><span>${t.lob}</span></div>`).join('')}</div></div>`;    }else{
       const cols=['Team','G','IP','ERA','WHIP','K/9','H','ER','R','BB','K','HR','Pitches'];
       const w=['52px','34px','50px','58px','58px','58px','36px','36px','36px','36px','36px','36px','58px'];
       const g=w.join(' ');
       drop=`<div class="team-dropdown"><div class="tdd-scroll"><div class="tdd-grid tdd-header" style="grid-template-columns:${g}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${g}"><span class="tm">${t.abbr}</span><span>${t.g}</span><span>${t.ip}</span><span>${t.era}</span><span>${t.whip}</span><span>${t.k9}</span><span>${t.h}</span><span>${t.er}</span><span>${t.r}</span><span>${t.bb}</span><span>${t.k}</span><span>${t.hr}</span><span>${t.pitches}</span></div>`).join('')}</div></div>`;
     }
   }
-  // CHANGED: use logoHTML instead of label in the span
-  return`<div class="team-badge${isMulti?' multi':''}" onclick="toggleTeamDrop(event,this)"><span class="team-label">${logoHTML}</span>${isMulti?`<span class="team-chevron">▼</span>${drop}`:''}</div>`;
+  return`<div class="team-badge${isMulti?' multi':''}" onclick="toggleTeamDrop(event,this)"><span class="team-label">${label}</span>${isMulti?`<span class="team-chevron">▼</span>${drop}`:''}</div>`;
 }
 function toggleTeamDrop(e,el){
   if(!el.classList.contains('multi'))return;

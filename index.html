@@ -447,7 +447,15 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
   </div>
 </div>
 
-<div class="att-tooltip" id="att-tooltip"></div>
+<!-- GAMES DETAIL MODAL -->
+<div class="gamelog-overlay" id="games-detail-modal">
+  <div class="gamelog-modal">
+    <button class="gamelog-close" onclick="closeGamesDetail()">✕</button>
+    <div class="gamelog-title" id="gd-title">Games</div>
+    <div class="gamelog-subtitle" id="gd-subtitle"></div>
+    <div id="gd-content"></div>
+  </div>
+</div>
 <div class="toast" id="toast"><span class="tick">✓</span><span id="toast-msg"></span></div>
 
 <script>
@@ -1211,7 +1219,7 @@ function renderAttendance(sbRows){
   const thTotal=`<th class="total-col${thCls(totalThIdx)}" onclick="sortAttendance(${totalThIdx})">Total${sortArrow(totalThIdx)}</th>`;
   const rows=dataRows.map(row=>{
     const cells=row.values.map((v,si)=>{
-      if(v>0){const gj=JSON.stringify(row.games[si].map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));return`<td class="att-cell-filled" data-person="${escAttr(row.name)}" data-stadium="${escAttr(stadiums[si])}" data-games="${escAttr(gj)}" onmouseenter="showAttTooltip(event,this)" onmouseleave="hideAttTooltip()" onmousemove="moveAttTooltip(event)">${v}</td>`;}
+      if(v>0){const gj=JSON.stringify(row.games[si].map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));return`<td class="att-cell-filled" style="cursor:pointer;" onclick="handleAttCellClick(this)" data-person="${escAttr(row.name)}" data-stadium="${escAttr(stadiums[si])}" data-games="${escAttr(gj)}">${v}</td>`;}
       return`<td class="att-cell-empty">·</td>`;
     }).join('');
     return`<tr><td>${escHtml(row.name)}</td>${cells}<td class="att-total">${row.total}</td></tr>`;
@@ -1220,22 +1228,7 @@ function renderAttendance(sbRows){
   wrap.innerHTML=filterBar+`<div class="att-section-label">Games attended with each person, by stadium · Click headers to sort · Hover cells to see games</div><table class="attendance-table" id="att-table"><thead><tr><th style="cursor:default;vertical-align:bottom;">Person</th>${thStadiums}${thTotal}</tr></thead><tbody>${rows}<tr style="border-top:1px solid var(--border)"><td style="color:var(--muted);font-size:0.7rem;">Games at stadium</td>${totalCells}<td class="att-total">${filteredSb.length}</td></tr></tbody></table><div class="att-note">Numbers show how many games at each stadium you attended with that person.</div>`;
 }
 function setAttTeamFilter(val){attTeamFilter=val;const{sb}=getFilteredRows();renderAttendance(sb);}
-function showAttTooltip(event,cell){
-  const tooltip=document.getElementById('att-tooltip'),person=cell.dataset.person,stadium=cell.dataset.stadium;
-  let games=[];try{games=JSON.parse(cell.dataset.games);}catch(e){}
-  const gameRows=games.sort((a,b)=>b.date.localeCompare(a.date)).map(g=>{const hw=g.homeR>g.awayR;const wbc=g.sportId===WBC_SPORT_ID?` <span style="color:var(--accent2);font-size:0.58rem">WBC</span>`:'';const playoff=isPlayoff(g.gameType)?` <span style="color:var(--gold);font-size:0.58rem">${gameTypeName(g.gameType).slice(0,2).toUpperCase()}</span>`:'';return`<div class="att-tooltip-game"><span class="att-tooltip-date">${g.date}</span><span class="att-tooltip-matchup">${g.away} @ ${g.home}${playoff}${wbc}</span><span class="att-tooltip-result ${hw?'win':'loss'}">${g.awayR}–${g.homeR}</span></div>`;}).join('');
-  tooltip.innerHTML=`<div class="att-tooltip-title"><strong>${escHtml(person)}</strong> at ${escHtml(stadium)}</div>${gameRows}`;
-  tooltip.classList.add('visible');positionAttTooltip(event);
-}
-function hideAttTooltip(){document.getElementById('att-tooltip').classList.remove('visible');}
-function moveAttTooltip(event){positionAttTooltip(event);}
-function positionAttTooltip(event){
-  const tooltip=document.getElementById('att-tooltip'),margin=14,tw=tooltip.offsetWidth||220,th=tooltip.offsetHeight||100;
-  let x=event.clientX+margin,y=event.clientY+margin;
-  if(x+tw>window.innerWidth-8)x=event.clientX-tw-margin;
-  if(y+th>window.innerHeight-8)y=event.clientY-th-margin;
-  tooltip.style.left=x+'px';tooltip.style.top=y+'px';
-}
+
 function sortAttendance(colIdx){
   if(attSortCol===colIdx){attSortDir=attSortDir==='desc'?'asc':'desc';}else{attSortCol=colIdx;attSortDir='desc';}
   const{sb}=getFilteredRows();renderAttendance(sb);
@@ -1340,6 +1333,18 @@ function renderH2H(sbRows){
   const wrap=document.getElementById('h2h-wrap');
   // Build record map: records[teamA][teamB] = {w,l} where w = teamA wins vs teamB
   const records={};
+  // Build per-matchup game lookup
+  const matchupGames={};
+  for(const g of sbRows){
+    const home=g.homeTeamName,away=g.awayTeamName;
+    if(!home||!away)continue;
+    if(!matchupGames[home])matchupGames[home]={};
+    if(!matchupGames[home][away])matchupGames[home][away]=[];
+    matchupGames[home][away].push(g);
+    if(!matchupGames[away])matchupGames[away]={};
+    if(!matchupGames[away][home])matchupGames[away][home]=[];
+    matchupGames[away][home].push(g);
+}
   // Seed all known teams
   const allTeamNames=ALL_TEAMS;
   // Also collect any teams seen in data not in ALL_TEAMS
@@ -1388,7 +1393,8 @@ function renderH2H(sbRows){
       if(!r||r.w+r.l===0)return`<td class="empty-cell">·</td>`;
       const g=r.w+r.l;
       let cls='even-cell';if(r.w>r.l)cls='win-cell';else if(r.l>r.w)cls='loss-cell';
-      return`<td class="${cls}">${r.w}-${r.l}</td>`;
+      const cellGames=((matchupGames[rowTeam.team]||{})[colTeam.team]||[]).map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId}));
+      return`<td class="${cls}" style="cursor:pointer;" onclick="handleH2HCellClick(this)" data-label="${escAttr(rowTeam.abbr+' vs '+colTeam.abbr)}" data-games="${escAttr(JSON.stringify(cellGames))}">${r.w}-${r.l}</td>`;
     }).join('');
     const wpStr=rowTeam.totalG>0?(rowTeam.winPct*100).toFixed(1)+'%':'—';
     const recStr=rowTeam.totalG>0?`${rowTeam.totalW}-${rowTeam.totalL}`:'—';
@@ -1511,7 +1517,75 @@ function switchTab(tab){
   if(tab==='pitching'&&pitchingDT){pitchingDT.search('').draw();pitchingDT.columns.adjust();}
   document.querySelectorAll('.team-badge.open').forEach(b=>b.classList.remove('open'));
 }
-
+// ============================================================
+// GAMES DETAIL MODAL (shared by Attendance, Personal, H2H)
+// ============================================================
+function openGamesDetail(title, subtitle, games) {
+  document.getElementById('gd-title').innerHTML = title;
+  document.getElementById('gd-subtitle').textContent = subtitle;
+  const rows = games
+    .sort((a, b) => (b.date||'').localeCompare(a.date||''))
+    .map(g => {
+      const homeWin = g.homeR > g.awayR;
+      const wbc = g.sportId === WBC_SPORT_ID ? `<span class="wbc-badge">WBC</span>` : '';
+      const playoff = isPlayoff(g.gameType) ? `<span class="playoff-badge">${gameTypeName(g.gameType)}</span>` : '';
+      const resultCls = homeWin ? 'result-w' : 'result-l';
+      return `<tr>
+        <td style="text-align:left">${g.date||'—'}</td>
+        <td style="text-align:left">${escHtml(g.away)} @ ${escHtml(g.home)}${playoff}${wbc}</td>
+        <td class="${resultCls}" style="text-align:left">${g.awayR}–${g.homeR}</td>
+      </tr>`;
+    }).join('');
+  document.getElementById('gd-content').innerHTML = `
+    <table class="gamelog-table">
+      <thead><tr>
+        <th style="text-align:left">Date</th>
+        <th style="text-align:left">Matchup</th>
+        <th style="text-align:left">Score</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  document.getElementById('games-detail-modal').classList.add('open');
+}
+function closeGamesDetail() {
+  document.getElementById('games-detail-modal').classList.remove('open');
+}
+document.getElementById('games-detail-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('games-detail-modal')) closeGamesDetail();
+});
+function handleAttCellClick(cell) {
+  const person = cell.dataset.person;
+  const stadium = cell.dataset.stadium;
+  let games = [];
+  try { games = JSON.parse(cell.dataset.games); } catch(e) {}
+  openGamesDetail(
+    `${escHtml(person)} <span>at ${escHtml(stadium)}</span>`,
+    `${games.length} game${games.length !== 1 ? 's' : ''}`,
+    games
+  );
+}
+function handlePersonalCellClick(cell) {
+  let games = [];
+  try { games = JSON.parse(cell.dataset.games); } catch(e) {}
+  const label = cell.dataset.label || 'Games';
+  const parts = label.split(' · ');
+  openGamesDetail(
+    `${escHtml(parts[0]||label)} <span>${escHtml(parts[1]||'')}</span>`,
+    `${games.length} game${games.length !== 1 ? 's' : ''}`,
+    games
+  );
+}
+function handleH2HCellClick(cell) {
+  let games = [];
+  try { games = JSON.parse(cell.dataset.games); } catch(e) {}
+  const label = cell.dataset.label || 'Games';
+  const parts = label.split(' vs ');
+  openGamesDetail(
+    `${escHtml(parts[0]||label)} <span>vs ${escHtml(parts[1]||'')}</span>`,
+    `${games.length} game${games.length !== 1 ? 's' : ''}`,
+    games
+  );
+}
 // ============================================================
 // INIT
 // ============================================================

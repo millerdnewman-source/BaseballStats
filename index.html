@@ -1287,8 +1287,6 @@ function renderPersonalGameStats(sbRows){
     if(!monthGameMap[key])monthGameMap[key]={label,count:0,games:[]};
     monthGameMap[key].count++;monthGameMap[key].games.push(g);
   }
-  const allYears=[...new Set(filteredSb.map(g=>new Date(g.date+'T12:00:00').getFullYear()))].sort();
-  for(const yr of allYears){for(let m=2;m<=9;m++){const key=`${yr}-${String(m+1).padStart(2,'0')}`;if(!monthGameMap[key]){monthGameMap[key]={label:`${MONTH_SHORT[m]} ${yr}`,count:0,games:[];};}}}
   const monthKeys=Object.keys(monthGameMap).sort();
   const maxMonthCount=Math.max(...Object.values(monthGameMap).map(m=>m.count),1);
   // Build year groups

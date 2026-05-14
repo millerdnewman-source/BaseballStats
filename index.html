@@ -555,6 +555,11 @@ const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct'
 const DAY_NAMES   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const PLAYOFF_TYPES = new Set(['F','D','L','W','C','P']);
 
+// wOBA / wRC+ constants
+const WOBA_WEIGHTS     = { bb:0.690, hbp:0.722, single:0.888, double:1.271, triple:1.616, hr:2.101 };
+const WOBA_SCALE       = 1.157;
+const LG_WOBA_FALLBACK = 0.317; // used only when no data is available
+
 function isPlayoff(t){return PLAYOFF_TYPES.has(t);}
 function isWBC(sportId){return sportId===WBC_SPORT_ID;}
 
@@ -645,7 +650,7 @@ function reloadFromSheet(){
   availableYears=[];availableMonths=[];selectedYear='All';selectedMonth='All';
   selectedGameType='all';selectedOpponent='All';
   selectedPlayerTeam='All';
-  selectedAttendee='All'; 
+  selectedAttendee='All';
   attSortCol=null;attSortDir='desc';sbSearchTerm='';
   attTeamFilter='All';personalTeamFilter='All';
   document.getElementById('stats-section').style.display='none';
@@ -733,15 +738,30 @@ function ipToOuts(s){const p=String(s).split('.');return(parseInt(p[0])||0)*3+(p
 function outsToIp(o){return`${Math.floor(o/3)}.${o%3}`;}
 function emptyHit(){return{games:new Set(),atBats:0,hits:0,doubles:0,triples:0,homeRuns:0,runs:0,rbi:0,stolenBases:0,strikeOuts:0,baseOnBalls:0,intentionalWalks:0,hitByPitch:0,sacFlies:0,sacBunts:0,leftOnBase:0};}
 function addHit(m,r){m.games.add(r.game_id);m.atBats+=r.atBats;m.hits+=r.hits;m.doubles+=r.doubles;m.triples+=r.triples;m.homeRuns+=r.homeRuns;m.runs+=r.runs;m.rbi+=r.rbi;m.stolenBases+=r.stolenBases;m.strikeOuts+=r.strikeOuts;m.baseOnBalls+=r.baseOnBalls;m.intentionalWalks+=r.intentionalWalks||0;m.hitByPitch+=r.hitByPitch||0;m.sacFlies+=r.sacFlies||0;m.sacBunts+=r.sacBunts||0;m.leftOnBase+=r.leftOnBase;}
-function hitStats(m){
+
+function hitStats(m,lgWoba){
   const singles=m.hits-m.doubles-m.triples-m.homeRuns,tb=singles+2*m.doubles+3*m.triples+4*m.homeRuns;
   const pa=m.atBats+m.baseOnBalls+(m.hitByPitch||0)+(m.sacFlies||0)+(m.sacBunts||0);
   const avg=m.atBats?m.hits/m.atBats:0;
   const obp=pa?(m.hits+m.baseOnBalls+(m.hitByPitch||0))/pa:0;
   const slg=m.atBats?tb/m.atBats:0;
-  return{avg,obp,slg,tb,pa};
+  const wobaDenom=m.atBats+m.baseOnBalls-(m.intentionalWalks||0)+(m.hitByPitch||0)+(m.sacFlies||0);
+  const wobaNum=WOBA_WEIGHTS.bb*(m.baseOnBalls-(m.intentionalWalks||0))+WOBA_WEIGHTS.hbp*(m.hitByPitch||0)+WOBA_WEIGHTS.single*singles+WOBA_WEIGHTS.double*m.doubles+WOBA_WEIGHTS.triple*m.triples+WOBA_WEIGHTS.hr*m.homeRuns;
+  const woba=wobaDenom?wobaNum/wobaDenom:0;
+  const wraa=pa?((woba-lgWoba)/WOBA_SCALE)*pa:0;
+  const wrcPlus=pa?Math.round(((woba/WOBA_SCALE-lgWoba/WOBA_SCALE)+1)*100):0;
+  return{avg,obp,slg,tb,pa,woba,wraa,wrcPlus};
 }
+
 function computeHitting(rows){
+  let lgWobaNum=0,lgWobaDenom=0;
+  for(const r of rows){
+    const singles=r.hits-r.doubles-r.triples-r.homeRuns;
+    const ibb=r.intentionalWalks||0,hbp=r.hitByPitch||0,sf=r.sacFlies||0;
+    lgWobaNum+=WOBA_WEIGHTS.bb*(r.baseOnBalls-ibb)+WOBA_WEIGHTS.hbp*hbp+WOBA_WEIGHTS.single*singles+WOBA_WEIGHTS.double*r.doubles+WOBA_WEIGHTS.triple*r.triples+WOBA_WEIGHTS.hr*r.homeRuns;
+    lgWobaDenom+=r.atBats+r.baseOnBalls-ibb+hbp+sf;
+  }
+  const lgWoba=lgWobaDenom?lgWobaNum/lgWobaDenom:LG_WOBA_FALLBACK;
   const map={};
   for(const r of rows){
     if(!map[r.player_id])map[r.player_id]={player_name:r.player_name,teamGames:{},gameLog:[],...emptyHit()};
@@ -754,16 +774,17 @@ function computeHitting(rows){
       sacFlies:r.sacFlies||0,sacBunts:r.sacBunts||0,leftOnBase:r.leftOnBase});
   }
   return Object.values(map).map(m=>{
-    const{avg,obp,slg,tb,pa}=hitStats(m);
+    const{avg,obp,slg,tb,pa,woba,wraa,wrcPlus}=hitStats(m,lgWoba);
     const teamBreakdown=Object.keys(m.teamGames).map(abbr=>{
-      const t=m.teamGames[abbr];const{avg:ta,obp:to,slg:ts,tb:ttb,pa:tpa}=hitStats(t);
-      return{abbr,g:t.games.size,pa:tpa,avg:ta.toFixed(3),obp:to.toFixed(3),slg:ts.toFixed(3),ops:(to+ts).toFixed(3),
+      const t=m.teamGames[abbr];const{avg:ta,obp:to,slg:ts,tb:ttb,pa:tpa,woba:tw,wraa:twr,wrcPlus:twrc}=hitStats(t,lgWoba);
+      return{abbr,g:t.games.size,pa:tpa,avg:ta.toFixed(3),obp:to.toFixed(3),slg:ts.toFixed(3),ops:(to+ts).toFixed(3),woba:tw.toFixed(3),wraa:twr.toFixed(1),wrcPlus:twrc,
         h:t.hits,ab:t.atBats,doubles:t.doubles,triples:t.triples,hr:t.homeRuns,tb:ttb,r:t.runs,rbi:t.rbi,
         sb:t.stolenBases,so:t.strikeOuts,bb:t.baseOnBalls,ibb:t.intentionalWalks,hbp:t.hitByPitch,
         sf:t.sacFlies,sac:t.sacBunts,lob:t.leftOnBase};
     });
     return{Name:m.player_name,G:m.games.size,_teams:Object.keys(m.teamGames),_teamBreakdown:teamBreakdown,_gameLog:m.gameLog,_type:'hitting',
       PA:pa,AVG:avg.toFixed(3),OBP:obp.toFixed(3),SLG:slg.toFixed(3),OPS:(obp+slg).toFixed(3),
+      wOBA:woba.toFixed(3),wRAA:wraa.toFixed(1),'wRC+':wrcPlus,
       H:m.hits,AB:m.atBats,HR:m.homeRuns,RBI:m.rbi,'2B':m.doubles,'3B':m.triples,TB:tb,R:m.runs,
       SB:m.stolenBases,SO:m.strikeOuts,BB:m.baseOnBalls,IBB:m.intentionalWalks,HBP:m.hitByPitch,
       SF:m.sacFlies,SAC:m.sacBunts,LOB:m.leftOnBase};
@@ -865,7 +886,6 @@ function buildOpponentList(){
   const playerTeams = [...teamSet].filter(Boolean).sort();
   ptSel.innerHTML = '<option value="All">All Teams</option>' + playerTeams.map(t=>`<option value="${t}">${getAbbr(t)} — ${t}</option>`).join('');
   ptSel.value = (selectedPlayerTeam !== 'All' && playerTeams.includes(selectedPlayerTeam)) ? selectedPlayerTeam : 'All';
-  // Build attendee dropdown
   const attendeeSel = document.getElementById('attendee-select');
   const attendeeSet = new Set();
   for (const g of scoreboardData) {
@@ -920,7 +940,6 @@ function getFilteredRows(){
     );
     h=h.filter(r=>attendedPks.has(r.game_id));
     p=p.filter(r=>attendedPks.has(r.game_id));
-    // also filter sb so game count / scoreboard stay consistent
     sb=sb.filter(r=>attendedPks.has(r.gamePk));
   }
   return{h,p,sb};
@@ -937,6 +956,7 @@ function selectGameType(t){selectedGameType=t;updateGameTypeButtons();applyFilte
 function selectOpponent(v){selectedOpponent=v;applyFilters();}
 function selectPlayerTeam(v){selectedPlayerTeam=v;applyFilters();}
 function selectAttendee(v){selectedAttendee=v;applyFilters();}
+
 // ============================================================
 // GAME LIST PANEL
 // ============================================================
@@ -1011,11 +1031,9 @@ function setModalStatus(msg,type){const el=document.getElementById('ag-status');
 // PLAYER GAME LOG
 // ============================================================
 function openGameLog(playerName,gameLog,type){
-  // Enrich game log with dates from scoreboardData
   const pkToDate={};const pkToResult={};
   for(const sb of scoreboardData){
     pkToDate[sb.gamePk]=sb.date;
-    // result from the perspective of the player's team
     pkToResult[sb.gamePk]={homeR:sb.homeR,awayR:sb.awayR,homeTeam:sb.homeTeamName,awayTeam:sb.awayTeamName};
   }
   const enriched=gameLog.map(g=>({...g,date:pkToDate[g.game_id]||'',result:pkToResult[g.game_id]||null}))
@@ -1023,42 +1041,42 @@ function openGameLog(playerName,gameLog,type){
   document.getElementById('gamelog-player-name').innerHTML=`${escHtml(playerName)} <span>Game Log</span>`;
   document.getElementById('gamelog-player-sub').textContent=`${enriched.length} game${enriched.length!==1?'s':''} · ${type==='hitting'?'Batting':'Pitching'}`;
   const content=document.getElementById('gamelog-content');
-if(type==='hitting'){
-  const totals=enriched.reduce((acc,g)=>({
-    ab:acc.ab+g.atBats,h:acc.h+g.hits,doubles:acc.doubles+g.doubles,triples:acc.triples+g.triples,
-    hr:acc.hr+g.homeRuns,r:acc.r+g.runs,rbi:acc.rbi+g.rbi,sb:acc.sb+g.stolenBases,
-    so:acc.so+g.strikeOuts,bb:acc.bb+g.baseOnBalls,ibb:acc.ibb+(g.intentionalWalks||0),
-    hbp:acc.hbp+(g.hitByPitch||0),sf:acc.sf+(g.sacFlies||0),sac:acc.sac+(g.sacBunts||0)
-  }),{ab:0,h:0,doubles:0,triples:0,hr:0,r:0,rbi:0,sb:0,so:0,bb:0,ibb:0,hbp:0,sf:0,sac:0});
-  const totalPA=totals.ab+totals.bb+totals.hbp+totals.sf+totals.sac;
-  const rows=enriched.map(g=>{
-    const res=g.result;let resultStr='',resultCls='';
-    if(res){const teamIsHome=res.homeTeam===g.team;const myR=teamIsHome?res.homeR:res.awayR;const oppR=teamIsHome?res.awayR:res.homeR;resultStr=`${myR>oppR?'W':'L'} ${myR}-${oppR}`;resultCls=myR>oppR?'result-w':'result-l';}
-    const pa=g.atBats+g.baseOnBalls+(g.hitByPitch||0)+(g.sacFlies||0)+(g.sacBunts||0);
-    const avg=g.atBats?((g.hits/g.atBats)).toFixed(3):'—';
-    return`<tr>
-      <td>${g.date||'—'}</td>
-      <td>${escHtml(getAbbr(g.team))}</td>
-      <td>${escHtml(getAbbr(g.opponent))}</td>
-      <td class="${resultCls}">${resultStr}</td>
-      <td>${pa}</td>
-      <td>${g.atBats}</td><td class="hi">${g.hits}</td>
-      <td>${g.doubles}</td><td>${g.triples}</td>
-      <td class="hi">${g.homeRuns}</td>
-      <td>${g.runs}</td><td class="hi">${g.rbi}</td>
-      <td>${g.stolenBases}</td><td>${g.strikeOuts}</td><td>${g.baseOnBalls}</td>
-      <td>${g.intentionalWalks||0}</td><td>${g.hitByPitch||0}</td>
-      <td>${g.sacFlies||0}</td><td>${g.sacBunts||0}</td>
-      <td>${avg}</td>
-    </tr>`;
-  }).join('');
-  const totalAvg=totals.ab?(totals.h/totals.ab).toFixed(3):'—';
-  content.innerHTML=`<table class="gamelog-table">
-    <thead><tr><th>Date</th><th>Team</th><th>Opp</th><th>Result</th><th>PA</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>R</th><th>RBI</th><th>SB</th><th>SO</th><th>BB</th><th>IBB</th><th>HBP</th><th>SF</th><th>SAC</th><th>AVG</th></tr></thead>
-    <tbody>${rows}</tbody>
-    <tfoot><tr class="gamelog-totals"><td colspan="4">Totals</td><td>${totalPA}</td><td>${totals.ab}</td><td class="hi">${totals.h}</td><td>${totals.doubles}</td><td>${totals.triples}</td><td class="hi">${totals.hr}</td><td>${totals.r}</td><td class="hi">${totals.rbi}</td><td>${totals.sb}</td><td>${totals.so}</td><td>${totals.bb}</td><td>${totals.ibb}</td><td>${totals.hbp}</td><td>${totals.sf}</td><td>${totals.sac}</td><td class="hi">${totalAvg}</td></tr></tfoot>
-  </table>`;
-} else {
+  if(type==='hitting'){
+    const totals=enriched.reduce((acc,g)=>({
+      ab:acc.ab+g.atBats,h:acc.h+g.hits,doubles:acc.doubles+g.doubles,triples:acc.triples+g.triples,
+      hr:acc.hr+g.homeRuns,r:acc.r+g.runs,rbi:acc.rbi+g.rbi,sb:acc.sb+g.stolenBases,
+      so:acc.so+g.strikeOuts,bb:acc.bb+g.baseOnBalls,ibb:acc.ibb+(g.intentionalWalks||0),
+      hbp:acc.hbp+(g.hitByPitch||0),sf:acc.sf+(g.sacFlies||0),sac:acc.sac+(g.sacBunts||0)
+    }),{ab:0,h:0,doubles:0,triples:0,hr:0,r:0,rbi:0,sb:0,so:0,bb:0,ibb:0,hbp:0,sf:0,sac:0});
+    const totalPA=totals.ab+totals.bb+totals.hbp+totals.sf+totals.sac;
+    const rows=enriched.map(g=>{
+      const res=g.result;let resultStr='',resultCls='';
+      if(res){const teamIsHome=res.homeTeam===g.team;const myR=teamIsHome?res.homeR:res.awayR;const oppR=teamIsHome?res.awayR:res.homeR;resultStr=`${myR>oppR?'W':'L'} ${myR}-${oppR}`;resultCls=myR>oppR?'result-w':'result-l';}
+      const pa=g.atBats+g.baseOnBalls+(g.hitByPitch||0)+(g.sacFlies||0)+(g.sacBunts||0);
+      const avg=g.atBats?((g.hits/g.atBats)).toFixed(3):'—';
+      return`<tr>
+        <td>${g.date||'—'}</td>
+        <td>${escHtml(getAbbr(g.team))}</td>
+        <td>${escHtml(getAbbr(g.opponent))}</td>
+        <td class="${resultCls}">${resultStr}</td>
+        <td>${pa}</td>
+        <td>${g.atBats}</td><td class="hi">${g.hits}</td>
+        <td>${g.doubles}</td><td>${g.triples}</td>
+        <td class="hi">${g.homeRuns}</td>
+        <td>${g.runs}</td><td class="hi">${g.rbi}</td>
+        <td>${g.stolenBases}</td><td>${g.strikeOuts}</td><td>${g.baseOnBalls}</td>
+        <td>${g.intentionalWalks||0}</td><td>${g.hitByPitch||0}</td>
+        <td>${g.sacFlies||0}</td><td>${g.sacBunts||0}</td>
+        <td>${avg}</td>
+      </tr>`;
+    }).join('');
+    const totalAvg=totals.ab?(totals.h/totals.ab).toFixed(3):'—';
+    content.innerHTML=`<table class="gamelog-table">
+      <thead><tr><th>Date</th><th>Team</th><th>Opp</th><th>Result</th><th>PA</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>R</th><th>RBI</th><th>SB</th><th>SO</th><th>BB</th><th>IBB</th><th>HBP</th><th>SF</th><th>SAC</th><th>AVG</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr class="gamelog-totals"><td colspan="4">Totals</td><td>${totalPA}</td><td>${totals.ab}</td><td class="hi">${totals.h}</td><td>${totals.doubles}</td><td>${totals.triples}</td><td class="hi">${totals.hr}</td><td>${totals.r}</td><td class="hi">${totals.rbi}</td><td>${totals.sb}</td><td>${totals.so}</td><td>${totals.bb}</td><td>${totals.ibb}</td><td>${totals.hbp}</td><td>${totals.sf}</td><td>${totals.sac}</td><td class="hi">${totalAvg}</td></tr></tfoot>
+    </table>`;
+  } else {
     const totals=enriched.reduce((acc,g)=>({outs:acc.outs+ipToOuts(g.ip_str),h:acc.h+g.hits,er:acc.er+g.earnedRuns,r:acc.r+g.runs,bb:acc.bb+g.baseOnBalls,k:acc.k+g.strikeOuts,hr:acc.hr+g.homeRuns,pitches:acc.pitches+g.numberOfPitches}),{outs:0,h:0,er:0,r:0,bb:0,k:0,hr:0,pitches:0});
     const rows=enriched.map(g=>{
       const res=g.result;let resultStr='',resultCls='';
@@ -1165,7 +1183,6 @@ function filterScoreboard(val,updateInput){
 // ============================================================
 let attStadiumGames={};
 function buildTeamFilterSelect(currentVal,onchangeFn,idPrefix){
-  // Collect all teams seen in scoreboardData
   const teamSet=new Set();
   for(const g of scoreboardData){if(g.homeTeamName)teamSet.add(g.homeTeamName);if(g.awayTeamName)teamSet.add(g.awayTeamName);}
   const teams=[...teamSet].sort();
@@ -1176,7 +1193,6 @@ function buildTeamFilterSelect(currentVal,onchangeFn,idPrefix){
 }
 function renderAttendance(sbRows){
   const wrap=document.getElementById('attendance-wrap');
-  // Apply team filter
   let filteredSb=sbRows;
   if(attTeamFilter!=='All')filteredSb=sbRows.filter(g=>g.homeTeamName===attTeamFilter||g.awayTeamName===attTeamFilter);
   const peopleSet=new Set(),stadiumGameMap={};
@@ -1228,7 +1244,6 @@ function renderAttendance(sbRows){
   wrap.innerHTML=filterBar+`<div class="att-section-label">Games attended with each person, by stadium · Click headers to sort · Hover cells to see games</div><table class="attendance-table" id="att-table"><thead><tr><th style="cursor:default;vertical-align:bottom;">Person</th>${thStadiums}${thTotal}</tr></thead><tbody>${rows}<tr style="border-top:1px solid var(--border)"><td style="color:var(--muted);font-size:0.7rem;">Games at stadium</td>${totalCells}<td class="att-total">${filteredSb.length}</td></tr></tbody></table><div class="att-note">Numbers show how many games at each stadium you attended with that person.</div>`;
 }
 function setAttTeamFilter(val){attTeamFilter=val;const{sb}=getFilteredRows();renderAttendance(sb);}
-
 function sortAttendance(colIdx){
   if(attSortCol===colIdx){attSortDir=attSortDir==='desc'?'asc':'desc';}else{attSortCol=colIdx;attSortDir='desc';}
   const{sb}=getFilteredRows();renderAttendance(sb);
@@ -1240,7 +1255,6 @@ function sortAttendance(colIdx){
 function heatmapColor(val,max){
   if(val===0||max===0)return'rgba(30,37,48,0.5)';
   const t=val/max;
-  // clear (dark surface) → red
   const r=Math.round(30+t*(240-30));
   const g=Math.round(37+t*(74-37)*(1-t)*2);
   const b=Math.round(48+t*(74-48)*(1-t)*2);
@@ -1249,7 +1263,6 @@ function heatmapColor(val,max){
 }
 function renderPersonalGameStats(sbRows){
   const wrap=document.getElementById('personal-wrap');
-  // Apply team filter
   let filteredSb=sbRows;
   if(personalTeamFilter!=='All')filteredSb=sbRows.filter(g=>g.homeTeamName===personalTeamFilter||g.awayTeamName===personalTeamFilter);
   const filterBar=`<div class="personal-filter-bar">
@@ -1257,7 +1270,6 @@ function renderPersonalGameStats(sbRows){
     ${buildTeamFilterSelect(personalTeamFilter,'setPersonalTeamFilter','personal')}
   </div>`;
   if(!filteredSb.length){wrap.innerHTML=filterBar+'<div class="personal-empty-msg">No games match the current filters.</div>';return;}
-  // ---- Day/Stadium matrix ----
   const stadiumSet=new Set(),gameDay={};
   for(const g of filteredSb){const stadium=getStadium(g.homeTeamName);const d=new Date(g.date+'T12:00:00');stadiumSet.add(stadium);gameDay[g.gamePk]={dayIdx:d.getDay(),stadium};}
   const stadiums=[...stadiumSet].sort(),days=[0,1,2,3,4,5,6];
@@ -1277,8 +1289,6 @@ function renderPersonalGameStats(sbRows){
     <tbody>${dataRows}<tr class="personal-total-row"><td>Total</td>${totalCells}<td class="personal-total-col">${filteredSb.length}</td></tr></tbody></table>
     <div class="personal-note">Rows = stadiums visited · Columns = day of week · Values = games attended</div>
   </div>`;
-
-  // ---- Heatmap: games per month ----
   const monthGameMap={};
   for(const g of filteredSb){
     const d=new Date(g.date+'T12:00:00');
@@ -1289,10 +1299,8 @@ function renderPersonalGameStats(sbRows){
   }
   const monthKeys=Object.keys(monthGameMap).sort();
   const maxMonthCount=Math.max(...Object.values(monthGameMap).map(m=>m.count),1);
-  // Build year groups
   const yearGroups={};
-  for(const key of monthKeys){
-    const yr=key.split('-')[0];if(!yearGroups[yr])yearGroups[yr]=[];yearGroups[yr].push(key);}
+  for(const key of monthKeys){const yr=key.split('-')[0];if(!yearGroups[yr])yearGroups[yr]=[];yearGroups[yr].push(key);}
   let heatmapHTML='';
   for(const yr of Object.keys(yearGroups).sort()){
     const months=yearGroups[yr];
@@ -1310,7 +1318,6 @@ function renderPersonalGameStats(sbRows){
       <div style="display:flex;gap:6px;flex-wrap:wrap;">${cells}</div>
     </div>`;
   }
-  // Legend
   const legendSwatches=[0,0.25,0.5,0.75,1].map(t=>{
     const v=Math.round(t*maxMonthCount);
     return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:28px;height:20px;border-radius:3px;background:${heatmapColor(v,maxMonthCount)};"></div><span style="font-size:0.55rem;">${v}</span></div>`;
@@ -1321,7 +1328,6 @@ function renderPersonalGameStats(sbRows){
     ${heatmapHTML}
     <div class="heatmap-legend"><span>Games:</span>${legendSwatches}</div>
   </div>`;
-
   wrap.innerHTML=filterBar+heatmapSection+dayStadiumTable;
 }
 function setPersonalTeamFilter(val){personalTeamFilter=val;const{sb}=getFilteredRows();renderPersonalGameStats(sb);}
@@ -1331,9 +1337,7 @@ function setPersonalTeamFilter(val){personalTeamFilter=val;const{sb}=getFiltered
 // ============================================================
 function renderH2H(sbRows){
   const wrap=document.getElementById('h2h-wrap');
-  // Build record map: records[teamA][teamB] = {w,l} where w = teamA wins vs teamB
   const records={};
-  // Build per-matchup game lookup
   const matchupGames={};
   for(const g of sbRows){
     const home=g.homeTeamName,away=g.awayTeamName;
@@ -1344,54 +1348,37 @@ function renderH2H(sbRows){
     if(!matchupGames[away])matchupGames[away]={};
     if(!matchupGames[away][home])matchupGames[away][home]=[];
     matchupGames[away][home].push(g);
-}
-  // Seed all known teams
-  const allTeamNames=ALL_TEAMS;
-  // Also collect any teams seen in data not in ALL_TEAMS
+  }
   const seenTeams=new Set();
   for(const g of sbRows){if(g.homeTeamName)seenTeams.add(g.homeTeamName);if(g.awayTeamName)seenTeams.add(g.awayTeamName);}
   const teamsInData=[...seenTeams].filter(Boolean);
-  // Only show teams that appear in data
   for(const t of teamsInData){records[t]={};}
   for(const t of teamsInData)for(const opp of teamsInData){if(t!==opp)records[t][opp]={w:0,l:0};}
   for(const g of sbRows){
     const home=g.homeTeamName,away=g.awayTeamName;
     if(!home||!away)continue;
     const homeWin=g.homeR>g.awayR;
-    // home team record
-    if(records[home]&&records[home][away]){
-      if(homeWin)records[home][away].w++;else records[home][away].l++;
-    }else if(records[home]){records[home][away]={w:homeWin?1:0,l:homeWin?0:1};}
-    // away team record
-    if(records[away]&&records[away][home]){
-      if(!homeWin)records[away][home].w++;else records[away][home].l++;
-    }else if(records[away]){records[away][home]={w:homeWin?0:1,l:homeWin?1:0};}
+    if(records[home]&&records[home][away]){if(homeWin)records[home][away].w++;else records[home][away].l++;}
+    else if(records[home]){records[home][away]={w:homeWin?1:0,l:homeWin?0:1};}
+    if(records[away]&&records[away][home]){if(!homeWin)records[away][home].w++;else records[away][home].l++;}
+    else if(records[away]){records[away][home]={w:homeWin?0:1,l:homeWin?1:0};}
   }
-  // Compute totals per team
   const teamStats=teamsInData.map(t=>{
     let totalW=0,totalL=0,totalG=0;
-    for(const opp of Object.keys(records[t]||{})){
-      const r=records[t][opp];if(!r)continue;
-      totalW+=r.w;totalL+=r.l;totalG+=r.w+r.l;
-    }
+    for(const opp of Object.keys(records[t]||{})){const r=records[t][opp];if(!r)continue;totalW+=r.w;totalL+=r.l;totalG+=r.w+r.l;}
     const winPct=totalG>0?totalW/totalG:0;
     return{team:t,abbr:getAbbr(t),totalW,totalL,totalG,winPct};
   });
-  // Sort
   if(h2hSortCol==='totalGames'){teamStats.sort((a,b)=>h2hSortDir==='desc'?b.totalG-a.totalG:a.totalG-b.totalG);}
   else if(h2hSortCol==='winPct'){teamStats.sort((a,b)=>h2hSortDir==='desc'?b.winPct-a.winPct:a.winPct-b.winPct);}
   else if(h2hSortCol==='team'){teamStats.sort((a,b)=>h2hSortDir==='desc'?b.team.localeCompare(a.team):a.team.localeCompare(b.team));}
-  const colTeams=teamStats;// same order for columns
-  function sortArrow(col){if(h2hSortCol!==col)return' ↕';return h2hSortDir==='desc'?' ↓':' ↑';}
-  function thCls(col){return h2hSortCol===col?' sort-active':'';}
-  // Column headers (rotated abbreviations)
+  const colTeams=teamStats;
   const thCols=colTeams.map(t=>`<th class="h2h-team-header" title="${escAttr(t.team)}"><div class="th-inner">${escHtml(t.abbr)}</div></th>`).join('');
   const rows=teamStats.map(rowTeam=>{
     const cells=colTeams.map(colTeam=>{
       if(rowTeam.team===colTeam.team)return`<td class="self-cell">—</td>`;
       const r=(records[rowTeam.team]||{})[colTeam.team];
       if(!r||r.w+r.l===0)return`<td class="empty-cell">·</td>`;
-      const g=r.w+r.l;
       let cls='even-cell';if(r.w>r.l)cls='win-cell';else if(r.l>r.w)cls='loss-cell';
       const cellGames=((matchupGames[rowTeam.team]||{})[colTeam.team]||[]).map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId}));
       return`<td class="${cls}" style="cursor:pointer;" onclick="handleH2HCellClick(this)" data-label="${escAttr(rowTeam.abbr+' vs '+colTeam.abbr)}" data-games="${escAttr(JSON.stringify(cellGames))}">${r.w}-${r.l}</td>`;
@@ -1429,9 +1416,9 @@ function setH2HSort(col){
 // ============================================================
 // RENDER TABLES
 // ============================================================
-const HITTING_COLS=['Name','G','Team','PA','AVG','OBP','SLG','OPS','H','AB','HR','RBI','2B','3B','TB','R','SB','SO','BB','IBB','HBP','SF','SAC','LOB'];
+const HITTING_COLS=['Name','G','Team','PA','AVG','OBP','SLG','OPS','wOBA','wRAA','wRC+','H','AB','HR','RBI','2B','3B','TB','R','SB','SO','BB','IBB','HBP','SF','SAC','LOB'];
 const PITCHING_COLS=['Name','G','Team','IP','ERA','WHIP','K/9','H','ER','R','BB','K','HR','Pitches'];
-const HI_HIT=['AVG','OBP','SLG','OPS'],HI_PIT=['ERA','WHIP','K/9'];
+const HI_HIT=['AVG','OBP','SLG','OPS','wOBA','wRAA','wRC+'],HI_PIT=['ERA','WHIP','K/9'];
 
 function buildTableHTML(rows,cols,hiCols,type){
   let html=`<thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
@@ -1471,10 +1458,11 @@ function teamCellHTML(row,type){
   let drop='';
   if(isMulti){
     if(type==='hitting'){
-      const cols=['Team','G','PA','AVG','OBP','SLG','OPS','H','AB','2B','3B','HR','TB','R','RBI','SB','SO','BB','IBB','HBP','SF','SAC','LOB'];
-      const w=['52px','34px','40px','58px','58px','58px','58px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','40px','40px','36px','40px','36px'];
+      const cols=['Team','G','PA','AVG','OBP','SLG','OPS','wOBA','wRAA','wRC+','H','AB','2B','3B','HR','TB','R','RBI','SB','SO','BB','IBB','HBP','SF','SAC','LOB'];
+      const w=['52px','34px','40px','58px','58px','58px','58px','58px','52px','46px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','36px','40px','40px','36px','40px','36px'];
       const g=w.join(' ');
-drop=`<div class="team-dropdown"><div class="tdd-scroll"><div class="tdd-grid tdd-header" style="grid-template-columns:${g}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${g}"><span class="tm">${t.abbr}</span><span>${t.g}</span><span>${t.pa}</span><span>${t.avg}</span><span>${t.obp}</span><span>${t.slg}</span><span>${t.ops}</span><span>${t.h}</span><span>${t.ab}</span><span>${t.doubles}</span><span>${t.triples}</span><span>${t.hr}</span><span>${t.tb}</span><span>${t.r}</span><span>${t.rbi}</span><span>${t.sb}</span><span>${t.so}</span><span>${t.bb}</span><span>${t.ibb}</span><span>${t.hbp}</span><span>${t.sf}</span><span>${t.sac}</span><span>${t.lob}</span></div>`).join('')}</div></div>`;    }else{
+      drop=`<div class="team-dropdown"><div class="tdd-scroll"><div class="tdd-grid tdd-header" style="grid-template-columns:${g}">${cols.map(c=>`<span>${c}</span>`).join('')}</div>${bd.map(t=>`<div class="tdd-grid tdd-row" style="grid-template-columns:${g}"><span class="tm">${t.abbr}</span><span>${t.g}</span><span>${t.pa}</span><span>${t.avg}</span><span>${t.obp}</span><span>${t.slg}</span><span>${t.ops}</span><span>${t.woba}</span><span>${t.wraa}</span><span>${t.wrcPlus}</span><span>${t.h}</span><span>${t.ab}</span><span>${t.doubles}</span><span>${t.triples}</span><span>${t.hr}</span><span>${t.tb}</span><span>${t.r}</span><span>${t.rbi}</span><span>${t.sb}</span><span>${t.so}</span><span>${t.bb}</span><span>${t.ibb}</span><span>${t.hbp}</span><span>${t.sf}</span><span>${t.sac}</span><span>${t.lob}</span></div>`).join('')}</div></div>`;
+    }else{
       const cols=['Team','G','IP','ERA','WHIP','K/9','H','ER','R','BB','K','HR','Pitches'];
       const w=['52px','34px','50px','58px','58px','58px','36px','36px','36px','36px','36px','36px','58px'];
       const g=w.join(' ');
@@ -1517,6 +1505,7 @@ function switchTab(tab){
   if(tab==='pitching'&&pitchingDT){pitchingDT.search('').draw();pitchingDT.columns.adjust();}
   document.querySelectorAll('.team-badge.open').forEach(b=>b.classList.remove('open'));
 }
+
 // ============================================================
 // GAMES DETAIL MODAL (shared by Attendance, Personal, H2H)
 // ============================================================
@@ -1586,6 +1575,7 @@ function handleH2HCellClick(cell) {
     games
   );
 }
+
 // ============================================================
 // INIT
 // ============================================================

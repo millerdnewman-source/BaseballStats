@@ -75,7 +75,7 @@ main{padding:36px 40px;max-width:1600px;margin:0 auto;}
 /* TABLE */
 .table-wrap{overflow-x:auto;}
 table.stats-dt{width:100%!important;border-collapse:collapse;font-family:var(--mono);font-size:0.78rem;}
-table.stats-dt thead th{background:var(--surface);border-bottom:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;padding:10px 14px;text-align:right;white-space:nowrap;cursor:pointer;}
+table.stats-dt thead th{background:var(--surface);border-bottom:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;padding:10px 14px;text-align:right;white-space:nowrap;cursor:pointer;position:sticky;top:0;z-index:4;}
 table.stats-dt thead th:first-child{text-align:left;}
 table.stats-dt thead th.sorting_asc,table.stats-dt thead th.sorting_desc{color:var(--accent);}
 table.stats-dt tbody tr{border-bottom:1px solid rgba(30,37,48,0.6);transition:background 0.1s;}
@@ -1440,8 +1440,8 @@ function renderTables(hitting,pitching,gameCount,sbRows){
   if(pitchingDT){pitchingDT.destroy();pitchingDT=null;}
   document.getElementById('hittingTable').innerHTML=buildTableHTML(hitting,HITTING_COLS,HI_HIT,'hitting');
   document.getElementById('pitchingTable').innerHTML=buildTableHTML(pitching,PITCHING_COLS,HI_PIT,'pitching');
-  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX: true,columnDefs:[{targets:2,orderable:false}]});
-  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX: true,columnDefs:[{targets:2,orderable:false}]});
+  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}]});
+  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}]});
   const old=document.getElementById('player-search'),nw=old.cloneNode(true);
   old.parentNode.replaceChild(nw,old);
   nw.addEventListener('keyup',function(){if(currentTab==='hitting')hittingDT.search(this.value).draw();else pitchingDT.search(this.value).draw();});

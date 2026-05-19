@@ -1453,10 +1453,12 @@ hittingDT=$('#hittingTable').DataTable({
   order:[[3,'desc']],scrollX:true,autoWidth:true,
   columnDefs:[{targets:2,orderable:false}],
   drawCallback:function(){
-    const bodyCol=$(this).find('tbody tr:first td:first');
-    const w=bodyCol.outerWidth();
-    if(w){$(this).find('thead th:first').css('min-width',w+'px');}
-    this.api().columns.adjust();
+    if($('#hittingTable').is(':visible')){
+      const bodyCol=$(this).find('tbody tr:first td:first');
+      const w=bodyCol.outerWidth();
+      if(w){$(this).find('thead th:first').css('min-width',w+'px');}
+      this.api().columns.adjust();
+    }
   }
 });
 setTimeout(function(){
@@ -1470,10 +1472,12 @@ pitchingDT=$('#pitchingTable').DataTable({
   order:[[3,'desc']],scrollX:true,autoWidth:true,
   columnDefs:[{targets:2,orderable:false}],
   drawCallback:function(){
-    const bodyCol=$(this).find('tbody tr:first td:first');
-    const w=bodyCol.outerWidth();
-    if(w){$(this).find('thead th:first').css('min-width',w+'px');}
-    this.api().columns.adjust();
+    if($('#pitchingTable').is(':visible')){
+      const bodyCol=$(this).find('tbody tr:first td:first');
+      const w=bodyCol.outerWidth();
+      if(w){$(this).find('thead th:first').css('min-width',w+'px');}
+      this.api().columns.adjust();
+    }
   }
 });
 setTimeout(function(){
@@ -1547,6 +1551,9 @@ function switchTab(tab){
   if(tab==='hitting'&&hittingDT){hittingDT.search('').draw();hittingDT.columns.adjust();}
   if(tab==='pitching'&&pitchingDT){pitchingDT.search('').draw();pitchingDT.columns.adjust();}
   document.querySelectorAll('.team-badge.open').forEach(b=>b.classList.remove('open'));
+  // Re-sync name column width when switching to these tabs
+  if(tab==='hitting'){setTimeout(()=>{const w=$('#hittingTable tbody tr:first td:first').outerWidth();if(w){$('#hittingTable thead th:first').css('min-width',w+'px');}hittingDT.columns.adjust();},50);}
+  if(tab==='pitching'){setTimeout(()=>{const w=$('#pitchingTable tbody tr:first td:first').outerWidth();if(w){$('#pitchingTable thead th:first').css('min-width',w+'px');}pitchingDT.columns.adjust();},50);}
 }
 
 // ============================================================

@@ -1447,8 +1447,32 @@ function renderTables(hitting,pitching,gameCount,sbRows){
   if(pitchingDT){pitchingDT.destroy();pitchingDT=null;}
   document.getElementById('hittingTable').innerHTML=buildTableHTML(hitting,HITTING_COLS,HI_HIT,'hitting');
   document.getElementById('pitchingTable').innerHTML=buildTableHTML(pitching,PITCHING_COLS,HI_PIT,'pitching');
-  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true,columnDefs:[{targets:2,orderable:false}]});
-  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true,columnDefs:[{targets:2,orderable:false}]});
+
+  hittingDT=$('#hittingTable').DataTable({
+    paging:true,info:true,searching:true,pageLength:25,
+    order:[[3,'desc']],scrollX:true,autoWidth:true,
+    columnDefs:[{targets:2,orderable:false}],
+    drawCallback:function(){
+      const bodyCol=$(this).find('tbody tr:first td:first');
+      const w=bodyCol.outerWidth();
+      if(w){$(this).find('thead th:first').css('min-width',w+'px');}
+      this.api().columns.adjust();
+    }
+  });
+  
+  pitchingDT=$('#pitchingTable').DataTable({
+    paging:true,info:true,searching:true,pageLength:25,
+    order:[[3,'desc']],scrollX:true,autoWidth:true,
+    columnDefs:[{targets:2,orderable:false}],
+    drawCallback:function(){
+      const bodyCol=$(this).find('tbody tr:first td:first');
+      const w=bodyCol.outerWidth();
+      if(w){$(this).find('thead th:first').css('min-width',w+'px');}
+      this.api().columns.adjust();
+    }
+  });
+
+  
   const old=document.getElementById('player-search'),nw=old.cloneNode(true);
   old.parentNode.replaceChild(nw,old);
   nw.addEventListener('keyup',function(){if(currentTab==='hitting')hittingDT.search(this.value).draw();else pitchingDT.search(this.value).draw();});

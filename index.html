@@ -1443,6 +1443,7 @@ function renderTables(hitting,pitching,gameCount,sbRows){
   document.getElementById('pitchingTable').innerHTML=buildTableHTML(pitching,PITCHING_COLS,HI_PIT,'pitching');
   hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true,columnDefs:[{targets:2,orderable:false}]});
   pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true,columnDefs:[{targets:2,orderable:false}]});
+  const old=document.getElementById('player-search'),nw=old.cloneNode(true);
   old.parentNode.replaceChild(nw,old);
   nw.addEventListener('keyup',function(){if(currentTab==='hitting')hittingDT.search(this.value).draw();else pitchingDT.search(this.value).draw();});
   renderScoreboard(sbRows);renderAttendance(sbRows);renderPersonalGameStats(sbRows);renderH2H(sbRows);

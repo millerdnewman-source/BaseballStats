@@ -178,7 +178,8 @@ table.stats-dt tbody td.hi-stat{color:var(--accent2);}
 .dataTables_wrapper .dataTables_paginate .paginate_button{font-family:var(--mono)!important;font-size:0.7rem!important;color:var(--muted)!important;background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:3px!important;padding:4px 10px!important;margin:0 2px!important;cursor:pointer!important;}
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover{color:var(--text)!important;background:var(--border)!important;border-color:var(--border)!important;}
 .dataTables_wrapper .dataTables_paginate .paginate_button.current{color:#0a0c0f!important;background:var(--accent)!important;border-color:var(--accent)!important;}
-.dataTables_wrapper .dataTables_paginate .paginate_button.disabled{opacity:0.3;cursor:not-allowed!important;}
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled{opacity:0.3;cursor:not-allowed!important;
+.dataTables_scrollBody {max-height: 60vh !important;overflow-y: auto !important;}
 /* SCOREBOARD */
 #scoreboard-wrap{padding:4px 0;}
 .scoreboard-game{background:var(--surface);border:1px solid var(--border);border-radius:4px;margin-bottom:12px;overflow:hidden;font-family:var(--mono);}
@@ -1442,9 +1443,8 @@ function renderTables(hitting,pitching,gameCount,sbRows){
   if(pitchingDT){pitchingDT.destroy();pitchingDT=null;}
   document.getElementById('hittingTable').innerHTML=buildTableHTML(hitting,HITTING_COLS,HI_HIT,'hitting');
   document.getElementById('pitchingTable').innerHTML=buildTableHTML(pitching,PITCHING_COLS,HI_PIT,'pitching');
-  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1}});
-  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1}});
-  const old=document.getElementById('player-search'),nw=old.cloneNode(true);
+  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1},autoWidth:true});
+  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1},autoWidth:true});  const old=document.getElementById('player-search'),nw=old.cloneNode(true);
   old.parentNode.replaceChild(nw,old);
   nw.addEventListener('keyup',function(){if(currentTab==='hitting')hittingDT.search(this.value).draw();else pitchingDT.search(this.value).draw();});
   renderScoreboard(sbRows);renderAttendance(sbRows);renderPersonalGameStats(sbRows);renderH2H(sbRows);

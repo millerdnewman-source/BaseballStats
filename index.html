@@ -1450,7 +1450,7 @@ function renderTables(hitting,pitching,gameCount,sbRows){
 
   hittingDT=$('#hittingTable').DataTable({
     paging:true,info:true,searching:true,pageLength:25,
-    order:[[3,'desc']],scrollX:true,autoWidth:true,
+    order:[[1,'desc']],scrollX:true,autoWidth:true,
     columnDefs:[{targets:2,orderable:false}],
     drawCallback:function(){
       const bodyCol=$(this).find('tbody tr:first td:first');
@@ -1462,7 +1462,7 @@ function renderTables(hitting,pitching,gameCount,sbRows){
   
   pitchingDT=$('#pitchingTable').DataTable({
     paging:true,info:true,searching:true,pageLength:25,
-    order:[[3,'desc']],scrollX:true,autoWidth:true,
+    order:[[1,'desc']],scrollX:true,autoWidth:true,
     columnDefs:[{targets:2,orderable:false}],
     drawCallback:function(){
       const bodyCol=$(this).find('tbody tr:first td:first');

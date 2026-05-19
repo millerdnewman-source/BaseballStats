@@ -11,8 +11,6 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 <style>
 :root {
@@ -1443,8 +1441,8 @@ function renderTables(hitting,pitching,gameCount,sbRows){
   if(pitchingDT){pitchingDT.destroy();pitchingDT=null;}
   document.getElementById('hittingTable').innerHTML=buildTableHTML(hitting,HITTING_COLS,HI_HIT,'hitting');
   document.getElementById('pitchingTable').innerHTML=buildTableHTML(pitching,PITCHING_COLS,HI_PIT,'pitching');
-  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1},autoWidth:true});
-  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1},autoWidth:true});  const old=document.getElementById('player-search'),nw=old.cloneNode(true);
+  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true,columnDefs:[{targets:2,orderable:false}]});
+  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true,columnDefs:[{targets:2,orderable:false}]});
   old.parentNode.replaceChild(nw,old);
   nw.addEventListener('keyup',function(){if(currentTab==='hitting')hittingDT.search(this.value).draw();else pitchingDT.search(this.value).draw();});
   renderScoreboard(sbRows);renderAttendance(sbRows);renderPersonalGameStats(sbRows);renderH2H(sbRows);

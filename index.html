@@ -11,6 +11,8 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 <style>
 :root {
@@ -76,13 +78,7 @@ main{padding:36px 40px;max-width:1600px;margin:0 auto;}
 .table-wrap{overflow-x:auto;}
 table.stats-dt{width:100%!important;border-collapse:collapse;font-family:var(--mono);font-size:0.78rem;}
 table.stats-dt thead th{background:var(--surface);border-bottom:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;padding:10px 14px;text-align:right;white-space:nowrap;cursor:pointer;}
-table.stats-dt thead th:first-child {
-  text-align: left;
-  position: sticky !important;
-  left: 0 !important;
-  z-index: 3 !important;
-  background: var(--surface) !important;
-}
+table.stats-dt thead th:first-child{text-align:left;}
 table.stats-dt thead th.sorting_asc,table.stats-dt thead th.sorting_desc{color:var(--accent);}
 table.stats-dt tbody tr{border-bottom:1px solid rgba(30,37,48,0.6);transition:background 0.1s;}
 table.stats-dt tbody tr:hover{background:rgba(200,240,74,0.04);}
@@ -182,8 +178,7 @@ table.stats-dt tbody td.hi-stat{color:var(--accent2);}
 .dataTables_wrapper .dataTables_paginate .paginate_button{font-family:var(--mono)!important;font-size:0.7rem!important;color:var(--muted)!important;background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:3px!important;padding:4px 10px!important;margin:0 2px!important;cursor:pointer!important;}
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover{color:var(--text)!important;background:var(--border)!important;border-color:var(--border)!important;}
 .dataTables_wrapper .dataTables_paginate .paginate_button.current{color:#0a0c0f!important;background:var(--accent)!important;border-color:var(--accent)!important;}
-.dataTables_wrapper .dataTables_paginate .paginate_button.disabled{opacity:0.3;cursor:not-allowed!important;
-.dataTables_scrollBody {max-height: 60vh !important;overflow-y: auto !important;}
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled{opacity:0.3;cursor:not-allowed!important;}
 /* SCOREBOARD */
 #scoreboard-wrap{padding:4px 0;}
 .scoreboard-game{background:var(--surface);border:1px solid var(--border);border-radius:4px;margin-bottom:12px;overflow:hidden;font-family:var(--mono);}
@@ -1447,46 +1442,8 @@ function renderTables(hitting,pitching,gameCount,sbRows){
   if(pitchingDT){pitchingDT.destroy();pitchingDT=null;}
   document.getElementById('hittingTable').innerHTML=buildTableHTML(hitting,HITTING_COLS,HI_HIT,'hitting');
   document.getElementById('pitchingTable').innerHTML=buildTableHTML(pitching,PITCHING_COLS,HI_PIT,'pitching');
-
-hittingDT=$('#hittingTable').DataTable({
-  paging:true,info:true,searching:true,pageLength:25,
-  order:[[3,'desc']],scrollX:true,autoWidth:true,
-  columnDefs:[{targets:2,orderable:false}],
-  drawCallback:function(){
-    if($('#hittingTable').is(':visible')){
-      const bodyCol=$(this).find('tbody tr:first td:first');
-      const w=bodyCol.outerWidth();
-      if(w){$(this).find('thead th:first').css('min-width',w+'px');}
-      this.api().columns.adjust();
-    }
-  }
-});
-setTimeout(function(){
-  const w=$('#hittingTable tbody tr:first td:first').outerWidth();
-  if(w){$('#hittingTable thead th:first').css('min-width',w+'px');}
-  hittingDT.columns.adjust();
-},100);
-
-pitchingDT=$('#pitchingTable').DataTable({
-  paging:true,info:true,searching:true,pageLength:25,
-  order:[[3,'desc']],scrollX:true,autoWidth:true,
-  columnDefs:[{targets:2,orderable:false}],
-  drawCallback:function(){
-    if($('#pitchingTable').is(':visible')){
-      const bodyCol=$(this).find('tbody tr:first td:first');
-      const w=bodyCol.outerWidth();
-      if(w){$(this).find('thead th:first').css('min-width',w+'px');}
-      this.api().columns.adjust();
-    }
-  }
-});
-setTimeout(function(){
-  const w=$('#pitchingTable tbody tr:first td:first').outerWidth();
-  if(w){$('#pitchingTable thead th:first').css('min-width',w+'px');}
-  pitchingDT.columns.adjust();
-},100);
-
-  
+  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1}});
+  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1}});
   const old=document.getElementById('player-search'),nw=old.cloneNode(true);
   old.parentNode.replaceChild(nw,old);
   nw.addEventListener('keyup',function(){if(currentTab==='hitting')hittingDT.search(this.value).draw();else pitchingDT.search(this.value).draw();});
@@ -1551,9 +1508,6 @@ function switchTab(tab){
   if(tab==='hitting'&&hittingDT){hittingDT.search('').draw();hittingDT.columns.adjust();}
   if(tab==='pitching'&&pitchingDT){pitchingDT.search('').draw();pitchingDT.columns.adjust();}
   document.querySelectorAll('.team-badge.open').forEach(b=>b.classList.remove('open'));
-  // Re-sync name column width when switching to these tabs
-  if(tab==='hitting'){setTimeout(()=>{const w=$('#hittingTable tbody tr:first td:first').outerWidth();if(w){$('#hittingTable thead th:first').css('min-width',w+'px');}hittingDT.columns.adjust();},50);}
-  if(tab==='pitching'){setTimeout(()=>{const w=$('#pitchingTable tbody tr:first td:first').outerWidth();if(w){$('#pitchingTable thead th:first').css('min-width',w+'px');}pitchingDT.columns.adjust();},50);}
 }
 
 // ============================================================

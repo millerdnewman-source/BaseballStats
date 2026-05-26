@@ -471,6 +471,13 @@ const SHEET_ID  = '1lGWg3RWY1iaEWcGAxO77HDPOPEOqsX4lfI6v8QrPIn4';
 const SHEET_GID = '0';
 const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
 const MLB_API = "https://statsapi.mlb.com/api/v1";
+const API_CACHE = {};
+async function cachedFetch(url) {
+  if (API_CACHE[url]) return API_CACHE[url];
+  const data = await fetch(url).then(r => r.json());
+  API_CACHE[url] = data;
+  return data;
+}  
 const WBC_SPORT_ID = 51;
 
 // ============================================================
@@ -669,7 +676,7 @@ function reloadFromSheet(){
 // ============================================================
 async function tryGetGameInfo(date,homeTeam,gameNumber,sportId){
   try{
-    const json=await fetch(`${MLB_API}/schedule?sportId=${sportId}&date=${date}&hydrate=team`).then(r=>r.json());
+    const json=await cachedFetch(`${MLB_API}/schedule?sportId=${sportId}&date=${date}&hydrate=team`);
     let games=[];
     for(const d of(json.dates||[]))
       for(const g of(d.games||[])){
@@ -686,12 +693,14 @@ async function tryGetGameInfo(date,homeTeam,gameNumber,sportId){
 async function getGameInfo(date,homeTeam,gameNumber){
   const mlb=await tryGetGameInfo(date,homeTeam,gameNumber,1);
   if(mlb)return mlb;
-  const wbc=await tryGetGameInfo(date,homeTeam,gameNumber,51);
-  if(wbc)return wbc;
+  if(parseInt(date.slice(0,4))===2026){
+    const wbc=await tryGetGameInfo(date,homeTeam,gameNumber,51);
+    if(wbc)return wbc;
+  }
   throw new Error(`Game #${gameNumber} not found for ${homeTeam} on ${date} (tried MLB and WBC)`);
 }
-async function getBoxscoreData(gamePk){return fetch(`${MLB_API}/game/${gamePk}/boxscore`).then(r=>r.json());}
-async function getLinescoreData(gamePk){return fetch(`${MLB_API}/game/${gamePk}/linescore`).then(r=>r.json());}
+async function getBoxscoreData(gamePk){return cachedFetch(`${MLB_API}/game/${gamePk}/boxscore`);}
+async function getLinescoreData(gamePk){return cachedFetch(`${MLB_API}/game/${gamePk}/linescore`);}
 
 // ============================================================
 // PARSE BOXSCORE
@@ -825,22 +834,26 @@ function computePitching(rows){
 async function fetchAllGames(games){
   showStatus("Fetching games…",0);
   allHittingRaw=[];allPitchingRaw=[];gameList=[];scoreboardData=[];gameNotes={};
-  for(let i=0;i<games.length;i++){
-    const g=games[i];
-    setProgress(Math.round((i/games.length)*100));
-    try{
-      const monthNum=new Date(`${g.month} 1 ${g.year}`).getMonth()+1;
-      const date=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
-      setStatus(`[${i+1}/${games.length}] ${date} — ${g.homeTeam}`);
-      const{gamePk,gameType,homeTeamName,awayTeamName,sportId}=await getGameInfo(date,g.homeTeam,g.gameNumber);
-      const[box,ls]=await Promise.all([getBoxscoreData(gamePk),getLinescoreData(gamePk)]);
-      const{hittingRows,pitchingRows}=parseBoxscore(box,gamePk,g.year,gameType,homeTeamName,awayTeamName,sportId);
-      const sbEntry=parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,g.attendedWith||[],sportId);
-      sbEntry.date=date;sbEntry.year=g.year;
-      allHittingRaw.push(...hittingRows);allPitchingRaw.push(...pitchingRows);scoreboardData.push(sbEntry);
-      if(g.note)gameNotes[gamePk]=g.note;
-      gameList.push({...g,gamePk,gameType,homeTeamName,awayTeamName,sportId});
-    }catch(err){console.warn(`Skipped: ${g.homeTeam} — ${err.message}`);}
+  let completed=0;
+  const BATCH_SIZE=5;
+  async function fetchOne(g){
+    const monthNum=new Date(`${g.month} 1 ${g.year}`).getMonth()+1;
+    const date=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
+    setStatus(`[${completed+1}/${games.length}] ${date} — ${g.homeTeam}`);
+    const{gamePk,gameType,homeTeamName,awayTeamName,sportId}=await getGameInfo(date,g.homeTeam,g.gameNumber);
+    const[box,ls]=await Promise.all([getBoxscoreData(gamePk),getLinescoreData(gamePk)]);
+    const{hittingRows,pitchingRows}=parseBoxscore(box,gamePk,g.year,gameType,homeTeamName,awayTeamName,sportId);
+    const sbEntry=parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,g.attendedWith||[],sportId);
+    sbEntry.date=date;sbEntry.year=g.year;
+    allHittingRaw.push(...hittingRows);allPitchingRaw.push(...pitchingRows);scoreboardData.push(sbEntry);
+    if(g.note)gameNotes[gamePk]=g.note;
+    gameList.push({...g,gamePk,gameType,homeTeamName,awayTeamName,sportId});
+  }
+  for(let i=0;i<games.length;i+=BATCH_SIZE){
+    const batch=games.slice(i,i+BATCH_SIZE);
+    await Promise.allSettled(batch.map(g=>fetchOne(g).catch(err=>console.warn(`Skipped: ${g.homeTeam} — ${err.message}`))));
+    completed+=batch.length;
+    setProgress(Math.round((completed/games.length)*100));
   }
   setProgress(100);totalGameCount=games.length;
   if(!allHittingRaw.length&&!allPitchingRaw.length&&!scoreboardData.length){showError("No data could be retrieved.");return;}

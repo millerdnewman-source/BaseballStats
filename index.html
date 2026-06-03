@@ -1457,10 +1457,10 @@ function renderTables(hitting,pitching,gameCount,sbRows){
   document.getElementById('hittingTable').innerHTML=buildTableHTML(hitting,HITTING_COLS,HI_HIT,'hitting');
   document.getElementById('pitchingTable').innerHTML=buildTableHTML(pitching,PITCHING_COLS,HI_PIT,'pitching');
   hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1}});
-  setTimeout(function(){const w=$('#hittingTable tbody tr:first td:first').outerWidth();if(w){$('#hittingTable thead th:first').css('min-width',w+'px');}hittingDT.columns.adjust();},100);
+  setTimeout(function(){const w=$('#hittingTable tbody tr:first td:first').outerWidth();if(w){$('#hittingTable thead th:first').css('min-width',w+'px');}hittingDT.columns.adjust();},300);
 
   pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1}});
-  setTimeout(function(){const w=$('#pitchingTable tbody tr:first td:first').outerWidth();if(w){$('#pitchingTable thead th:first').css('min-width',w+'px');}pitchingDT.columns.adjust();},100);
+  setTimeout(function(){const w=$('#pitchingTable tbody tr:first td:first').outerWidth();if(w){$('#pitchingTable thead th:first').css('min-width',w+'px');}pitchingDT.columns.adjust();},300);
   
   const old=document.getElementById('player-search'),nw=old.cloneNode(true);
   old.parentNode.replaceChild(nw,old);

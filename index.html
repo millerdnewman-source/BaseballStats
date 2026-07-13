@@ -852,7 +852,7 @@ async function fetchAllGames(games){
   showStatus("Fetching games…",0);
   allHittingRaw=[];allPitchingRaw=[];gameList=[];scoreboardData=[];gameNotes={};
   let completed=0;
-  const CONCURRENCY=15; // number of games fetched in parallel at any given moment
+  const CONCURRENCY=10; // number of games fetched in parallel at any given moment
   async function fetchOne(g,label){
     const monthNum=new Date(`${g.month} 1 ${g.year}`).getMonth()+1;
     const date=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
@@ -1275,16 +1275,22 @@ function renderAttendance(sbRows){
   function thCls(ci){if(attSortCol!==ci)return'';return` ${attSortDir==='asc'?'sort-asc':'sort-desc'}`;}
   const thStadiums=stadiums.map((s,i)=>`<th class="att-stadium-header${thCls(i+1)}" onclick="sortAttendance(${i+1})" title="${escAttr(s)}"><div class="th-inner">${escHtml(s)}${sortArrow(i+1)}</div></th>`).join('');
   const totalThIdx=stadiums.length+1;
-  const thTotal=`<th class="total-col${thCls(totalThIdx)}" onclick="sortAttendance(${totalThIdx})">Total${sortArrow(totalThIdx)}</th>`;
-  const rows=dataRows.map(row=>{
+  const thTotal=`<th class="total-col${thCls(totalThIdx)}" onclick="sortAttendance(${totalThIdx})">Total${sortArrow(totalThIdx)}</th>`;const rows=dataRows.map(row=>{
     const cells=row.values.map((v,si)=>{
       if(v>0){const gj=JSON.stringify(row.games[si].map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));return`<td class="att-cell-filled" style="cursor:pointer;" onclick="handleAttCellClick(this)" data-person="${escAttr(row.name)}" data-stadium="${escAttr(stadiums[si])}" data-games="${escAttr(gj)}">${v}</td>`;}
       return`<td class="att-cell-empty">·</td>`;
     }).join('');
-    return`<tr><td>${escHtml(row.name)}</td>${cells}<td class="att-total">${row.total}</td></tr>`;
+    const seenPk=new Set(),personGames=[];
+    for(const arr of row.games)for(const g of arr){if(!seenPk.has(g.gamePk)){seenPk.add(g.gamePk);personGames.push(g);}}
+    const personGj=JSON.stringify(personGames.map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));
+    return`<tr><td>${escHtml(row.name)}</td>${cells}<td class="att-total" style="cursor:pointer;" onclick="handleAttTotalClick(this)" data-person="${escAttr(row.name)}" data-games="${escAttr(personGj)}">${row.total}</td></tr>`;
   }).join('');
-  const totalCells=stadiums.map(s=>`<td style="color:var(--muted);font-size:0.7rem;">${stadiumTotals[s]}</td>`).join('');
-  wrap.innerHTML=filterBar+`<div class="att-section-label">Games attended with each person, by stadium · Click headers to sort · Hover cells to see games</div><table class="attendance-table" id="att-table"><thead><tr><th style="cursor:default;vertical-align:bottom;">Person</th>${thStadiums}${thTotal}</tr></thead><tbody>${rows}<tr style="border-top:1px solid var(--border)"><td style="color:var(--muted);font-size:0.7rem;">Games at stadium</td>${totalCells}<td class="att-total">${filteredSb.length}</td></tr></tbody></table><div class="att-note">Numbers show how many games at each stadium you attended with that person.</div>`;
+const totalCells=stadiums.map(s=>{
+    const gj=JSON.stringify((attStadiumGames[s]||[]).map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));
+    return`<td style="color:var(--muted);font-size:0.7rem;cursor:pointer;" onclick="handleAttStadiumTotalClick(this)" data-stadium="${escAttr(s)}" data-games="${escAttr(gj)}">${stadiumTotals[s]}</td>`;
+  }).join('');
+  const grandGj=JSON.stringify(filteredSb.map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));
+  wrap.innerHTML=filterBar+`<div class="att-section-label">Games attended with each person, by stadium · Click headers to sort · Hover cells to see games</div><table class="attendance-table" id="att-table"><thead><tr><th style="cursor:default;vertical-align:bottom;">Person</th>${thStadiums}${thTotal}</tr></thead><tbody>${rows}<tr style="border-top:1px solid var(--border)"><td style="color:var(--muted);font-size:0.7rem;">Games at stadium</td>${totalCells}<td class="att-total" style="cursor:pointer;" onclick="handleAttGrandTotalClick(this)" data-games="${escAttr(grandGj)}">${filteredSb.length}</td></tr></tbody></table><div class="att-note">Numbers show how many games at each stadium you attended with that person.</div>`;
 }
 function setAttTeamFilter(val){attTeamFilter=val;const{sb}=getFilteredRows();renderAttendance(sb);}
 function sortAttendance(colIdx){
@@ -1324,13 +1330,27 @@ function renderPersonalGameStats(sbRows){
   for(const d of days)dayTotals[d]=stadiums.reduce((acc,s)=>acc+matrix[s][d],0);
   stadiums.sort((a,b)=>stadiumTotals[b]-stadiumTotals[a]);
   const thDays=days.map(d=>`<th>${DAY_NAMES[d].slice(0,3)}<span style="display:block;font-size:0.55rem;font-weight:400;color:rgba(90,101,120,0.7)">${DAY_NAMES[d].slice(3)}</span></th>`).join('');
-  const dataRows=stadiums.map(s=>{const cells=days.map(d=>{const v=matrix[s][d];if(v>0){const gamesForCell=filteredSb.filter(g=>{const di=new Date(g.date+'T12:00:00').getDay();return getStadium(g.homeTeamName)===s&&di===d;});const gj=JSON.stringify(gamesForCell.map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));return`<td class="personal-cell-filled" style="cursor:pointer;" onclick="handlePersonalCellClick(this)" data-label="${escAttr(s+' · '+DAY_NAMES[d])}" data-games="${escAttr(gj)}">${v}</td>`;}return`<td class="personal-cell-empty">·</td>`;}).join('');return`<tr><td title="${escAttr(s)}">${escHtml(s.length>22?s.slice(0,21)+'…':s)}</td>${cells}<td class="personal-total-col">${stadiumTotals[s]}</td></tr>`;}).join('');
-  const totalCells=days.map(d=>{const v=dayTotals[d];return`<td class="${v>0?'personal-cell-filled':'personal-cell-empty'}" style="font-size:0.7rem;">${v>0?v:'·'}</td>`;}).join('');
+  const dataRows=stadiums.map(s=>{
+    const cells=days.map(d=>{const v=matrix[s][d];if(v>0){const gamesForCell=filteredSb.filter(g=>{const di=new Date(g.date+'T12:00:00').getDay();return getStadium(g.homeTeamName)===s&&di===d;});const gj=JSON.stringify(gamesForCell.map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));return`<td class="personal-cell-filled" style="cursor:pointer;" onclick="handlePersonalCellClick(this)" data-label="${escAttr(s+' · '+DAY_NAMES[d])}" data-games="${escAttr(gj)}">${v}</td>`;}return`<td class="personal-cell-empty">·</td>`;}).join('');
+    const stadiumGames=filteredSb.filter(g=>getStadium(g.homeTeamName)===s);
+    const stadiumGj=JSON.stringify(stadiumGames.map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));
+    return`<tr><td title="${escAttr(s)}">${escHtml(s.length>22?s.slice(0,21)+'…':s)}</td>${cells}<td class="personal-total-col" style="cursor:pointer;" onclick="handlePersonalStadiumTotalClick(this)" data-stadium="${escAttr(s)}" data-games="${escAttr(stadiumGj)}">${stadiumTotals[s]}</td></tr>`;
+  }).join('');
+  const totalCells=days.map(d=>{
+    const v=dayTotals[d];
+    if(v>0){
+      const dayGames=filteredSb.filter(g=>new Date(g.date+'T12:00:00').getDay()===d);
+      const dayGj=JSON.stringify(dayGames.map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));
+      return`<td class="personal-cell-filled" style="font-size:0.7rem;cursor:pointer;" onclick="handlePersonalDayTotalClick(this)" data-day="${escAttr(DAY_NAMES[d])}" data-games="${escAttr(dayGj)}">${v}</td>`;
+    }
+    return`<td class="personal-cell-empty" style="font-size:0.7rem;">·</td>`;
+  }).join('');
+  const grandGj=JSON.stringify(filteredSb.map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));
   const dayStadiumTable=`<div class="personal-section">
     <div class="personal-section-title">Games by Stadium & Day of Week</div>
     <div class="personal-section-sub">Each cell shows how many games you attended at that stadium on that day</div>
     <table class="personal-table"><thead><tr><th>Stadium</th>${thDays}<th class="personal-total-col">Total</th></tr></thead>
-    <tbody>${dataRows}<tr class="personal-total-row"><td>Total</td>${totalCells}<td class="personal-total-col">${filteredSb.length}</td></tr></tbody></table>
+    <tbody>${dataRows}<tr class="personal-total-row"><td>Total</td>${totalCells}<td class="personal-total-col" style="cursor:pointer;" onclick="handlePersonalGrandTotalClick(this)" data-games="${escAttr(grandGj)}">${filteredSb.length}</td></tr></tbody></table>
     <div class="personal-note">Rows = stadiums visited · Columns = day of week · Values = games attended</div>
   </div>`;
   const monthGameMap={};
@@ -1597,6 +1617,64 @@ function handleAttCellClick(cell) {
   try { games = JSON.parse(cell.dataset.games); } catch(e) {}
   openGamesDetail(
     `${escHtml(person)} <span>at ${escHtml(stadium)}</span>`,
+    `${games.length} game${games.length !== 1 ? 's' : ''}`,
+    games
+  );
+}
+function handleAttTotalClick(cell) {
+  const person = cell.dataset.person;
+  let games = [];
+  try { games = JSON.parse(cell.dataset.games); } catch(e) {}
+  openGamesDetail(
+    `${escHtml(person)} <span>— All Games</span>`,
+    `${games.length} game${games.length !== 1 ? 's' : ''}`,
+    games
+  );
+}
+function handleAttStadiumTotalClick(cell) {
+  const stadium = cell.dataset.stadium;
+  let games = [];
+  try { games = JSON.parse(cell.dataset.games); } catch(e) {}
+  openGamesDetail(
+    `${escHtml(stadium)} <span>— All Games</span>`,
+    `${games.length} game${games.length !== 1 ? 's' : ''}`,
+    games
+  );
+}
+function handleAttGrandTotalClick(cell) {
+  let games = [];
+  try { games = JSON.parse(cell.dataset.games); } catch(e) {}
+  openGamesDetail(
+    `All <span>Games</span>`,
+    `${games.length} game${games.length !== 1 ? 's' : ''}`,
+    games
+  );
+}
+function handlePersonalStadiumTotalClick(cell) {
+  const stadium = cell.dataset.stadium;
+  let games = [];
+  try { games = JSON.parse(cell.dataset.games); } catch(e) {}
+  openGamesDetail(
+    `${escHtml(stadium)} <span>— All Games</span>`,
+    `${games.length} game${games.length !== 1 ? 's' : ''}`,
+    games
+  );
+}
+function handlePersonalDayTotalClick(cell) {
+  const day = cell.dataset.day;
+  let games = [];
+  try { games = JSON.parse(cell.dataset.games); } catch(e) {}
+  openGamesDetail(
+    `${escHtml(day)} <span>— All Games</span>`,
+    `${games.length} game${games.length !== 1 ? 's' : ''}`,
+    games
+  );
+}
+function handlePersonalGrandTotalClick(cell) {
+  let games = [];
+  try { games = JSON.parse(cell.dataset.games); } catch(e) {}
+  openGamesDetail(
+    `All <span>Games</span>`,
     `${games.length} game${games.length !== 1 ? 's' : ''}`,
     games
   );

@@ -322,7 +322,7 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
 <body>
 <header>
   <div><h1>Baseball Stats <span style="color:var(--accent)">///</span></h1></div>
-  <div class="header-sub"><span class="accent-dot"></span>MLB Boxscore Aggregator</div>
+  <div class="header-sub"><span class="accent-dot"></span>MLB Boxscore Aggregator 2021-Present</div>
 </header>
 <main>
   <div id="loading-section">
@@ -836,7 +836,7 @@ async function fetchAllGames(games){
   showStatus("Fetching games…",0);
   allHittingRaw=[];allPitchingRaw=[];gameList=[];scoreboardData=[];gameNotes={};
   let completed=0;
-  const CONCURRENCY=20; // number of games fetched in parallel at any given moment
+  const CONCURRENCY=16; // number of games fetched in parallel at any given moment
   async function fetchOne(g,label){
     const monthNum=new Date(`${g.month} 1 ${g.year}`).getMonth()+1;
     const date=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;

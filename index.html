@@ -472,12 +472,28 @@ const SHEET_GID = '0';
 const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
 const MLB_API = "https://statsapi.mlb.com/api/v1";
 const API_CACHE = {};
-async function cachedFetch(url) {
-  if (API_CACHE[url]) return API_CACHE[url];
-  const data = await fetch(url).then(r => r.json());
-  API_CACHE[url] = data;
-  return data;
-}  
+async function cachedFetch(url, retries = 3) {
+  if (API_CACHE[url]) return API_CACHE[url]; // may be a pending promise OR resolved data
+  const promise = (async () => {
+    let lastErr;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return await resp.json();
+      } catch (err) {
+        lastErr = err;
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, 300 * Math.pow(2, attempt)));
+        }
+      }
+    }
+    delete API_CACHE[url];
+    throw lastErr;
+  })();
+  API_CACHE[url] = promise;
+  return promise;
+}
 const WBC_SPORT_ID = 51;
 
 // ============================================================
@@ -836,7 +852,7 @@ async function fetchAllGames(games){
   showStatus("Fetching games…",0);
   allHittingRaw=[];allPitchingRaw=[];gameList=[];scoreboardData=[];gameNotes={};
   let completed=0;
-  const CONCURRENCY=20; // number of games fetched in parallel at any given moment
+  const CONCURRENCY=15; // number of games fetched in parallel at any given moment
   async function fetchOne(g,label){
     const monthNum=new Date(`${g.month} 1 ${g.year}`).getMonth()+1;
     const date=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;

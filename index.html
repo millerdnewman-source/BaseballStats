@@ -1255,7 +1255,6 @@ function renderAttendance(sbRows){
     else{va=a.total;vb=b.total;}
     return attSortDir==='asc'?va-vb:vb-va;
   });
-  }
   function sortArrow(ci){if(attSortCol!==ci)return'<span class="sort-arrow">↕</span>';return`<span class="sort-arrow">${attSortDir==='asc'?'↑':'↓'}</span>`;}
   function thCls(ci){if(attSortCol!==ci)return'';return` ${attSortDir==='asc'?'sort-asc':'sort-desc'}`;}
   const thStadiums=stadiums.map((s,i)=>`<th class="att-stadium-header${thCls(i+1)}" onclick="sortAttendance(${i+1})" title="${escAttr(s)}"><div class="th-inner">${escHtml(s)}${sortArrow(i+1)}</div></th>`).join('');

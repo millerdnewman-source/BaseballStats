@@ -836,11 +836,11 @@ async function fetchAllGames(games){
   showStatus("Fetching games…",0);
   allHittingRaw=[];allPitchingRaw=[];gameList=[];scoreboardData=[];gameNotes={};
   let completed=0;
-  const BATCH_SIZE=5;
-  async function fetchOne(g){
+  const CONCURRENCY=16; // number of games fetched in parallel at any given moment
+  async function fetchOne(g,label){
     const monthNum=new Date(`${g.month} 1 ${g.year}`).getMonth()+1;
     const date=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
-    setStatus(`[${completed+1}/${games.length}] ${date} — ${g.homeTeam}`);
+    setStatus(`[${label}/${games.length}] ${date} — ${g.homeTeam}`);
     const{gamePk,gameType,homeTeamName,awayTeamName,sportId}=await getGameInfo(date,g.homeTeam,g.gameNumber);
     const[box,ls]=await Promise.all([getBoxscoreData(gamePk),getLinescoreData(gamePk)]);
     const{hittingRows,pitchingRows}=parseBoxscore(box,gamePk,g.year,gameType,homeTeamName,awayTeamName,sportId);
@@ -850,15 +850,26 @@ async function fetchAllGames(games){
     if(g.note)gameNotes[gamePk]=g.note;
     gameList.push({...g,gamePk,gameType,homeTeamName,awayTeamName,sportId});
   }
-  for(let i=0;i<games.length;i+=BATCH_SIZE){
-    const batch=games.slice(i,i+BATCH_SIZE);
-    await Promise.allSettled(batch.map(g=>fetchOne(g).catch(err=>console.warn(`Skipped: ${g.homeTeam} — ${err.message}`))));
-    completed+=batch.length;
-    setProgress(Math.round((completed/games.length)*100));
+  let nextIndex=0;
+  async function worker(){
+    while(nextIndex<games.length){
+      const idx=nextIndex++;
+      const g=games[idx];
+      try{
+        await fetchOne(g,idx+1);
+      }catch(err){
+        console.warn(`Skipped: ${g.homeTeam} — ${err.message}`);
+      }
+      completed++;
+      setProgress(Math.round((completed/games.length)*100));
+    }
   }
+  const workerCount=Math.min(CONCURRENCY,games.length);
+  await Promise.all(Array.from({length:workerCount},()=>worker()));
   setProgress(100);totalGameCount=games.length;
   if(!allHittingRaw.length&&!allPitchingRaw.length&&!scoreboardData.length){showError("No data could be retrieved.");return;}
   initFiltersAndRender();
+}
 }
 async function fetchSingleGame(date,homeTeam,gameNumber,overrideType,attendedWith,note){
   const{gamePk,gameType:detectedType,homeTeamName,awayTeamName,sportId}=await getGameInfo(date,homeTeam,gameNumber);

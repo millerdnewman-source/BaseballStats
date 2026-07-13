@@ -1247,14 +1247,14 @@ function renderAttendance(sbRows){
   for(const p of people)personTotals[p]=stadiums.reduce((s,st)=>s+(psc[p][st]||0),0);
   for(const s of stadiums)stadiumTotals[s]=stadiumGameMap[s].size;
   let dataRows=people.map(p=>({name:p,values:stadiums.map(s=>psc[p][s]||0),games:stadiums.map(s=>pscGames[p][s]||[]),total:personTotals[p]}));
-  if(attSortCol!==null){
-    dataRows.sort((a,b)=>{
-      let va,vb;
-      if(attSortCol===0){va=a.name;vb=b.name;return attSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);}
-      else if(attSortCol<=stadiums.length){va=a.values[attSortCol-1];vb=b.values[attSortCol-1];}
-      else{va=a.total;vb=b.total;}
-      return attSortDir==='asc'?va-vb:vb-va;
-    });
+  dataRows.sort((a,b)=>{
+    if(attSortCol===null)return b.total-a.total; // default: sort by Total desc until user picks a column
+    let va,vb;
+    if(attSortCol===0){va=a.name;vb=b.name;return attSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);}
+    else if(attSortCol<=stadiums.length){va=a.values[attSortCol-1];vb=b.values[attSortCol-1];}
+    else{va=a.total;vb=b.total;}
+    return attSortDir==='asc'?va-vb:vb-va;
+  });
   }
   function sortArrow(ci){if(attSortCol!==ci)return'<span class="sort-arrow">↕</span>';return`<span class="sort-arrow">${attSortDir==='asc'?'↑':'↓'}</span>`;}
   function thCls(ci){if(attSortCol!==ci)return'';return` ${attSortDir==='asc'?'sort-asc':'sort-desc'}`;}
@@ -1307,6 +1307,7 @@ function renderPersonalGameStats(sbRows){
   const stadiumTotals={},dayTotals={};
   for(const s of stadiums)stadiumTotals[s]=days.reduce((acc,d)=>acc+matrix[s][d],0);
   for(const d of days)dayTotals[d]=stadiums.reduce((acc,s)=>acc+matrix[s][d],0);
+  stadiums.sort((a,b)=>stadiumTotals[b]-stadiumTotals[a]);
   const thDays=days.map(d=>`<th>${DAY_NAMES[d].slice(0,3)}<span style="display:block;font-size:0.55rem;font-weight:400;color:rgba(90,101,120,0.7)">${DAY_NAMES[d].slice(3)}</span></th>`).join('');
   const dataRows=stadiums.map(s=>{const cells=days.map(d=>{const v=matrix[s][d];if(v>0){const gamesForCell=filteredSb.filter(g=>{const di=new Date(g.date+'T12:00:00').getDay();return getStadium(g.homeTeamName)===s&&di===d;});const gj=JSON.stringify(gamesForCell.map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));return`<td class="personal-cell-filled" style="cursor:pointer;" onclick="handlePersonalCellClick(this)" data-label="${escAttr(s+' · '+DAY_NAMES[d])}" data-games="${escAttr(gj)}">${v}</td>`;}return`<td class="personal-cell-empty">·</td>`;}).join('');return`<tr><td title="${escAttr(s)}">${escHtml(s.length>22?s.slice(0,21)+'…':s)}</td>${cells}<td class="personal-total-col">${stadiumTotals[s]}</td></tr>`;}).join('');
   const totalCells=days.map(d=>{const v=dayTotals[d];return`<td class="${v>0?'personal-cell-filled':'personal-cell-empty'}" style="font-size:0.7rem;">${v>0?v:'·'}</td>`;}).join('');

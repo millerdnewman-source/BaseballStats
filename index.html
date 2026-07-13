@@ -836,7 +836,7 @@ async function fetchAllGames(games){
   showStatus("Fetching games…",0);
   allHittingRaw=[];allPitchingRaw=[];gameList=[];scoreboardData=[];gameNotes={};
   let completed=0;
-  const CONCURRENCY=16; // number of games fetched in parallel at any given moment
+  const CONCURRENCY=30; // number of games fetched in parallel at any given moment
   async function fetchOne(g,label){
     const monthNum=new Date(`${g.month} 1 ${g.year}`).getMonth()+1;
     const date=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
@@ -869,7 +869,6 @@ async function fetchAllGames(games){
   setProgress(100);totalGameCount=games.length;
   if(!allHittingRaw.length&&!allPitchingRaw.length&&!scoreboardData.length){showError("No data could be retrieved.");return;}
   initFiltersAndRender();
-}
 }
 async function fetchSingleGame(date,homeTeam,gameNumber,overrideType,attendedWith,note){
   const{gamePk,gameType:detectedType,homeTeamName,awayTeamName,sportId}=await getGameInfo(date,homeTeam,gameNumber);

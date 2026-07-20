@@ -360,10 +360,10 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
         <div class="filter-group" id="gametype-filter-group" style="display:none;">
           <span class="filter-label">Games</span>
           <div style="display:flex;gap:6px;">
-            <label class="pill-btn active" id="gt-all"      onclick="toggleGameType('all')"><input type="checkbox" checked>All</label>
-            <label class="pill-btn"        id="gt-regular"  onclick="toggleGameType('regular')"><input type="checkbox">Regular Season</label>
-            <label class="pill-btn"        id="gt-playoffs" onclick="toggleGameType('playoffs')"><input type="checkbox">Playoffs</label>
-            <label class="pill-btn"        id="gt-wbc"      onclick="toggleGameType('wbc')" style="display:none;"><input type="checkbox">WBC</label>
+            <label class="pill-btn active" id="gt-all"><input type="checkbox" checked onclick="toggleGameType('all')">All</label>
+              <label class="pill-btn"        id="gt-regular"><input type="checkbox" onclick="toggleGameType('regular')">Regular Season</label>
+              <label class="pill-btn"        id="gt-playoffs"><input type="checkbox" onclick="toggleGameType('playoffs')">Playoffs</label>
+              <label class="pill-btn"        id="gt-wbc"      style="display:none;"><input type="checkbox" onclick="toggleGameType('wbc')">WBC</label>
           </div>
         </div>
         <div class="filter-group" id="attendee-filter-group">
@@ -942,14 +942,14 @@ function buildOpponentList(){
 }
 function buildYearButtons(){
   document.getElementById('year-btns').innerHTML=['All',...availableYears].map(y=>
-    `<label class="pill-btn${selectedYears.has(y)?' active':''}" onclick="toggleYear(${y==='All'?"'All'":y})"><input type="checkbox"${selectedYears.has(y)?' checked':''}>${y}</label>`).join('');
+    `<label class="pill-btn${selectedYears.has(y)?' active':''}"><input type="checkbox"${selectedYears.has(y)?' checked':''} onclick="toggleYear(${y==='All'?"'All'":y})">${y}</label>`).join('');
   document.getElementById('year-filter-group').style.display=availableYears.length<=1?'none':'flex';
 }
 function buildMonthButtons(){
   if(!availableMonths.length){document.getElementById('month-filter-group').style.display='none';return;}
   document.getElementById('month-btns').innerHTML=
-    `<label class="pill-btn${selectedMonths.has('All')?' active':''}" onclick="toggleMonth('All')"><input type="checkbox"${selectedMonths.has('All')?' checked':''}>All</label>`+
-    availableMonths.map(m=>`<label class="pill-btn${selectedMonths.has(m)?' active':''}" onclick="toggleMonth(${m})"><input type="checkbox"${selectedMonths.has(m)?' checked':''}>${MONTH_SHORT[m]}</label>`).join('');
+    `<label class="pill-btn${selectedMonths.has('All')?' active':''}"><input type="checkbox"${selectedMonths.has('All')?' checked':''} onclick="toggleMonth('All')">All</label>`+
+    availableMonths.map(m=>`<label class="pill-btn${selectedMonths.has(m)?' active':''}"><input type="checkbox"${selectedMonths.has(m)?' checked':''} onclick="toggleMonth(${m})">${MONTH_SHORT[m]}</label>`).join('');
   document.getElementById('month-filter-group').style.display='flex';
 }
 function updateGameTypeButtons(){

@@ -1430,12 +1430,6 @@ function renderPersonalGameStats(sbRows){
       <div style="display:flex;gap:6px;flex-wrap:wrap;">${cells}</div>
     </div>`;
   }
-    }).join('');
-    heatmapHTML+=`<div style="margin-bottom:16px;">
-      <div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">${yr}</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">${cells}</div>
-    </div>`;
-  }
   const legendSwatches=[0,0.25,0.5,0.75,1].map(t=>{
     const v=Math.round(t*maxMonthCount);
     return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:28px;height:20px;border-radius:3px;background:${heatmapColor(v,maxMonthCount)};"></div><span style="font-size:0.55rem;">${v}</span></div>`;

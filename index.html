@@ -197,6 +197,7 @@ table.stats-dt tbody td.hi-stat{color:var(--accent2);}
 .scoreboard-table .winner-row td:first-child{color:var(--accent);}
 .scoreboard-table .divider-col{border-left:1px solid var(--border);}
 .scoreboard-attendees{padding:8px 16px;border-top:1px solid var(--border);font-size:0.68rem;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.scoreboard-decisions{padding:8px 16px;border-top:1px solid var(--border);font-size:0.7rem;color:var(--text);font-family:var(--mono);display:flex;align-items:center;flex-wrap:wrap;}
 .scoreboard-attendees strong{color:var(--text);font-weight:400;}
 .attendee-tag{display:inline-block;background:rgba(74,240,200,0.1);color:var(--accent2);border:1px solid rgba(74,240,200,0.2);border-radius:3px;padding:1px 7px;font-size:0.64rem;margin:1px 2px;letter-spacing:0.04em;}
 .scoreboard-notes{padding:8px 16px;border-top:1px solid var(--border);font-size:0.68rem;color:var(--muted);display:flex;align-items:flex-start;gap:8px;}
@@ -718,7 +719,12 @@ async function getGameInfo(date,homeTeam,gameNumber){
 }
 async function getBoxscoreData(gamePk){return cachedFetch(`${MLB_API}/game/${gamePk}/boxscore`);}
 async function getLinescoreData(gamePk){return cachedFetch(`${MLB_API}/game/${gamePk}/linescore`);}
-
+async function getDecisionsData(gamePk){
+  try{
+    const json=await cachedFetch(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`);
+    return json?.liveData?.decisions||null;
+  }catch(e){return null;}
+}
 // ============================================================
 // PARSE BOXSCORE
 // ============================================================
@@ -749,10 +755,10 @@ function parseBoxscore(box,gamePk,year,gameType,homeTeamName,awayTeamName,sportI
   }
   return{hittingRows,pitchingRows};
 }
-function parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,attendedWith,sportId){
+function parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,attendedWith,sportId,decisions){
   const innings=ls.innings||[];
   return{
-    gamePk,gameType,sportId,homeTeamName,awayTeamName,attendedWith,
+    gamePk,gameType,sportId,homeTeamName,awayTeamName,attendedWith,decisions:decisions||null,
     homeScores:innings.map(i=>i.home?.runs??''),awayScores:innings.map(i=>i.away?.runs??''),
     homeR:ls.teams?.home?.runs??0,awayR:ls.teams?.away?.runs??0,
     homeH:ls.teams?.home?.hits??0,awayH:ls.teams?.away?.hits??0,
@@ -859,9 +865,9 @@ async function fetchAllGames(games){
     const date=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
     setStatus(`[${label}/${games.length}] ${date} — ${g.homeTeam}`);
     const{gamePk,gameType,homeTeamName,awayTeamName,sportId}=await getGameInfo(date,g.homeTeam,g.gameNumber);
-    const[box,ls]=await Promise.all([getBoxscoreData(gamePk),getLinescoreData(gamePk)]);
+    const[box,ls,decisions]=await Promise.all([getBoxscoreData(gamePk),getLinescoreData(gamePk),getDecisionsData(gamePk)]);
     const{hittingRows,pitchingRows}=parseBoxscore(box,gamePk,g.year,gameType,homeTeamName,awayTeamName,sportId);
-    const sbEntry=parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,g.attendedWith||[],sportId);
+    const sbEntry=parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,g.attendedWith||[],sportId,decisions);
     sbEntry.date=date;sbEntry.year=g.year;
     allHittingRaw.push(...hittingRows);allPitchingRaw.push(...pitchingRows);scoreboardData.push(sbEntry);
     if(g.note)gameNotes[gamePk]=g.note;
@@ -892,9 +898,9 @@ async function fetchSingleGame(date,homeTeam,gameNumber,overrideType,attendedWit
   const gameType=(overrideType&&overrideType!=='auto')?overrideType:detectedType;
   const parts=date.split('-');
   const year=parseInt(parts[0]),month=MONTH_NAMES[parseInt(parts[1])-1],day=parseInt(parts[2]);
-  const[box,ls]=await Promise.all([getBoxscoreData(gamePk),getLinescoreData(gamePk)]);
+  const[box,ls,decisions]=await Promise.all([getBoxscoreData(gamePk),getLinescoreData(gamePk),getDecisionsData(gamePk)]);
   const{hittingRows,pitchingRows}=parseBoxscore(box,gamePk,year,gameType,homeTeamName,awayTeamName,sportId);
-  const sbEntry=parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,attendedWith||[],sportId);
+  const sbEntry=parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,attendedWith||[],sportId,decisions);
   sbEntry.date=date;sbEntry.year=year;
   allHittingRaw.push(...hittingRows);allPitchingRaw.push(...pitchingRows);scoreboardData.push(sbEntry);
   if(note&&note.trim())gameNotes[gamePk]=note.trim();
@@ -1233,11 +1239,17 @@ function renderScoreboardCard(g){
   const playoffBadge=isPlayoff(g.gameType)?`<span class="playoff-badge">${gameTypeName(g.gameType)}</span>`:'';
   const wbcBadge=wbc?`<span class="wbc-badge">WBC</span>`:'';
   const awayAbbr=getAbbr(g.awayTeamName),homeAbbr=getAbbr(g.homeTeamName);
+  const dec=g.decisions||{};
+  const decParts=[];
+  if(dec.winner?.fullName)decParts.push(`<span style="color:var(--accent)">W:</span> ${escHtml(dec.winner.fullName)}`);
+  if(dec.loser?.fullName)decParts.push(`<span style="color:var(--red)">L:</span> ${escHtml(dec.loser.fullName)}`);
+  if(dec.save?.fullName)decParts.push(`<span style="color:var(--gold)">SV:</span> ${escHtml(dec.save.fullName)}`);
+  const decisionsRow=decParts.length?`<div class="scoreboard-decisions">${decParts.join('<span style="margin:0 10px;color:var(--muted)">·</span>')}</div>`:'';
   const attendeeRow=(g.attendedWith||[]).length?`<div class="scoreboard-attendees"><strong>Attended with:</strong>${g.attendedWith.map(p=>`<span class="attendee-tag">${escHtml(p)}</span>`).join('')}</div>`:'';
   const noteRow=buildNoteRow(g.gamePk);
   const noteEditor=`<div class="scoreboard-note-editor" id="note-editor-${g.gamePk}"><textarea placeholder="Add a note about this game…"></textarea><div class="scoreboard-note-editor-actions"><button class="note-cancel-btn" onclick="cancelNote(${g.gamePk})">Cancel</button><button class="note-save-btn" onclick="saveNote(${g.gamePk})">Save Note</button></div></div>`;
   const searchKey=`${g.date} ${g.awayTeamName} ${g.homeTeamName} ${awayAbbr} ${homeAbbr}`.toLowerCase();
-  return`<div class="scoreboard-game" data-search="${escAttr(searchKey)}"><div class="scoreboard-header"><div class="date-info"><span>${g.date}</span>${playoffBadge}${wbcBadge}</div><span style="color:var(--text)">${escHtml(g.awayTeamName)} @ ${escHtml(g.homeTeamName)}</span></div><div class="scoreboard-table-wrap"><table class="scoreboard-table"><thead><tr><th></th>${thInn}<th class="divider-col" style="color:var(--accent)">R</th><th style="color:var(--accent2)">H</th><th style="color:var(--red)">E</th></tr></thead><tbody><tr class="${!homeWin?'winner-row':''}"><td>${awayAbbr}${!homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>${awayRow}<td class="divider-col total-r">${g.awayR}</td><td class="total-h">${g.awayH}</td><td class="total-e">${g.awayE}</td></tr><tr class="${homeWin?'winner-row':''}"><td>${homeAbbr}${homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>${homeRow}<td class="divider-col total-r">${g.homeR}</td><td class="total-h">${g.homeH}</td><td class="total-e">${g.homeE}</td></tr></tbody></table></div>${attendeeRow}${noteRow}${noteEditor}</div>`;
+  return`<div class="scoreboard-game" data-search="${escAttr(searchKey)}"><div class="scoreboard-header"><div class="date-info"><span>${g.date}</span>${playoffBadge}${wbcBadge}</div><span style="color:var(--text)">${escHtml(g.awayTeamName)} @ ${escHtml(g.homeTeamName)}</span></div><div class="scoreboard-table-wrap"><table class="scoreboard-table"><thead><tr><th></th>${thInn}<th class="divider-col" style="color:var(--accent)">R</th><th style="color:var(--accent2)">H</th><th style="color:var(--red)">E</th></tr></thead><tbody><tr class="${!homeWin?'winner-row':''}"><td>${awayAbbr}${!homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>${awayRow}<td class="divider-col total-r">${g.awayR}</td><td class="total-h">${g.awayH}</td><td class="total-e">${g.awayE}</td></tr><tr class="${homeWin?'winner-row':''}"><td>${homeAbbr}${homeWin?' <span style="color:var(--accent);font-size:0.65rem">▲</span>':''}</td>${homeRow}<td class="divider-col total-r">${g.homeR}</td><td class="total-h">${g.homeH}</td><td class="total-e">${g.homeE}</td></tr></tbody></table></div>${decisionsRow}${attendeeRow}${noteRow}${noteEditor}</div>`;
 }
 function gameTypeName(t){return{F:'Wild Card',D:'Division Series',L:'LCS',W:'World Series',C:'Championship',P:'Playoffs'}[t]||'Playoffs';}
 function filterScoreboard(val,updateInput){
@@ -1380,11 +1392,21 @@ function renderPersonalGameStats(sbRows){
     <div class="personal-note">Rows = stadiums visited · Columns = day of week · Values = games attended</div>
   </div>`;
   const monthGameMap={};
+  const yearsWithGames=new Set();
+  for(const g of filteredSb){
+    yearsWithGames.add(new Date(g.date+'T12:00:00').getFullYear());
+  }
+  // Pre-seed March (idx 2) through October (idx 9) for every year present, so they always show even at 0
+  for(const yr of yearsWithGames){
+    for(let m=2;m<=9;m++){
+      const key=`${yr}-${String(m+1).padStart(2,'0')}`;
+      monthGameMap[key]={label:`${MONTH_SHORT[m]} ${yr}`,count:0,games:[]};
+    }
+  }
   for(const g of filteredSb){
     const d=new Date(g.date+'T12:00:00');
     const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    const label=`${MONTH_SHORT[d.getMonth()]} ${d.getFullYear()}`;
-    if(!monthGameMap[key])monthGameMap[key]={label,count:0,games:[]};
+    if(!monthGameMap[key])monthGameMap[key]={label:`${MONTH_SHORT[d.getMonth()]} ${d.getFullYear()}`,count:0,games:[]};
     monthGameMap[key].count++;monthGameMap[key].games.push(g);
   }
   const monthKeys=Object.keys(monthGameMap).sort();

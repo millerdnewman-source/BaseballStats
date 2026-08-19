@@ -1413,17 +1413,20 @@ function renderPersonalGameStats(sbRows){
   const maxMonthCount=Math.max(...Object.values(monthGameMap).map(m=>m.count),1);
   const yearGroups={};
   for(const key of monthKeys){const yr=key.split('-')[0];if(!yearGroups[yr])yearGroups[yr]=[];yearGroups[yr].push(key);}
-  let heatmapHTML='';
-  for(const yr of Object.keys(yearGroups).sort()){
-    const months=yearGroups[yr];
-    const cells=months.map(key=>{
-      const m=monthGameMap[key];
-      const bg=heatmapColor(m.count,maxMonthCount);
-      const textColor=m.count>maxMonthCount*0.6?'#0a0c0f':'var(--text)';
-      return`<div style="flex:1;min-width:48px;max-width:80px;background:${bg};border-radius:4px;padding:10px 6px;text-align:center;cursor:default;" title="${m.label}: ${m.count} game${m.count!==1?'s':''}">
-        <div style="font-family:var(--display);font-size:1.3rem;color:${textColor};line-height:1;">${m.count}</div>
-        <div style="font-family:var(--mono);font-size:0.58rem;color:${m.count>maxMonthCount*0.6?'rgba(10,12,15,0.7)':'var(--muted)'};margin-top:3px;">${m.label.split(' ')[0]}</div>
-      </div>`;
+  const heatmapYears=Object.keys(yearGroups).sort();
+  const heatmapMonthOrder=[2,3,4,5,6,7,8,9]; // Mar–Oct
+  const heatmapTheadCells=heatmapMonthOrder.map(m=>`<th style="font-size:0.58rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;padding:6px 4px;text-align:center;">${MONTH_SHORT[m]}</th>`).join('');
+  const heatmapRows=heatmapYears.map(yr=>{
+    const cells=heatmapMonthOrder.map(m=>{
+      const key=`${yr}-${String(m+1).padStart(2,'0')}`;
+      const entry=monthGameMap[key]||{count:0,label:`${MONTH_SHORT[m]} ${yr}`};
+      const bg=heatmapColor(entry.count,maxMonthCount);
+      const textColor=entry.count>maxMonthCount*0.6?'#0a0c0f':'var(--text)';
+      return`<td style="background:${bg};color:${textColor};text-align:center;padding:10px 4px;border-radius:3px;font-family:var(--display);font-size:1.1rem;line-height:1;cursor:default;" title="${entry.label}: ${entry.count} game${entry.count!==1?'s':''}">${entry.count}</td>`;
+    }).join('');
+    return`<tr><td style="text-align:left;font-family:var(--mono);font-size:0.7rem;color:var(--muted);padding:8px 12px 8px 0;white-space:nowrap;">${yr}</td>${cells}</tr>`;
+  }).join('');
+  const heatmapHTML=`<table style="border-collapse:separate;border-spacing:4px;"><thead><tr><th style="text-align:left;padding:4px 12px 4px 0;font-size:0.58rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">Year</th>${heatmapTheadCells}</tr></thead><tbody>${heatmapRows}</tbody></table>`;
     }).join('');
     heatmapHTML+=`<div style="margin-bottom:16px;">
       <div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">${yr}</div>

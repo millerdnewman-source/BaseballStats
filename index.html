@@ -588,7 +588,7 @@ const WOBA_WEIGHTS     = { bb:0.690, hbp:0.722, single:0.888, double:1.271, trip
 const WOBA_SCALE       = 1.157;
 const LG_WOBA_FALLBACK = 0.317; // used only when no data is available
 
-function isPlayoff(t){return PLAYOFF_TYPES.has(t);}
+function isPlayoff(t,sportId){return PLAYOFF_TYPES.has(t) && sportId!==WBC_SPORT_ID;}
 function isWBC(sportId){return sportId===WBC_SPORT_ID;}
 
 function getAbbr(teamName){
@@ -917,7 +917,7 @@ function initFiltersAndRender(){
   const monthSet=new Set(scoreboardData.map(r=>{const m=new Date(r.date+'T12:00:00').getMonth();return m;}));
   availableMonths=[...monthSet].sort((a,b)=>a-b);
   selectedYears=new Set(['All']);selectedMonths=new Set(['All']);selectedGameTypes=new Set(['all']);selectedOpponent='All';
-  hasPlayoffGames=allHittingRaw.some(r=>isPlayoff(r.gameType))||allPitchingRaw.some(r=>isPlayoff(r.gameType));
+  hasPlayoffGames=allHittingRaw.some(r=>isPlayoff(r.gameType,r.sportId))||allPitchingRaw.some(r=>isPlayoff(r.gameType,r.sportId));
   hasWBCGames=scoreboardData.some(r=>r.sportId===WBC_SPORT_ID);
   buildOpponentList();buildYearButtons();buildMonthButtons();updateGameTypeButtons();
   document.getElementById('gametype-filter-group').style.display=(hasPlayoffGames||hasWBCGames)?'flex':'none';
@@ -982,8 +982,8 @@ function getFilteredRows(){
   }
   if(!selectedGameTypes.has('all')){
     const typeMatch=(gameType,sportId)=>{
-      if(selectedGameTypes.has('regular')&&!isPlayoff(gameType)&&sportId!==WBC_SPORT_ID)return true;
-      if(selectedGameTypes.has('playoffs')&&isPlayoff(gameType))return true;
+      if(selectedGameTypes.has('regular')&&!isPlayoff(gameType,sportId)&&sportId!==WBC_SPORT_ID)return true;
+      if(selectedGameTypes.has('playoffs')&&isPlayoff(gameType,sportId))return true;
       if(selectedGameTypes.has('wbc')&&sportId===WBC_SPORT_ID)return true;
       return false;
     };
@@ -1041,7 +1041,7 @@ function renderGameList(){
   tbody.innerHTML=gameList.map((g,i)=>{
     const monthNum=MONTH_NAMES.indexOf(g.month)+1;
     const dateStr=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
-    const playoff=isPlayoff(g.gameType),wbc=g.sportId===WBC_SPORT_ID;
+    const playoff=isPlayoff(g.gameType,g.sportId),wbc=g.sportId===WBC_SPORT_ID;
     const attendStr=(g.attendedWith||[]).join(', ')||'—';
     return`<tr><td style="color:var(--muted)">${i+1}</td><td>${dateStr}</td>
       <td>${g.homeTeamName||g.homeTeam}${playoff?`<span class="playoff-badge">Playoffs</span>`:''}${wbc?`<span class="wbc-badge">WBC</span>`:''}</td>
@@ -1064,7 +1064,7 @@ function removeGame(idx){
   scoreboardData=scoreboardData.filter(r=>r.gamePk!==g.gamePk);
   delete gameNotes[g.gamePk];
   buildOpponentList();buildYearButtons();buildMonthButtons();
-  hasPlayoffGames=allHittingRaw.some(r=>isPlayoff(r.gameType))||allPitchingRaw.some(r=>isPlayoff(r.gameType));
+  hasPlayoffGames=allHittingRaw.some(r=>isPlayoff(r.gameType,r.sportId))||allPitchingRaw.some(r=>isPlayoff(r.gameType,r.sportId));
   hasWBCGames=scoreboardData.some(r=>r.sportId===WBC_SPORT_ID);
   document.getElementById('gametype-filter-group').style.display=(hasPlayoffGames||hasWBCGames)?'flex':'none';
   document.getElementById('gt-wbc').style.display=hasWBCGames?'':'none';
@@ -1236,7 +1236,7 @@ function renderScoreboardCard(g){
   const awayRow=innNums.map(n=>{const v=g.awayScores[n-1];return`<td class="inning-score">${v!==undefined&&v!==''?v:(n<=g.innings?'0':'-')}</td>`;}).join('');
   const homeRow=innNums.map(n=>{const v=g.homeScores[n-1];return`<td class="inning-score">${v!==undefined&&v!==''?v:(n<=g.innings?'0':'-')}</td>`;}).join('');
   const wbc=g.sportId===WBC_SPORT_ID;
-  const playoffBadge=isPlayoff(g.gameType)?`<span class="playoff-badge">${gameTypeName(g.gameType)}</span>`:'';
+  const playoffBadge=isPlayoff(g.gameType,g.sportId)?`<span class="playoff-badge">${gameTypeName(g.gameType)}</span>`:'';
   const wbcBadge=wbc?`<span class="wbc-badge">WBC</span>`:'';
   const awayAbbr=getAbbr(g.awayTeamName),homeAbbr=getAbbr(g.homeTeamName);
   const dec=g.decisions||{};
@@ -1633,7 +1633,7 @@ function openGamesDetail(title, subtitle, games) {
     .map(g => {
       const homeWin = g.homeR > g.awayR;
       const wbc = g.sportId === WBC_SPORT_ID ? `<span class="wbc-badge">WBC</span>` : '';
-      const playoff = isPlayoff(g.gameType) ? `<span class="playoff-badge">${gameTypeName(g.gameType)}</span>` : '';
+      const playoff = isPlayoff(g.gameType, g.sportId) ? `<span class="playoff-badge">${gameTypeName(g.gameType)}</span>` : '';
       const resultCls = homeWin ? 'result-w' : 'result-l';
       return `<tr>
         <td style="text-align:left">${g.date||'—'}</td>

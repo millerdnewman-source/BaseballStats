@@ -578,7 +578,6 @@ const TEAM_STADIUM = {
   'Twins':'Target Field','Minnesota Twins':'Target Field',
   'White Sox':'Guaranteed Rate Field','Chicago White Sox':'Guaranteed Rate Field',
   'Yankees':'Yankee Stadium','New York Yankees':'Yankee Stadium',
-  'United States':'Daikin Park','Brazil':'Daikin Park','Japan':'Daikin Park',
 };
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -611,7 +610,8 @@ function getStadium(teamName){
   if(parts.length>=2){const l2=parts.slice(-2).join(' ');if(TEAM_STADIUM[l2])return TEAM_STADIUM[l2];}
   return teamName;
 }
-
+// Prefer the venue from the MLB API; fall back to the team lookup for older data
+function stadiumOf(g){return g.venue||stadiumOf(g);}
 // ============================================================
 // STATE
 // ============================================================
@@ -800,7 +800,7 @@ async function tryGetGameInfo(date,homeTeam,gameNumber,sportId){
     games.sort((a,b)=>(a.gameNumber||1)-(b.gameNumber||1));
     if(games.length<gameNumber)return null;
     const g=games[gameNumber-1];
-    return{gamePk:g.gamePk,gameType:g.gameType||'R',homeTeamName:g.teams?.home?.team?.name||homeTeam,awayTeamName:g.teams?.away?.team?.name||'',sportId};
+    return{gamePk:g.gamePk,gameType:g.gameType||'R',homeTeamName:g.teams?.home?.team?.name||homeTeam,awayTeamName:g.teams?.away?.team?.name||'',sportId,venue:g.venue?.name||''};
   }catch(e){return null;}
 }
 async function getGameInfo(date,homeTeam,gameNumber){
@@ -959,11 +959,11 @@ async function fetchAllGames(games,snap){
     const monthNum=new Date(`${g.month} 1 ${g.year}`).getMonth()+1;
     const date=`${g.year}-${String(monthNum).padStart(2,'0')}-${String(g.day).padStart(2,'0')}`;
     setStatus(`[${label}/${games.length}] ${date} — ${g.homeTeam}`);
-    const{gamePk,gameType,homeTeamName,awayTeamName,sportId}=await getGameInfo(date,g.homeTeam,g.gameNumber);
+    const{gamePk,gameType,homeTeamName,awayTeamName,sportId,venue}=await getGameInfo(date,g.homeTeam,g.gameNumber);
     const[box,ls,decisions]=await Promise.all([getBoxscoreData(gamePk),getLinescoreData(gamePk),getDecisionsData(gamePk)]);
     const{hittingRows,pitchingRows}=parseBoxscore(box,gamePk,g.year,gameType,homeTeamName,awayTeamName,sportId);
     const sbEntry=parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,g.attendedWith||[],sportId,decisions);
-    sbEntry.date=date;sbEntry.year=g.year;
+    sbEntry.date=date;sbEntry.year=g.year;sbEntry.venue=venue;
     allHittingRaw.push(...hittingRows);allPitchingRaw.push(...pitchingRows);scoreboardData.push(sbEntry);
     if(g.note)gameNotes[gamePk]=g.note;
     gameList.push({...g,gamePk,gameType,homeTeamName,awayTeamName,sportId});
@@ -1006,14 +1006,14 @@ async function fetchAllGames(games,snap){
   initFiltersAndRender();
 }
 async function fetchSingleGame(date,homeTeam,gameNumber,overrideType,attendedWith,note){
-  const{gamePk,gameType:detectedType,homeTeamName,awayTeamName,sportId}=await getGameInfo(date,homeTeam,gameNumber);
+  const{gamePk,gameType:detectedType,homeTeamName,awayTeamName,sportId,venue}=await getGameInfo(date,homeTeam,gameNumber);
   const gameType=(overrideType&&overrideType!=='auto')?overrideType:detectedType;
   const parts=date.split('-');
   const year=parseInt(parts[0]),month=MONTH_NAMES[parseInt(parts[1])-1],day=parseInt(parts[2]);
   const[box,ls,decisions]=await Promise.all([getBoxscoreData(gamePk),getLinescoreData(gamePk),getDecisionsData(gamePk)]);
   const{hittingRows,pitchingRows}=parseBoxscore(box,gamePk,year,gameType,homeTeamName,awayTeamName,sportId);
   const sbEntry=parseLinescoreForScoreboard(ls,gamePk,gameType,homeTeamName,awayTeamName,attendedWith||[],sportId,decisions);
-  sbEntry.date=date;sbEntry.year=year;
+  sbEntry.date=date;sbEntry.year=year;sbEntry.venue=venue;
   allHittingRaw.push(...hittingRows);allPitchingRaw.push(...pitchingRows);scoreboardData.push(sbEntry);
   if(note&&note.trim())gameNotes[gamePk]=note.trim();
   gameList.push({month,day,year,homeTeam,gameNumber,gamePk,gameType,homeTeamName,awayTeamName,sportId,attendedWith:attendedWith||[]});
@@ -1392,7 +1392,7 @@ function renderAttendance(sbRows){
   const peopleSet=new Set(),stadiumGameMap={};
   attStadiumGames={};
   for(const g of filteredSb){
-    const stadium=getStadium(g.homeTeamName);
+    const stadium=stadiumOf(g);
     if(!stadiumGameMap[stadium]){stadiumGameMap[stadium]=new Set();attStadiumGames[stadium]=[];}
     if(!stadiumGameMap[stadium].has(g.gamePk)){stadiumGameMap[stadium].add(g.gamePk);attStadiumGames[stadium].push(g);}
     for(const p of(g.attendedWith||[]))peopleSet.add(p);
@@ -1406,7 +1406,7 @@ function renderAttendance(sbRows){
   const psc={},pscGames={};
   for(const p of people){psc[p]={};pscGames[p]={};for(const s of stadiums){psc[p][s]=0;pscGames[p][s]=[];}}
   for(const g of filteredSb){
-    const stadium=getStadium(g.homeTeamName);
+    const stadium=stadiumOf(g);
     for(const p of(g.attendedWith||[])){if(psc[p]){psc[p][stadium]=(psc[p][stadium]||0)+1;if(!pscGames[p][stadium])pscGames[p][stadium]=[];pscGames[p][stadium].push(g);}}
   }
   const personTotals={},stadiumTotals={};
@@ -1470,7 +1470,7 @@ function renderPersonalGameStats(sbRows){
   </div>`;
   if(!filteredSb.length){wrap.innerHTML=filterBar+'<div class="personal-empty-msg">No games match the current filters.</div>';return;}
   const stadiumSet=new Set(),gameDay={};
-  for(const g of filteredSb){const stadium=getStadium(g.homeTeamName);const d=new Date(g.date+'T12:00:00');stadiumSet.add(stadium);gameDay[g.gamePk]={dayIdx:d.getDay(),stadium};}
+  for(const g of filteredSb){const stadium=stadiumOf(g);const d=new Date(g.date+'T12:00:00');stadiumSet.add(stadium);gameDay[g.gamePk]={dayIdx:d.getDay(),stadium};}
   const stadiums=[...stadiumSet].sort(),days=[0,1,2,3,4,5,6];
   const matrix={};
   for(const s of stadiums){matrix[s]={};for(const d of days)matrix[s][d]=0;}
@@ -1481,8 +1481,8 @@ function renderPersonalGameStats(sbRows){
   stadiums.sort((a,b)=>stadiumTotals[b]-stadiumTotals[a]);
   const thDays=days.map(d=>`<th>${DAY_NAMES[d].slice(0,3)}<span style="display:block;font-size:0.55rem;font-weight:400;color:rgba(0,0,0,0.7)">${DAY_NAMES[d].slice(3)}</span></th>`).join('');
   const dataRows=stadiums.map(s=>{
-    const cells=days.map(d=>{const v=matrix[s][d];if(v>0){const gamesForCell=filteredSb.filter(g=>{const di=new Date(g.date+'T12:00:00').getDay();return getStadium(g.homeTeamName)===s&&di===d;});const gj=JSON.stringify(gamesForCell.map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));return`<td class="personal-cell-filled" style="cursor:pointer;" onclick="handlePersonalCellClick(this)" data-label="${escAttr(s+' · '+DAY_NAMES[d])}" data-games="${escAttr(gj)}">${v}</td>`;}return`<td class="personal-cell-empty">·</td>`;}).join('');
-    const stadiumGames=filteredSb.filter(g=>getStadium(g.homeTeamName)===s);
+    const cells=days.map(d=>{const v=matrix[s][d];if(v>0){const gamesForCell=filteredSb.filter(g=>{const di=new Date(g.date+'T12:00:00').getDay();return stadiumOf(g)===s&&di===d;});const gj=JSON.stringify(gamesForCell.map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));return`<td class="personal-cell-filled" style="cursor:pointer;" onclick="handlePersonalCellClick(this)" data-label="${escAttr(s+' · '+DAY_NAMES[d])}" data-games="${escAttr(gj)}">${v}</td>`;}return`<td class="personal-cell-empty">·</td>`;}).join('');
+    const stadiumGames=filteredSb.filter(g=>stadiumOf(g)===s);
     const stadiumGj=JSON.stringify(stadiumGames.map(g=>({date:g.date,away:getAbbr(g.awayTeamName),home:getAbbr(g.homeTeamName),awayR:g.awayR,homeR:g.homeR,gameType:g.gameType,sportId:g.sportId})));
     return`<tr><td title="${escAttr(s)}">${escHtml(s.length>22?s.slice(0,21)+'…':s)}</td>${cells}<td class="personal-total-col" style="cursor:pointer;" onclick="handlePersonalStadiumTotalClick(this)" data-stadium="${escAttr(s)}" data-games="${escAttr(stadiumGj)}">${stadiumTotals[s]}</td></tr>`;
   }).join('');

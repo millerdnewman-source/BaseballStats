@@ -316,6 +316,7 @@ table.stats-dt tbody td.hi-stat{color:var(--accent2);}
 /* stadium header for H2H */
 .h2h-team-header{height:110px;vertical-align:bottom;padding:0 4px 8px 4px!important;min-width:32px;max-width:32px;width:32px;}
 .h2h-team-header .th-inner{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;display:inline-block;max-height:100px;overflow:hidden;text-overflow:ellipsis;font-size:0.58rem;letter-spacing:0.06em;line-height:1;}
+#cache-banner{display:none;background:rgba(240,196,74,0.18);border:1px solid var(--gold);border-radius:4px;padding:10px 16px;margin-bottom:20px;font-family:var(--mono);font-size:0.72rem;color:var(--text);}
 footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mono);font-size:0.65rem;color:var(--muted);letter-spacing:0.08em;margin-top:60px;}
 @media(max-width:600px){header,main,footer{padding-left:20px;padding-right:20px;}.modal{margin:16px;}}
 </style>
@@ -337,6 +338,7 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
     </div>
   </div>
   <div id="stats-section">
+    <div id="cache-banner"></div>
     <div class="stat-pills" id="summary-pills"></div>
     <div class="filter-bar">
       <div class="filter-row">
@@ -394,6 +396,7 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
         <button class="action-btn accent" onclick="openAddGameModal()">＋ Add Game</button>
         <button class="action-btn" id="toggle-game-list-btn" onclick="toggleGameList()">☰ Game List</button>
         <button class="action-btn"        onclick="exportGameList()">↓ Export Game List</button>
+        <button class="action-btn gold"   onclick="downloadSnapshot()">↓ Download Snapshot</button>
         <button class="action-btn danger" onclick="reloadFromSheet()">↺ Reload Sheet</button>
       </div>
     </div>
@@ -657,20 +660,111 @@ function parseCSV(text){
   }
   return rows;
 }
+// ============================================================
+// SNAPSHOT FALLBACKS (IndexedDB + snapshot.json)
+// ============================================================
+const SNAP_DB='bbstats-cache',SNAP_STORE='snap',SNAP_KEY='latest';
+const SNAP_FILE_URL='snapshot.json';
+function snapOpen(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(SNAP_DB,1);
+    r.onupgradeneeded=()=>r.result.createObjectStore(SNAP_STORE);
+    r.onsuccess=()=>res(r.result);
+    r.onerror=()=>rej(r.error);
+  });
+}
+async function snapSave(obj){
+  const db=await snapOpen();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(SNAP_STORE,'readwrite');
+    tx.objectStore(SNAP_STORE).put(obj,SNAP_KEY);
+    tx.oncomplete=()=>res();
+    tx.onerror=()=>rej(tx.error);
+  });
+}
+async function snapLoad(){
+  try{
+    const db=await snapOpen();
+    return await new Promise((res,rej)=>{
+      const q=db.transaction(SNAP_STORE).objectStore(SNAP_STORE).get(SNAP_KEY);
+      q.onsuccess=()=>res(q.result||null);
+      q.onerror=()=>rej(q.error);
+    });
+  }catch(e){return null;}
+}
+async function fileSnapLoad(){
+  try{
+    const resp=await fetch(SNAP_FILE_URL,{cache:'no-store'});
+    if(!resp.ok)return null;
+    const s=await resp.json();
+    if(s&&Array.isArray(s.gameList)&&Array.isArray(s.sbData)){s._fromFile=true;return s;}
+    return null;
+  }catch(e){return null;}
+}
+function snapLabel(snap){return snap&&snap._fromFile?'the backup file (snapshot.json)':'a saved copy';}
+function showCacheBanner(msg){
+  const el=document.getElementById('cache-banner');
+  if(!el)return;
+  el.textContent=msg||'';
+  el.style.display=msg?'block':'none';
+}
+function restoreFullSnapshot(snap,reason){
+  gameList=snap.gameList||[];allHittingRaw=snap.hRaw||[];allPitchingRaw=snap.pRaw||[];
+  scoreboardData=snap.sbData||[];gameNotes=snap.notes||{};totalGameCount=gameList.length;
+  showCacheBanner(`⚠ ${reason}. Showing ${snapLabel(snap)} from ${new Date(snap.savedAt).toLocaleString()}.`);
+  initFiltersAndRender();
+}
+function restoreGameFromSnapshot(g,snap){
+  if(!snap)return false;
+  const old=(snap.gameList||[]).find(x=>x.year===g.year&&x.month===g.month&&x.day===g.day&&x.homeTeam===g.homeTeam&&x.gameNumber===g.gameNumber);
+  if(!old)return false;
+  const pk=old.gamePk;
+  const sb=(snap.sbData||[]).find(r=>r.gamePk===pk);
+  if(!sb)return false;
+  allHittingRaw.push(...(snap.hRaw||[]).filter(r=>r.game_id===pk));
+  allPitchingRaw.push(...(snap.pRaw||[]).filter(r=>r.game_id===pk));
+  scoreboardData.push({...sb,attendedWith:g.attendedWith||[]});
+  if(g.note)gameNotes[pk]=g.note;
+  gameList.push({...old,attendedWith:g.attendedWith||[]});
+  return true;
+}
+function downloadSnapshot(){
+  if(!gameList.length){showToast('No data to snapshot');return;}
+  const snap={savedAt:Date.now(),gameList,hRaw:allHittingRaw,pRaw:allPitchingRaw,sbData:scoreboardData,notes:gameNotes};
+  const blob=new Blob([JSON.stringify(snap)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='snapshot.json';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  showToast('snapshot.json downloaded');
+}
 async function loadFromGoogleSheet(){
   showStatus('Connecting to Google Sheets…',0);
+  // Prefer this browser's own snapshot; fall back to snapshot.json from the repo
+  let snap=await snapLoad();
+  if(!snap)snap=await fileSnapLoad();
+  let games;
   try{
     const resp=await fetch(SHEET_CSV_URL);
     if(!resp.ok)throw new Error(`HTTP ${resp.status}`);
     const text=await resp.text();
     const rows=parseCSV(text);
-    const games=rows
+    games=rows
       .filter(r=>r.length>=5&&r[1]&&r[2]&&r[3]&&r[4])
       .map(r=>({month:String(r[1]).trim(),day:parseInt(r[2]),year:parseInt(r[3]),homeTeam:String(r[4]).trim(),gameNumber:parseInt(r[5])||1,attendedWith:parseAttendeesStr(r[6]||''),note:r[7]?String(r[7]).trim():''}))
       .filter(g=>g.month&&!isNaN(g.day)&&!isNaN(g.year)&&g.homeTeam);
     if(!games.length)throw new Error('No valid rows found in Google Sheet.');
-    await fetchAllGames(games);
-  }catch(err){showError('Could not load Google Sheet: '+err.message);}
+  }catch(err){
+    if(snap){restoreFullSnapshot(snap,'Could not load Google Sheet');return;}
+    showError('Could not load Google Sheet: '+err.message);
+    return;
+  }
+  try{
+    await fetchAllGames(games,snap);
+  }catch(err){
+    if(snap){restoreFullSnapshot(snap,'Live load failed');return;}
+    showError('Load failed: '+err.message);
+  }
 }
 function reloadFromSheet(){
   if(hittingDT){hittingDT.destroy();hittingDT=null;}
@@ -682,6 +776,7 @@ function reloadFromSheet(){
   selectedAttendee='All';
   attSortCol=null;attSortDir='desc';sbSearchTerm='';
   attTeamFilter='All';personalTeamFilter='All';
+  showCacheBanner('');
   document.getElementById('stats-section').style.display='none';
   document.getElementById('loading-section').style.display='block';
   document.getElementById('game-list-panel').classList.remove('open');
@@ -855,10 +950,10 @@ function computePitching(rows){
 // ============================================================
 // FETCH LOOP
 // ============================================================
-async function fetchAllGames(games){
+async function fetchAllGames(games,snap){
   showStatus("Fetching games…",0);
   allHittingRaw=[];allPitchingRaw=[];gameList=[];scoreboardData=[];gameNotes={};
-  let completed=0;
+  let completed=0,failed=0,restored=0;
   const CONCURRENCY=10; // number of games fetched in parallel at any given moment
   async function fetchOne(g,label){
     const monthNum=new Date(`${g.month} 1 ${g.year}`).getMonth()+1;
@@ -881,7 +976,9 @@ async function fetchAllGames(games){
       try{
         await fetchOne(g,idx+1);
       }catch(err){
-        console.warn(`Skipped: ${g.homeTeam} — ${err.message}`);
+        console.warn(`Live fetch failed: ${g.homeTeam} — ${err.message}`);
+        if(restoreGameFromSnapshot(g,snap))restored++;
+        else failed++;
       }
       completed++;
       setProgress(Math.round((completed/games.length)*100));
@@ -890,7 +987,22 @@ async function fetchAllGames(games){
   const workerCount=Math.min(CONCURRENCY,games.length);
   await Promise.all(Array.from({length:workerCount},()=>worker()));
   setProgress(100);totalGameCount=games.length;
-  if(!allHittingRaw.length&&!allPitchingRaw.length&&!scoreboardData.length){showError("No data could be retrieved.");return;}
+  if(!allHittingRaw.length&&!allPitchingRaw.length&&!scoreboardData.length){
+    if(snap){restoreFullSnapshot(snap,'Live data unavailable');return;}
+    showError("No data could be retrieved.");return;
+  }
+  // Only overwrite the browser backup after a 100% live, complete load
+  if(failed===0&&restored===0){
+    snapSave({savedAt:Date.now(),gameList,hRaw:allHittingRaw,pRaw:allPitchingRaw,sbData:scoreboardData,notes:gameNotes})
+      .catch(e=>console.warn('Snapshot save failed',e));
+  }
+  if(restored>0){
+    showCacheBanner(`⚠ ${restored} game${restored!==1?'s':''} loaded from ${snapLabel(snap)} (${new Date(snap.savedAt).toLocaleString()}) because live data was unavailable.`);
+  }else if(failed>0){
+    showCacheBanner(`⚠ ${failed} game${failed!==1?'s':''} could not be loaded and ${failed!==1?'are':'is'} missing.`);
+  }else{
+    showCacheBanner('');
+  }
   initFiltersAndRender();
 }
 async function fetchSingleGame(date,homeTeam,gameNumber,overrideType,attendedWith,note){

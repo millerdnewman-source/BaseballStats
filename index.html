@@ -611,7 +611,7 @@ function getStadium(teamName){
   return teamName;
 }
 // Prefer the venue from the MLB API; fall back to the team lookup for older data
-function stadiumOf(g){return g.venue||stadiumOf(g);}
+function stadiumOf(g){return g.venue||getStadium(g.homeTeamName);}
 // ============================================================
 // STATE
 // ============================================================
@@ -711,7 +711,8 @@ function showCacheBanner(msg){
 function restoreFullSnapshot(snap,reason){
   gameList=snap.gameList||[];allHittingRaw=snap.hRaw||[];allPitchingRaw=snap.pRaw||[];
   scoreboardData=snap.sbData||[];gameNotes=snap.notes||{};totalGameCount=gameList.length;
-  showCacheBanner(`⚠ ${reason}. Showing ${snapLabel(snap)} from ${new Date(snap.savedAt).toLocaleString()}.`);
+  if(reason)showCacheBanner(`⚠ ${reason}. Showing ${snapLabel(snap)} from ${new Date(snap.savedAt).toLocaleString()}.`);
+  else showCacheBanner('');
   initFiltersAndRender();
 }
 function restoreGameFromSnapshot(g,snap){
@@ -738,27 +739,46 @@ function downloadSnapshot(){
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   showToast('snapshot.json downloaded');
 }
-async function loadFromGoogleSheet(){
-  showStatus('Connecting to Google Sheets…',0);
-  // Prefer this browser's own snapshot; fall back to snapshot.json from the repo
-  let snap=await snapLoad();
-  if(!snap)snap=await fileSnapLoad();
+function gameSig(g){
+  return [g.year,g.month,g.day,g.homeTeam,g.gameNumber,(g.attendedWith||[]).join(','),g.note||''].join('|');
+}
+function snapMatchesSheet(snap,games){
+  if(!snap||!Array.isArray(snap.gameList))return false;
+  if(snap.gameList.length!==games.length)return false;
+  const a=snap.gameList.map(gameSig).sort().join('\n');
+  const b=games.map(gameSig).sort().join('\n');
+  return a===b;
+}
+
+async function loadFromGoogleSheet(forceLive=false){
+  showStatus('Checking for updates…',0);
+  const filePromise=forceLive?Promise.resolve(null):fileSnapLoad();
   let games;
   try{
     const resp=await fetch(SHEET_CSV_URL);
     if(!resp.ok)throw new Error(`HTTP ${resp.status}`);
-    const text=await resp.text();
-    const rows=parseCSV(text);
+    const rows=parseCSV(await resp.text());
     games=rows
       .filter(r=>r.length>=5&&r[1]&&r[2]&&r[3]&&r[4])
       .map(r=>({month:String(r[1]).trim(),day:parseInt(r[2]),year:parseInt(r[3]),homeTeam:String(r[4]).trim(),gameNumber:parseInt(r[5])||1,attendedWith:parseAttendeesStr(r[6]||''),note:r[7]?String(r[7]).trim():''}))
       .filter(g=>g.month&&!isNaN(g.day)&&!isNaN(g.year)&&g.homeTeam);
     if(!games.length)throw new Error('No valid rows found in Google Sheet.');
   }catch(err){
+    const snap=(await filePromise)||(await snapLoad());
     if(snap){restoreFullSnapshot(snap,'Could not load Google Sheet');return;}
     showError('Could not load Google Sheet: '+err.message);
     return;
   }
+
+  // FAST PATH: snapshot.json matches the sheet, so skip all MLB API calls
+  const fileSnap=await filePromise;
+  if(!forceLive&&snapMatchesSheet(fileSnap,games)){
+    restoreFullSnapshot(fileSnap,null);
+    return;
+  }
+
+  // SLOW PATH: sheet changed, so do the normal live load
+  const snap=(await snapLoad())||fileSnap;
   try{
     await fetchAllGames(games,snap);
   }catch(err){
@@ -781,7 +801,7 @@ function reloadFromSheet(){
   document.getElementById('loading-section').style.display='block';
   document.getElementById('game-list-panel').classList.remove('open');
   document.getElementById('toggle-game-list-btn').textContent='☰ Game List';
-  loadFromGoogleSheet();
+  loadFromGoogleSheet(true);
 }
 
 // ============================================================

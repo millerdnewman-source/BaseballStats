@@ -396,7 +396,8 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
         <button class="action-btn accent" onclick="openAddGameModal()">＋ Add Game</button>
         <button class="action-btn" id="toggle-game-list-btn" onclick="toggleGameList()">☰ Game List</button>
         <button class="action-btn"        onclick="exportGameList()">↓ Export Game List</button>
-        <button class="action-btn gold"   onclick="downloadSnapshot()">↓ Download Snapshot</button>
+        <button class="action-btn gold"   onclick="saveSnapshotToGitHub()">↑ Save Snapshot to GitHub</button>
+        <button class="action-btn"        onclick="downloadSnapshot()">↓ Download Snapshot</button>
         <button class="action-btn danger" onclick="reloadFromSheet()">↺ Reload Sheet</button>
       </div>
     </div>
@@ -738,6 +739,64 @@ function downloadSnapshot(){
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   showToast('snapshot.json downloaded');
+}
+const GH_OWNER='millerdnewman';
+const GH_REPO='BaseballStats';
+const GH_BRANCH='main';          // change if your branch is named differently
+const GH_PATH='snapshot.json';   // path inside the repo (root = 'snapshot.json')
+const GH_TOKEN_KEY='bbstats-gh-token';
+
+function utf8ToBase64(str){
+  const bytes=new TextEncoder().encode(str);
+  let bin='';const chunk=0x8000;
+  for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+  return btoa(bin);
+}
+
+async function saveSnapshotToGitHub(){
+  if(!gameList.length){showToast('No data to snapshot');return;}
+  // Don't overwrite the good snapshot with a partial load
+  const banner=document.getElementById('cache-banner');
+  if(banner&&banner.style.display==='block'&&!confirm('The page shows a warning (partial or cached data). Save this snapshot to GitHub anyway?'))return;
+
+  let token=localStorage.getItem(GH_TOKEN_KEY);
+  if(!token){
+    token=(prompt('Paste your GitHub fine-grained token (stored only in this browser):')||'').trim();
+    if(!token)return;
+    localStorage.setItem(GH_TOKEN_KEY,token);
+  }
+  const api=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
+  const headers={Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+  showToast('Saving snapshot to GitHub…');
+  try{
+    // Get the current file's sha (required to overwrite an existing file)
+    let sha;
+    const getResp=await fetch(`${api}?ref=${GH_BRANCH}`,{headers});
+    if(getResp.status===200)sha=(await getResp.json()).sha;
+    else if(getResp.status===401||getResp.status===403){localStorage.removeItem(GH_TOKEN_KEY);throw new Error('Token rejected. Click again to enter a new one.');}
+    else if(getResp.status!==404)throw new Error(`HTTP ${getResp.status} reading file`);
+
+    const snap={savedAt:Date.now(),gameList,hRaw:allHittingRaw,pRaw:allPitchingRaw,sbData:scoreboardData,notes:gameNotes};
+    const putResp=await fetch(api,{
+      method:'PUT',
+      headers:{...headers,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        message:`Update snapshot (${gameList.length} games)`,
+        content:utf8ToBase64(JSON.stringify(snap)),
+        branch:GH_BRANCH,
+        ...(sha?{sha}:{})
+      })
+    });
+    if(!putResp.ok){
+      const err=await putResp.json().catch(()=>({}));
+      if(putResp.status===401||putResp.status===403)localStorage.removeItem(GH_TOKEN_KEY);
+      throw new Error(err.message||`HTTP ${putResp.status}`);
+    }
+    showToast('Snapshot saved to GitHub');
+  }catch(err){
+    console.warn('GitHub save failed',err);
+    showToast('GitHub save failed: '+err.message);
+  }
 }
 function gameSig(g){
   return [g.year,g.month,g.day,g.homeTeam,g.gameNumber,(g.attendedWith||[]).join(','),g.note||''].join('|');

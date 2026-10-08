@@ -376,7 +376,7 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
           </select>
         </div>
         <div class="filter-group" id="player-team-filter-group">
-          <span class="filter-label">Player Team</span>
+          <span class="filter-label">Team</span>
           <select class="opp-select" id="player-team-select" onchange="selectPlayerTeam(this.value)">
             <option value="All">All Teams</option>
           </select>
@@ -423,7 +423,7 @@ footer{border-top:1px solid var(--border);padding:20px 40px;font-family:var(--mo
     </div>
   </div>
 </main>
-<footer>Data sourced live from MLB Stats API &nbsp;·&nbsp; No data is stored or transmitted</footer>
+<footer>Data sourced live from MLB Stats API</footer>
 
 <!-- ADD GAME MODAL -->
 <div class="modal-overlay" id="add-game-modal">
@@ -1741,10 +1741,10 @@ function renderTables(hitting,pitching,gameCount,sbRows){
   if(pitchingDT){pitchingDT.destroy();pitchingDT=null;}
   document.getElementById('hittingTable').innerHTML=buildTableHTML(hitting,HITTING_COLS,HI_HIT,'hitting');
   document.getElementById('pitchingTable').innerHTML=buildTableHTML(pitching,PITCHING_COLS,HI_PIT,'pitching');
-  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1}});
+  hittingDT=$('#hittingTable').DataTable({paging:true,info:true,searching:true,pageLength:10,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1}});
   setTimeout(function(){const w=$('#hittingTable tbody tr:first td:first').outerWidth();if(w){$('#hittingTable thead th:first').css('min-width',w+'px');}hittingDT.columns.adjust();},300);
 
-  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:25,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1}});
+  pitchingDT=$('#pitchingTable').DataTable({paging:true,info:true,searching:true,pageLength:10,order:[[3,'desc']],scrollX:true, scrollY:'60vh', scrollCollapse:true,columnDefs:[{targets:2,orderable:false}],fixedColumns:{leftColumns:1}});
   setTimeout(function(){const w=$('#pitchingTable tbody tr:first td:first').outerWidth();if(w){$('#pitchingTable thead th:first').css('min-width',w+'px');}pitchingDT.columns.adjust();},300);
   
   const old=document.getElementById('player-search'),nw=old.cloneNode(true);
